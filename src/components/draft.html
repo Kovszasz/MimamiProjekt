@@ -1,0 +1,48 @@
+<template>
+<div>
+  <Navbar/>
+  <v-content>
+<v-card
+   class="mx-auto"
+   max-width="500"
+   raised
+ >
+ <v-container>
+  <form @submit.prevent="loginUser">
+    <v-text-field
+      v-model="username"
+      :counter="30"
+      label="Username"
+      data-vv-name="username"
+      outlined
+    ></v-text-field>
+    <v-text-field
+               v-model="password"
+               label="Password"
+               outlined
+    ></v-text-field>
+    <!--<ImageUploader/>-->
+    <v-btn class="mr-4" @click="loginUser">Login</v-btn>
+  </form>
+  </v-container>
+  </v-card>
+  </v-content>
+</div>
+</template>
+<template>
+  <div class="login-form">
+    <Navbar/>
+    <v-content>
+    <div class="lg">
+      <h2 v-if="wrongCred">Wrong credentials entered!. Please enter your correct details.</h2>
+      <form v-on:submit.prevent="loginUser">
+        <label for="user">Username</label>
+        <input type="text" name="username" id="user" v-model="username">
+        <label for="pass">Password</label>
+        <input type="password" name="password" id="pass" v-model="password">
+        <button type="submit">Login</button>
+      </form>
+    </div>
+    </v-content>
+  </div>
+</template>
