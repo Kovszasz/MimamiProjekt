@@ -23,7 +23,7 @@ getAPI.interceptors.response.use(undefined, function (err) {
         axios.request({
           baseURL: APIUrl,
           method: 'get',
-          headers: { Authorization: `Bearer ${access}` }, // the new access token is attached to the authorization header
+          headers: { Authorization: `JWT ${access}` }, // the new access token is attached to the authorization header
           url: 'api/post/'
         }).then(response => {
           // if successfully received the data store it in store.state.APIData so that 'Downloads' component can grab the

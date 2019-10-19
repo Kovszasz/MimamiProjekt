@@ -10,7 +10,7 @@ if (token) {
 }*/
 const  state= {
      accessToken: localStorage.getItem('access_token') || null,
-     token:localStorage.getItem('user-token') || null,
+    // token:localStorage.getItem('user-token') || null,
     // refreshing the page
      refreshToken: localStorage.getItem('refresh_token') || null,
      APIData: '' // received data from the backend API is stored here.
