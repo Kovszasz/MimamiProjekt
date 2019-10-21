@@ -196,24 +196,28 @@ REST_FRAMEWORK = {
 }
 
 
-JWT_AUTH = { 'JWT_ENCODE_HANDLER': 'rest_framework_jwt.utils.jwt_encode_handler',
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=100),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
 
-'JWT_DECODE_HANDLER':
-'rest_framework_jwt.utils.jwt_decode_handler',
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
 
-'JWT_PAYLOAD_HANDLER':
-'rest_framework_jwt.utils.jwt_payload_handler',
+    'AUTH_HEADER_TYPES': ('Bearer','JWT',),
+    'USER_ID_FIELD': 'username',
+    'USER_ID_CLAIM': 'username',
 
-'JWT_PAYLOAD_GET_USER_ID_HANDLER':
-'rest_framework_jwt.utils.jwt_get_user_id_from_payload_handler',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
 
-'JWT_RESPONSE_PAYLOAD_HANDLER':
-#'rest_framework_jwt.utils.jwt_response_payload_handler'
-'users.api.utils.jwt_response_payload_handler',
+    'JTI_CLAIM': 'jti',
 
-'JWT_ALLOW_REFRESH': True,
-'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
-
-'JWT_AUTH_HEADER_PREFIX': 'JWT', # Authorization: JWT <token>
-'JWT_AUTH_COOKIE': None,
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+    'SLIDING_TOKEN_LIFETIME': datetime.timedelta(minutes=5),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': datetime.timedelta(days=1),
 }
