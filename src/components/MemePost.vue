@@ -19,7 +19,7 @@
             </v-carousel-item>
           </v-carousel>
             <v-row >
-              <v-col v-if="IsLiked"><v-icon color="#fe5552" @click="liking(post.ID)">mdi-thumb-up</v-icon><p>{{ like }}</p>
+              <v-col v-if="IsLiked"><v-icon color="#fe5552" @click="liking()">mdi-thumb-up</v-icon><p>{{ like }}</p>
               </v-col>
               <v-col v-if="!IsLiked"><v-icon  @click="liking(post.ID)">mdi-thumb-up</v-icon><p>{{ like }}</p>
               </v-col>
@@ -72,6 +72,7 @@ export default {
     },
       computed:mapState('authentication',{
         IsAuthenticated:'accessToken',
+        refreshToken:'refreshToken'
         /*ImageURL:function(){
         return require(`${this.post.IMG_url.replace('http://localhost:8000','../assets')}`)
     }*///,post: state => state.post.post //Ide majd az imgs rész fog jönni!
@@ -83,10 +84,10 @@ export default {
   LikePost:'LikePost',
   liking(){
       if (this.IsLiked){
-          this.LikePost(this.post.ID,1)
+          this.LikePost(this.post.ID,1,this.IsAuthenticated)
           this.like=this.post.NumberOfLikes++
       }else{
-          this.LikePost(this.post.ID,-1)
+          this.LikePost(this.post.ID,-1,this.IsAuthenticated)
           this.like=this.post.NumberOfLikes--
       }
       this.IsLiked=!this.IsLiked

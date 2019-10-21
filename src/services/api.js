@@ -6,9 +6,7 @@ export default axios.create({
   baseURL: APIUrl,
   timeout: 5000,
   headers: {
-    'Content-Type': 'application/json',
-    //'X-CSRFToken': Cookies.get('csrftoken')const headers = {
-    'Authorization': 'JWT fefege...'
+    'Content-Type': 'application/json'
   }
 })
 const getAPI = axios.create({

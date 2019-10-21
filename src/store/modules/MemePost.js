@@ -34,8 +34,8 @@ const actions = {
     postService.deletePost(postID)
     commit('deletePost', postID)
   },
-  LikePost({ commit }, post,change) {
-    postService.likePost(post)
+  LikePost({ commit }, post,change,token) {
+    postService.likePost(post,token)
     .then(() => {
       commit('likePost', post,change)
     })},
