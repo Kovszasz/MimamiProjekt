@@ -41,13 +41,13 @@
         <div v-if='!IsAuthenticated'>
         <h1> Sorry, you have to sign in, or sign up for posting</h1>
         <div v-if="!IsSignIn">
-            <Register :IsEmbed="true"/>
+            <RegisterCore/>
                   <v-btn  class="mr-4" @click="ChangeSignin">
                          Sign In
                   </v-btn>
         </div>
         <div v-if="IsSignIn">
-            <Login :IsEmbed="true"/>
+            <LoginCore/>
               <v-btn  class="mr-4" @click="ChangeSignin">
                     Register
               </v-btn>
@@ -62,8 +62,8 @@
 
 <script>
 import { mapState, mapActions } from 'vuex'
-import Register from './Register'
-import Login from './Login'
+import RegisterCore from './RegisterCore.vue'
+import LoginCore from './LoginCore.vue'
   export default {
     data () {
       return {
@@ -78,8 +78,8 @@ import Login from './Login'
             IsAuthenticated:'authentication/accessToken'
       }),
       components:{
-          Register,
-          Login
+          RegisterCore,
+          LoginCore
       },
       methods:{
           ChangeSignin:function(){

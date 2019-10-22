@@ -104,10 +104,10 @@ class PostViewSet(viewsets.ModelViewSet):
 
 
 
+
 class CommentViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows messages to be viewed or edited.
-    """
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
 
     def list(self,request):
         queryset=Post.objects.all()
@@ -122,9 +122,9 @@ class CommentViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
-        p=Post.objects.get(pk=pk)
-        api_result = Comment.objects.get(post=p)
-        serializer=PostSerializer(api_result, context={'request': request})
+        p=Post.objects.get(ID=pk)
+        api_result = Comment.objects.filter(post=p)
+        serializer=CommentSerializer(api_result, many=True,context={'request': request})
         return Response(serializer.data)
 
     def update(self, request, pk=None):

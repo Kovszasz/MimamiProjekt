@@ -11,8 +11,8 @@ const getters = {
 }
 
 const actions = {
-  getComment({ commit }){
-    commentService.fetchComment()
+  getComment({ commit },postID){
+    commentService.fetchComment(postID)
     .then(comment => {
         commit('setComment',comment)
     })}
@@ -32,6 +32,7 @@ const actions = {
 const mutations = {
   setComment(state, comment) {
     state.comments = comment
+  //  alert(state.comments)
   },
   addComment(state, comment) {
     state.comments.push(comment)

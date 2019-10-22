@@ -21,7 +21,7 @@
             <v-row >
               <v-col v-if="IsLiked"><v-icon color="#fe5552" @click="liking()">mdi-thumb-up</v-icon><p>{{ like }}</p>
               </v-col>
-              <v-col v-if="!IsLiked"><v-icon  @click="liking(post.ID)">mdi-thumb-up</v-icon><p>{{ like }}</p>
+              <v-col v-if="!IsLiked"><v-icon  @click="liking()">mdi-thumb-up</v-icon><p>{{ like }}</p>
               </v-col>
               <v-col><v-icon>mdi-message-text</v-icon></v-col>
               <v-col><v-icon> </v-icon></v-col>
@@ -84,17 +84,17 @@ export default {
   LikePost:'LikePost',
   liking(){
       if (this.IsLiked){
-          this.LikePost(this.post.ID,1,this.IsAuthenticated)
+          this.LikePost(this.post.ID,1)
           this.like=this.post.NumberOfLikes++
       }else{
-          this.LikePost(this.post.ID,-1,this.IsAuthenticated)
+          this.LikePost(this.post.ID,-1)
           this.like=this.post.NumberOfLikes--
       }
       this.IsLiked=!this.IsLiked
   }
 }),
 created() {
-  //this.$store.dispatch('post/getPost/')
+  this.$store.dispatch('post/getPost',this.post.ID)
 }
 };
 

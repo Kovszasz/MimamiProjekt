@@ -1,19 +1,38 @@
 <template>
 <div>
-  <Navbar></Navbar>
-  <LoginCore/>
+  <v-content>
+<v-card
+   class="mx-auto"
+   max-width="500"
+   raised
+ >
+ <v-container>
+  <form @submit.prevent="loginUser">
+    <v-text-field
+      v-model="username"
+      label="Username"
+      data-vv-name="username"
+      outlined
+    ></v-text-field>
+    <v-text-field
+               v-model="password"
+               label="Password"
+               outlined
+    ></v-text-field>
+    <!--<ImageUploader/>-->
+    <v-btn class="mr-4" @click="loginUser">Login</v-btn>
+  </form>
+  </v-container>
+  </v-card>
+  </v-content>
 </div>
 </template>
 
 <script>
 //import { mapState, mapActions } from 'vuex'
-import Navbar from './Navbar.vue'
-import LoginCore from './LoginCore.vue'
   export default {
-    name: 'login',
+    name: 'LoginCore',
     components: {
-        Navbar,
-        LoginCore
     },
     props:{
       IsEmbed:Boolean

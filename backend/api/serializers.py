@@ -73,7 +73,7 @@ class PostSerializer(serializers.ModelSerializer):
         return False
 
 
-class CommentSerializer(serializers.HyperlinkedModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
     ID=serializers.CharField(max_length=20, default="")
     content=serializers.CharField()
     date=models.DateField(auto_now_add=True)
@@ -81,7 +81,7 @@ class CommentSerializer(serializers.HyperlinkedModelSerializer):
     NumberOfLikes=models.IntegerField(default=0)
     class Meta:
         model = Comment
-        fields = ('url', 'content', 'post','date','NumberOfLikes')
+        fields = ('content','date','NumberOfLikes','ID')
 
 # output serializer class for  'Mods' model
 class ModSerializer(serializers.ModelSerializer):

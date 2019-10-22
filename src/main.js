@@ -4,7 +4,10 @@ import IdleVue from 'idle-vue'
 import store from '@/store'
 import router from '@/router'
 import vuetify from './plugins/vuetify';
+import axios from 'axios'
 
+// Add modified axios instance to Vue prototype so that to be available globally via Vue instance
+//Vue.prototype.$http = axios;
 
 const eventsHub = new Vue()
 Vue.use(IdleVue, {

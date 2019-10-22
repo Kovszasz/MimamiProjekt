@@ -30,7 +30,8 @@
     components:{
      meme_post,
      comment_section,
-     Navbar
+     Navbar,
+     timeline:[]
      },
     data: function(){
         return{

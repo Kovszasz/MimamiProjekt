@@ -10,10 +10,9 @@ if (token) {
 }*/
 const  state= {
      accessToken: localStorage.getItem('access_token') || null,
-    // token:localStorage.getItem('user-token') || null,
-    // refreshing the page
      refreshToken: localStorage.getItem('refresh_token') || null,
-     APIData: '' // received data from the backend API is stored here.
+     APIData: '', // received data from the backend API is stored here.
+     login:localStorage.getItem('login') || false,
   }
 const  getters= {
     loggedIn: state => {
@@ -21,12 +20,13 @@ const  getters= {
     }
   }
 const  mutations= {
-    updateLocalStorage (state, { access, refresh, user }) {
+    updateLocalStorage (state, { access, refresh,login }) {
       localStorage.setItem('access_token', access)
       localStorage.setItem('refresh_token', refresh)
-      localStorage.setItem('user-token', user)
+      localStorage.setItem('login', login)
       state.accessToken = access
       state.refreshToken = refresh
+      state.login = login
     },
     updateAccess (state, access) {
       state.accessToken = access
@@ -45,6 +45,7 @@ const  actions= {
         }) // send the stored refresh token to the backend API
           .then(response => { // if API sends back new access and refresh token update the store
           //  console.log('New access successfully generated')
+            //Vue.http.headers.common['Authorization'] = `JWT ${response.data.access}`;
             context.commit('updateAccess', response.data.access)
             resolve(response.data.access)
           })
@@ -107,7 +108,8 @@ const  actions= {
         //if successful update local storage:
           .then(response => {
             //console.log(response)
-            context.commit('updateLocalStorage', { access: response.data.access, refresh: response.data.refresh}) //, token:response.data.user }) // store the access and refresh token in localstorage
+          //  Vue.http.headers.common['Authorization'] = `JWT ${response.data.access}`;
+            context.commit('updateLocalStorage', { access: response.data.access, refresh: response.data.refresh,login:true }) //, token:response.data.user }) // store the access and refresh token in localstorage
             resolve()
           })
           .catch(err => {
@@ -120,7 +122,6 @@ const  actions= {
       })
     }
   }
-
 //  if (state.token) {
     //axios.defaults.headers.common['Authorization'] =JWT ${token};
 //  }
