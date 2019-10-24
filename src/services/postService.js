@@ -22,15 +22,16 @@ export default {
     return api.get('post/')
             .then(response => response.data)
   },
-  actionAdvert(postID,type){
-    return api.get(`post/action/`,{
-                    type:type,
-                    post:postID
-            })
+  actionAdvert(payload){
+    return api.post(`post/action/`,payload)
             .then(response => response.data)
   },
   getAdvert(){
     return api.get(`post/get_ad/`)
+            .then(response => response.data)
+  },
+  getAction(){
+    return api.get(`action/`)
             .then(response => response.data)
   }
 }

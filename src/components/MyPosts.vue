@@ -40,8 +40,11 @@
       }
     },
     computed: mapState({
-      timeline: state => state.post.timeline,
-      IsAuthenticated:'authentication/accessToken'
+      user:'user',
+      timeline: state => state.post.timeline.filter(timeline => timeline.user.username == 'User' ),
+      IsAuthenticated:'authentication/accessToken',
+
+
     }),
     methods: mapActions('post', [
       'addPost',

@@ -20,11 +20,11 @@ api.interceptors.request.use(
 
 export default {
   fetchComment(postID) {
-    return api.get(`comment/${postID}`)
+    return api.get(`comment/`)
               .then(response => response.data)
   },
-  postComment(payload,postID) {
-    return api.post(`comment/${postID}`, payload)
+  postComment(payload) {
+    return api.post(`comment/`, payload)
               .then(response => response.data)
   },
   deleteComment(comment) {

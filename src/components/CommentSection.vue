@@ -4,18 +4,17 @@
   <v-form>
     <v-container>
       <v-row>
-
         <v-col cols="12">
           <v-text-field
-            v-model="comment_"
-            :append-outer-icon="comment_ ? 'mdi-send' : 'mdi-send'"
+            v-model="content"
+            :append-outer-icon="content ? 'mdi-send' : 'mdi-send'"
             :prepend-icon="'mdi-emoticon-excited'"
             outlined
             clear-icon="mdi-close-circle"
             clearable
             label="Comment..."
             type="text"
-            @click:append-outer="add"
+            @click:append-outer="sendComment"
           ></v-text-field>
         </v-col>
       </v-row>
@@ -42,24 +41,30 @@ Vue.use(mdiShareVariant);
       password: 'Password',
       marker: true,
       show: false,
-      comment_: '',
-      comments:[]
+      comments:[],
+      content:''
     }),props:{
       postID:String
 
-    },methods: mapActions('comments', {
+    },methods: mapActions({
           add:'comments/addComment',
           delete:'comments/deleteComment',
           getComments(){
-            this.$store.dispatch('comments/getComment',this.postID)
-            this.comments=this.$store.state.comments.comments
+            //this.$store.dispatch('comments/getComment',this.postID)
+            this.comments = state => state.comment.comment.filter(comment => comment.post.ID == this.postID )
+          },
+          sendComment(){
+            this.add({ID:String(Math.round(Math.random()*10000)),content:this.content,post:this.postID})
+            this.comments = state => state.comment.comment.filter(comment => comment.post.ID == this.postID )
           }
     }),
     computed: mapState({
-      //comments: state => state.comments.comments,
+    //  comments: state => state.comments.comments,
       clearComment(){
-      this.comment_ = ''
+      this.content = ''
       }
+
+      //user:'authentication/user'
     }),
     created() {
     //  this.$store.dispatch('comments/getComment',this.postID)

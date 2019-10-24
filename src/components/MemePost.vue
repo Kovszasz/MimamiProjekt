@@ -53,12 +53,12 @@ Vue.use(mdiShareVariant);
 export default {
     props:{
       post:Object,
-      //IsLiked:Boolean
+      IsLiked:Boolean
     },data() {
         return {
           like:this.post.NumberOfLikes,
-          get_url:require('../assets/media/post/post_sample.png'), //majd összekötni a valós képekkel
-          IsLiked:this.post.IsLiked
+          get_url:require('../assets/media/post/post_sample.png') //majd összekötni a valós képekkel
+          //IsLiked:this.post.IsLiked
         }
       },
   components:{
@@ -72,7 +72,8 @@ export default {
     },
       computed:mapState('authentication',{
         IsAuthenticated:'accessToken',
-        refreshToken:'refreshToken'
+        refreshToken:'refreshToken',
+        user:'user'
         /*ImageURL:function(){
         return require(`${this.post.IMG_url.replace('http://localhost:8000','../assets')}`)
     }*///,post: state => state.post.post //Ide majd az imgs rész fog jönni!

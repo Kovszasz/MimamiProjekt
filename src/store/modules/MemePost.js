@@ -1,12 +1,16 @@
 import postService from '../../services/postService'
 
 const state = {
-  post: []
+  post: [],
+  action:[]
 }
 
 const getters = {
   post: state => {
     return state.post
+  },
+  action: state => {
+    return state.action
   }
 }
 
@@ -44,17 +48,22 @@ const actions = {
       .then(advert => {
         commit('getAdvert',advert)
       })},
-  viewAd({ commit },postID,type) {
-    postService.actionAdvert(postID,type)
+  viewAd({ commit },payload) {
+    postService.actionAdvert(payload)
     .then(advert => {
       commit('getAdvert',advert)
     })},
-  clickAd({ commit },postID,type) {
-    postService.actionAdvert(postID,type)
+  clickAd({ commit },payload) {
+    postService.actionAdvert(payload)
     .then(advert => {
       commit('getAdvert',advert)
     })
   },
+  getAction({ commit }) {
+      postService.getAction()
+      .then(action => {
+        commit('setAction',action)
+      })},
 }
 
 const mutations = {
@@ -77,6 +86,9 @@ const mutations = {
   getAdvert(state, advert) {
     state.advert=advert
   },
+  setAction(state, action) {
+    state.action=action
+  }
 }
 
 export default {

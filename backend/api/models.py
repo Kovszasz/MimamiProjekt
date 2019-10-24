@@ -16,7 +16,7 @@ class Post(models.Model):
     ID=models.CharField(max_length=20,primary_key=True)
     description=models.TextField()
     IMG=models.ImageField(upload_to='post',blank=True)
-    #user=models.ForeignKey(User, on_delete=models.CASCADE)
+    user=models.ForeignKey(User, on_delete=models.CASCADE, default='')
     IsModerated=models.BooleanField(default=False)
     IsAdvert=models.BooleanField(default=False)
     IsInlinePost=models.BooleanField(default=False)
@@ -27,7 +27,7 @@ class Post(models.Model):
     #date=models.DateField(auto_now_add=True)
 
 class Comment(models.Model):
-    #user=models.ForeignKey(User,on_delete=models.CASCADE)
+    user=models.ForeignKey(User,on_delete=models.CASCADE, default="")
     ID=models.CharField(max_length=20,primary_key=True, default="")
     post=models.ForeignKey(Post,on_delete=models.CASCADE,default="")
     content=models.TextField()

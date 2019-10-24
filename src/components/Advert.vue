@@ -8,7 +8,7 @@
       <div @click="clicked" >
           <p>{{ ViewAdded }} {{ Clicked }}</p>
           <v-responsive :aspect-ratio="10/1">
-            <a href="https://dreher.hu" ><img src="@/assets/media/post/adheader.png"/></a>
+            <img src="@/assets/media/post/adheader.png"/>
           </v-responsive>
       </div>
   </div>
@@ -45,12 +45,15 @@ methods: mapActions({
         clickAd:'post/clickAd',
         visibilityChanged(isVisible){
           if(isVisible){
+              this.$store.dispatch('post/viewAd',{post:'AdPost1',type:'View'})
               this.ViewAdded='Seen'
           }else{
               this.ViewAdded='NotSeen'
           }
         },
         clicked:function(){
+          this.$store.dispatch('post/clickAd',{post:'AdPost1',type:'Click'})
+          window.open("https://dreher.hu", "_blank");
           this.Clicked='Clicked'
         }
 }),

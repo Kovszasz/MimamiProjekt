@@ -5,91 +5,6 @@ from rest_framework.validators import UniqueValidator
 import jwt
 from rest_framework_jwt.utils import jwt_payload_handler
 
-
-
-class ActionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Post
-        fields='__all__'
-    def create(self,validated_data):
-        return Action.objects.create(post=Post,user=request.user,**validated_data)
-
-
-
-
-class MessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Message
-        fields = ('url', 'subject', 'body', 'pk')
-
-class PostSerializer(serializers.ModelSerializer):
-    ID=serializers.CharField(max_length=20)
-    description=serializers.CharField()
-    IsLiked = serializers.SerializerMethodField()
-    #IMG=serializers.ImageField(allow_empty_file=False)
-    #user=models.ForeignKey(User, on_delete=models.CASCADE)
-    IsModerated=serializers.BooleanField(default=False)
-    IsAdvert=serializers.BooleanField(default=False)
-    IsInlinePost=serializers.BooleanField(default=False)
-    AdURL=serializers.URLField(max_length=250,default="")
-    AppearenceFrequency=serializers.IntegerField(default=1)
-    NumberOfLikes=serializers.IntegerField(default=0)
-    IMG_url = serializers.SerializerMethodField()
-
-    def create(self, validated_data):
-        """
-        Create and return a new `Snippet` instance, given the validated data.
-        """
-        return Post.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        """
-        Update and return an existing `Snippet` instance, given the validated data.
-        """
-        instance.description = validated_data.get('description', description.title)
-        #instance.IMG = validated_data.get('IMG', instance.IMG)
-        instance.IsModerated = validated_data.get('IsModerated', instance.IsModerated)
-        instance.IsAdvert = validated_data.get('IsAdvert', instance.IsAdvert)
-        instance.IsInlinePost = validated_data.get('IsInlinePost', instance.IsInlinePost)
-        instance.AdURL = validated_data.get('AdURL', instance.AdURL)
-        instance.AppearenceFrequency = validated_data.get('AppearenceFrequency', instance.AppearenceFrequency)
-        instance.NumberOfLikes = validated_data.get('NumberOfLikes', instance.NumberOfLikes)
-        instance.save()
-        return instance
-
-    class Meta:
-        model = Post
-        fields = ('url', 'description', 'IMG_url', 'ID','IsModerated','IsAdvert','IsInlinePost','AdURL','AppearenceFrequency','NumberOfLikes','IsLiked')
-    def get_IMG_url(self, Post):
-        request = self.context.get('request')
-        IMG_url = Post.IMG.url
-        return request.build_absolute_uri(IMG_url)
-    def get_IsLiked(self, Post):
-        request=self.context.get('request')
-        if request.user.is_authenticated:
-            if len(Action.objects.filter(user=request.user,post=Post,type='Like'))>0:
-                return True
-
-        return False
-
-
-class CommentSerializer(serializers.ModelSerializer):
-    ID=serializers.CharField(max_length=20, default="")
-    content=serializers.CharField()
-    date=models.DateField(auto_now_add=True)
-    #reply_to = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
-    NumberOfLikes=models.IntegerField(default=0)
-    class Meta:
-        model = Comment
-        fields = ('content','date','NumberOfLikes','ID')
-
-# output serializer class for  'Mods' model
-class ModSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Mods
-        fields = '__all__'
-
-
 class MimeUserSerializer(serializers.ModelSerializer):
     class Meta:
         model=MimeUser
@@ -101,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username','password','first_name','last_name','mimeuser')
+        fields = ('username','password','first_name','last_name','mimeuser','is_staff','is_superuser','is_authenticated')
 
     def create(self, validated_data):
         mimeuser = validated_data.pop('mimeuser')
@@ -133,3 +48,86 @@ class UserSerializer(serializers.ModelSerializer):
         mimeuser.save()
 
         return instance
+
+
+class ActionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Post
+        fields='__all__'
+    def create(self,validated_data):
+        return Action.objects.create(post=Post,user=request.user,**validated_data)
+
+
+
+
+class MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ('url', 'subject', 'body', 'pk')
+
+class PostSerializer(serializers.ModelSerializer):
+    ID=serializers.CharField(max_length=20)
+    description=serializers.CharField()
+    IsLiked = serializers.SerializerMethodField()
+    #IMG=serializers.ImageField(allow_empty_file=False)
+    user=UserSerializer()
+    IsModerated=serializers.BooleanField(default=False)
+    IsAdvert=serializers.BooleanField(default=False)
+    IsInlinePost=serializers.BooleanField(default=False)
+    AdURL=serializers.URLField(max_length=250,default="")
+    AppearenceFrequency=serializers.IntegerField(default=1)
+    NumberOfLikes=serializers.IntegerField(default=0)
+    IMG_url = serializers.SerializerMethodField()
+
+    def create(self, validated_data):
+        """
+        Create and return a new `Snippet` instance, given the validated data.
+        """
+        return Post.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        """
+        Update and return an existing `Snippet` instance, given the validated data.
+        """
+        instance.description = validated_data.get('description', description.title)
+        #instance.IMG = validated_data.get('IMG', instance.IMG)
+        instance.IsModerated = validated_data.get('IsModerated', instance.IsModerated)
+        instance.IsAdvert = validated_data.get('IsAdvert', instance.IsAdvert)
+        instance.IsInlinePost = validated_data.get('IsInlinePost', instance.IsInlinePost)
+        instance.AdURL = validated_data.get('AdURL', instance.AdURL)
+        instance.AppearenceFrequency = validated_data.get('AppearenceFrequency', instance.AppearenceFrequency)
+        instance.NumberOfLikes = validated_data.get('NumberOfLikes', instance.NumberOfLikes)
+        instance.save()
+        return instance
+
+    class Meta:
+        model = Post
+        fields = ('user', 'description', 'IMG_url', 'ID','IsModerated','IsAdvert','IsInlinePost','AdURL','AppearenceFrequency','NumberOfLikes','IsLiked')
+    def get_IMG_url(self, Post):
+        request = self.context.get('request')
+        IMG_url = Post.IMG.url
+        return request.build_absolute_uri(IMG_url)
+    def get_IsLiked(self, Post):
+        request=self.context.get('request')
+        if request.user.is_authenticated:
+            if len(Action.objects.filter(user=request.user,post=Post,type='Like'))>0:
+                return True
+
+        return False
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    ID=serializers.CharField(max_length=20, default="")
+    content=serializers.CharField()
+    date=models.DateField(auto_now_add=True)
+    #reply_to = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
+    NumberOfLikes=models.IntegerField(default=0)
+    class Meta:
+        model = Comment
+        fields = ('content','date','NumberOfLikes','ID')
+
+# output serializer class for  'Mods' model
+class ModSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Mods
+        fields = '__all__'

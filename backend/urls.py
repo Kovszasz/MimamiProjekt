@@ -13,13 +13,14 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView
     )
-from .api.views import index_view, MessageViewSet,PostViewSet,CommentViewSet,ModsView, UserViewSet
+from .api.views import *
 
 router = routers.DefaultRouter()
 router.register('messages', MessageViewSet)
 router.register('post', PostViewSet, basename='post')
 router.register('comment', CommentViewSet,basename='comment')
 router.register('users',UserViewSet,basename='users')
+router.register('action',ActionViewSet,basename='actions')
 
 urlpatterns = [
 

@@ -40,7 +40,7 @@
       }
     },
     computed: mapState({
-      timeline: state => state.post.timeline,
+      timeline: state => state.post.timeline.filter(timeline => timeline.IsModerated == false ),
       IsAuthenticated:'authentication/accessToken'
     }),
     methods: mapActions('post', [

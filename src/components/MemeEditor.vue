@@ -1,3 +1,4 @@
+<!--https://github.com/nhn/toast-ui.vue-image-editor-->
 <template>
   <v-row justify="center">
     <v-dialog v-model="dialog" fullscreen hide-overlay transition="dialog-bottom-transition">
@@ -17,7 +18,7 @@
             <v-btn class="button" text @click="dialog = false">Post</v-btn>
           </v-toolbar-items>
         </v-toolbar>
-        <div v-if='IsAuthenticated'>
+        <v-row v-if="IsAuthenticated" md="6" cols="2">
         <b-card  header-tag="header" footer-tag="footer" >
           <label>Text</label><input type="text" >
           <v-carousel
@@ -37,8 +38,8 @@
           </v-carousel>
         </b-card>
         <v-divider vertical="true"></v-divider>
-        </div>
-        <div v-if='!IsAuthenticated'>
+        </v-row>
+        <div v-if="!IsAuthenticated">
         <h1> Sorry, you have to sign in, or sign up for posting</h1>
         <div v-if="!IsSignIn">
             <RegisterCore/>
@@ -65,6 +66,10 @@ import { mapState, mapActions } from 'vuex'
 import RegisterCore from './RegisterCore.vue'
 import LoginCore from './LoginCore.vue'
   export default {
+    props:{
+    IsAuthenticated:Boolean
+
+  },
     data () {
       return {
         dialog: false,
@@ -75,7 +80,7 @@ import LoginCore from './LoginCore.vue'
       }
       },
       computed: mapState({
-            IsAuthenticated:'authentication/accessToken'
+      //      IsAuthenticated:'authentication/accessToken'
       }),
       components:{
           RegisterCore,

@@ -13,6 +13,16 @@ const  state= {
      refreshToken: localStorage.getItem('refresh_token') || null,
      APIData: '', // received data from the backend API is stored here.
      login:localStorage.getItem('login') || false,
+     user:{
+       username:localStorage.getItem('username') || null,
+       first_name:localStorage.getItem('first_name') || null,
+       last_name:localStorage.getItem('last_name') || null,
+       mime_user:localStorage.getItem('mimeuser') || null,
+       is_staff:localStorage.getItem('is_staff') || null,
+       is_superuser:localStorage.getItem('is_staff') || null,
+       is_authenticated:localStorage.getItem('is_authenticated') || null
+     }
+
   }
 const  getters= {
     loggedIn: state => {
@@ -34,6 +44,22 @@ const  mutations= {
     destroyToken (state) {
       state.accessToken = null
       state.refreshToken = null
+    },
+    updateUser(state,{username,first_name,last_name,mimeuser,is_staff,is_superuser,is_authenticated}){
+      localStorage.setItem('username',username)
+      localStorage.setItem('first_name',first_name)
+      localStorage.setItem('last_name',last_name)
+      localStorage.setItem('mimeuser',mimeuser)
+      localStorage.setItem('is_staff',is_staff)
+      localStorage.setItem('is_superuser',is_superuser)
+      localStorage.setItem('is_authenticated',is_authenticated)
+      state.user.username=username
+      state.user.first_name=first_name
+      state.user.last_name=last_name
+      state.user.mimeuser=mimeuser
+      state.user.is_staff=is_staff
+      state.user.is_superuser=is_superuser
+      state.user.is_authenticated=is_authenticated
     }
   }
 const  actions= {
@@ -83,6 +109,7 @@ const  actions= {
             .then(response => {
               localStorage.removeItem('access_token')
               localStorage.removeItem('refresh_token')
+              localStorage.removeItem('user_data')
             //  localStorage.removeItem('user-token')
               context.commit('destroyToken')
             })
@@ -115,12 +142,29 @@ const  actions= {
           .catch(err => {
             reject(err)
           })
-          /*.then(axios.post('/api/users/User/user_login/', {
-                      username: credentials.username,
-                      password: credentials.password
-                }))*/
+
+
+          axios.get(`/api/users/${credentials.username}/user_login/`, {
+
+          }).then(response =>{
+              context.commit('updateUser', {
+                username:response.data.username,
+                first_name:response.data.first_name,
+                last_name:response.data.last_name,
+                mimeuser:response.data.mimeuser,
+                is_staff:response.data.is_staff,
+                is_superuser:response.data.is_superuser,
+                is_authenticated:response.data.is_authenticated
+
+              }) //, token:response.data.user }) // store the access and refresh token in localstorage
+              resolve()
+          })
+          .catch(err => {
+            reject(err)
+          })
       })
     }
+    //getUser(context)
   }
 //  if (state.token) {
     //axios.defaults.headers.common['Authorization'] =JWT ${token};

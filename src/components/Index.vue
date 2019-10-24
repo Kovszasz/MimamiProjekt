@@ -45,7 +45,7 @@
     },
     computed: mapState({
       timeline: state => state.post.timeline,
-      IsAuthenticated:'authentication/accessToken'
+      IsAuthenticated:'authentication/accessToken',
     }),
     methods: mapActions('post', [
       'addPost',
@@ -53,6 +53,8 @@
     ]),
     created() {
       this.$store.dispatch('post/getTimeLine')
+      this.$store.dispatch('comments/getComment')
+      this.$store.dispatch('post/getAction')
     }
     }
 </script>

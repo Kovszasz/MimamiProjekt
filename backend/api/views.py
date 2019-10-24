@@ -29,6 +29,8 @@ class MessageViewSet(viewsets.ModelViewSet):
 
 class PostViewSet(viewsets.ModelViewSet):
     permission_classes = (AllowAny,)
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
     def list(self,request):
         queryset=Post.objects.filter(IsAdvert=False,IsActive=True)
         serializer = PostSerializer(queryset,many=True, context={'request': request})
@@ -48,14 +50,14 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def get_ad(self,request):
-        ads=Post.objects.filter(IsAdvert=True,IsActive=False)
-        setting=AdvertSettings.get(admin='kovszasz')
+        ads=Post.objects.filter(IsAdvert=True,IsActive=True)
+        setting=AdvertSettings.objects.get(admin=User.objects.get(username="kovszasz"))
         AdPool=[]
         if randrange(0,100)<setting.AdFrequency:
             for i in ads:
                 for j in range(i.AppearenceFrequency):
                     AdPool.append(i)
-            ad=PostSerializer(AdPool[randrande(0,len(AdPool))],context={'request':request})
+            ad=PostSerializer(AdPool[randrange(0,len(AdPool))],context={'request':request})
             return Response(ad.data)
         else:
             empty=Post.objects.get(ID='empty')
@@ -86,7 +88,8 @@ class PostViewSet(viewsets.ModelViewSet):
             post.NumberOfLikes+=1
             post.save()
             serializer=PostSerializer(post, context={'request': request})
-            action=ActionSerializer(post,context={'request': request})
+            #action=ActionSerializer(post,context={'request': request})
+            Action.objects.create(user=request.user,post=post,type='Like')
         else:
             Action.objects.get(user=request.user,post=post,type='Like').delete()
             post.NumberOfLikes-=1
@@ -96,8 +99,14 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def action(self,request):
-        post=Post.objects.get(pk=request.data['postID'])
-        action=ActionSerializer(post,data={'type':request.data['type']})
+        print('heeeej')
+        post=Post.objects.get(ID=request.data['post'])
+        print(request.data)
+        #action=ActionSerializer(post,data={'type':request.data['type']})
+        a=Action.objects.create(post=post,user=request.user,type=request.data["type"])
+        a.save()
+
+        serializer = PostSerializer(post,context={'request': request} )
         return Response(serializer.data)
 
 
@@ -115,10 +124,11 @@ class CommentViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request):
-        api_result = Comment.objects.create(request.data)
+        #request.data.update({'user':request.user})
+        api_result = Comment.objects.create(user=request.user, ID=request.data['ID'],content=request.data["content"], post=Post.objects.get(ID=request.data["post"]))
         api_result.save()
         api=Comment.objects.all()
-        serializer=PostSerializer(api, context={'request': request})
+        serializer=CommentSerializer(api, many=True, context={'request': request})
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
@@ -175,22 +185,33 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.exclude(is_superuser=1)
     serializer_class = UserSerializer
 
-    @action(detail=True,methods=['POST'])
+    @action(detail=True,methods=['get'])
     def user_login(self, request,pk=None):
-        if request.method == 'POST':
-            username = request.data['username']
-            password = request.data['password']
-            user = authenticate(username=username, password=password)
-            if user:
-                if user.is_active:
-                    login(request,user)
+        #if request.method == 'POST':
+        #    username = request.data['username']
+        #    password = request.data['password']
+    #        user = authenticate(username=username, password=password)
+    #        if user:
+    #            if user.is_active:
+    #                login(request,user)
 
 #        return reverse_lazy('/api/token/',request=request)
-        return Response()
+        u=User.objects.get(username=pk)
+        serializer = UserSerializer(u)
+        return Response(serializer.data)
     @action(detail=True,methods=['POST'])
     def user_logout(self,request,pk=None):
         logout(request)
         return Response()
+
+
+class ActionViewSet(viewsets.ModelViewSet):
+
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = Action.objects.all()
+    serializer_class = ActionSerializer
 
     #def create(self,request):
     #    if request.method=='POST':
