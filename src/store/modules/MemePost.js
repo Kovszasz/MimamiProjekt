@@ -1,16 +1,27 @@
 import postService from '../../services/postService'
 
+
+
+
 const state = {
   post: [],
-  action:[]
+  action:[],
+  advert:[]
 }
 
+function randomgenerator(length){
+   return state.advert[Math.random()*length]
+
+}
 const getters = {
   post: state => {
     return state.post
   },
   action: state => {
     return state.action
+  },
+  advert: state =>{
+    return randomgenerator(state.advert.length)
   }
 }
 

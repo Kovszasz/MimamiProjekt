@@ -52,10 +52,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ActionSerializer(serializers.ModelSerializer):
     class Meta:
-        model=Post
-        fields='__all__'
-    def create(self,validated_data):
-        return Action.objects.create(post=Post,user=request.user,**validated_data)
+        model=Action
+        fields=('post','user','date','type',)
 
 
 

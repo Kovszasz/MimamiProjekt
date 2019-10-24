@@ -57,7 +57,8 @@ class PostViewSet(viewsets.ModelViewSet):
             for i in ads:
                 for j in range(i.AppearenceFrequency):
                     AdPool.append(i)
-            ad=PostSerializer(AdPool[randrange(0,len(AdPool))],context={'request':request})
+            #ad=PostSerializer(AdPool[randrange(0,len(AdPool))],context={'request':request})
+            ad=PostSerializer(AdPool,many=True,context={'request':request})
             return Response(ad.data)
         else:
             empty=Post.objects.get(ID='empty')
@@ -99,9 +100,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def action(self,request):
-        print('heeeej')
         post=Post.objects.get(ID=request.data['post'])
-        print(request.data)
         #action=ActionSerializer(post,data={'type':request.data['type']})
         a=Action.objects.create(post=post,user=request.user,type=request.data["type"])
         a.save()

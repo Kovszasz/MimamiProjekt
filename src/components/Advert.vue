@@ -6,7 +6,7 @@
                   }" >
 
       <div @click="clicked" >
-          <p>{{ ViewAdded }} {{ Clicked }}</p>
+          <p>{{ ViewAdded }}</p>
           <v-responsive :aspect-ratio="10/1">
             <img src="@/assets/media/post/adheader.png"/>
           </v-responsive>
@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions , mapGetters} from 'vuex'
 import Vue from 'vue'
 import { ObserveVisibility } from 'vue-observe-visibility'
 
@@ -26,7 +26,8 @@ export default {
   data: function(){
   return{
     ViewAdded:'NotSeen',
-    Clicked:'NotClicked'
+    Clicked:'NotClicked',
+    //ad:{ID:''}
   }
 
   },
@@ -35,10 +36,14 @@ export default {
     'vue$': 'vue/dist/vue.esm.js'
     }
   },
-  computed: mapState({
-    ad: state => state.post.advert,
+  computed:{ ...mapState({
     IsAuthenticated:'authentication/accessToken'
   }),
+  ...mapGetters({
+    ad: 'post/advert'
+  })
+
+  },
 methods: mapActions({
         addPost:'post/addPost',
         viewAd:'post/viewAd',
@@ -56,7 +61,8 @@ methods: mapActions({
           window.open("https://dreher.hu", "_blank");
           this.Clicked='Clicked'
         }
-}),
+})
+,
 created() {
 //this.$store.dispatch('post/getAdvert/')
 },components:{
