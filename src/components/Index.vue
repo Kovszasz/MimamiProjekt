@@ -2,6 +2,7 @@
   <div>
     <Navbar/>
     <v-content>
+    <b-col md="6" offset-md="3">
     <div  v-for="i in timeline" v-bind:key="i.id" >
       <div>
       <v-lazy v-model="isActive" :options="{ threshold: .5 }" transition="fade-transition">
@@ -12,7 +13,7 @@
         ></meme_post>
         </v-lazy>
       </div>
-    </div>
+    </div></b-col>
     </v-content>
   </div>
 </template>
@@ -58,3 +59,9 @@
     }
     }
 </script>
+<style scope>
+  .sidemenu{
+  margin-top:80px;
+
+  }
+</style>

@@ -2,7 +2,7 @@
   <div class="post">
   <b-container fluid class="bv-example-row">
     <b-row>
-    <b-col md="6" offset-md="3">
+
         <b-card  header-tag="header" footer-tag="footer" >
           <advert v-slot:header></advert>
           <v-carousel
@@ -30,7 +30,7 @@
               <v-col><v-icon> </v-icon></v-col>
           </v-row>
           <comment_section v-if="IsAuthenticated" v-slot:footer :postID="post.ID"></comment_section>
-        </b-card></b-col>
+        </b-card>
       </b-row>
     </b-container>
   </div>

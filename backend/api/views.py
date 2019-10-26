@@ -93,15 +93,19 @@ class PostViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def like(self,request, pk=None):
         post=Post.objects.get(pk=pk)
+        print(Action.objects.filter(user=request.user,post=post,type='Like'))
         if len(Action.objects.filter(user=request.user,post=post,type='Like'))==0:
             post.NumberOfLikes+=1
             post.save()
             serializer=PostSerializer(post, context={'request': request})
             #action=ActionSerializer(post,context={'request': request})
+            print('hereee')
             Action.objects.create(user=request.user,post=post,type='Like')
         else:
+            print('hereee2')
             Action.objects.get(user=request.user,post=post,type='Like').delete()
             post.NumberOfLikes-=1
+            post.save()
             serializer=PostSerializer(post, context={'request': request})
         UpdateProfileScores(user=request.user)
         return Response(serializer.data)

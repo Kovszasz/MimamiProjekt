@@ -8,10 +8,7 @@ def UpdateProfileScores(user):
     likes=Action.objects.filter(type='Like',user=user)
     posts=[PostLabelling.objects.filter(post=post.post) for post in likes]
     labels=PersonalScoringProfile.objects.all()
-    print(likes)
-    print(posts)
     for label in labels:
-        print(label.label,'\t',label.score)
         labelpooldict[label.label]=0
 
     for post in posts:
@@ -27,7 +24,6 @@ def UpdateProfileScores(user):
     for score in labels:
         for s in labelpooldict.keys():
             if score.label==s:
-                print(score.label,'\t',labelpooldict[s]/labelpool)
                 if labelpool==0:
                     score.score=0
                 else:
