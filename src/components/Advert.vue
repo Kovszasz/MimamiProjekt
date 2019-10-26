@@ -37,31 +37,36 @@ export default {
     }
   },
   computed:{ ...mapState({
-    IsAuthenticated:'authentication/accessToken'
+    IsAuthenticated:'authentication/login'
   }),
   ...mapGetters({
     ad: 'post/advert'
   })
 
   },
-methods: mapActions({
+methods:{...mapActions({
         addPost:'post/addPost',
         viewAd:'post/viewAd',
-        clickAd:'post/clickAd',
-        visibilityChanged(isVisible){
+        clickAd:'post/clickAd'
+        }),
+          visibilityChanged(isVisible){
           if(isVisible){
-              this.$store.dispatch('post/viewAd',{post:'AdPost1',type:'View'})
-              this.ViewAdded='Seen'
+              if(this.IsAuthenticated){
+                  this.$store.dispatch('post/viewAd',{post:'AdPost1',type:'View'})
+                  this.ViewAdded='Seen'
+                  }
           }else{
               this.ViewAdded='NotSeen'
           }
         },
-        clicked:function(){
-          this.$store.dispatch('post/clickAd',{post:'AdPost1',type:'Click'})
-          window.open("https://dreher.hu", "_blank");
-          this.Clicked='Clicked'
-        }
-})
+          clicked:function(){
+            if(this.IsAuthenticated){
+                this.$store.dispatch('post/clickAd',{post:'AdPost1',type:'Click'})
+          }
+            window.open("https://dreher.hu", "_blank");
+            this.Clicked='Clicked'
+          }
+}
 ,
 created() {
 //this.$store.dispatch('post/getAdvert/')

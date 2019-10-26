@@ -12,8 +12,8 @@ from rest_framework.decorators import api_view
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.reverse import reverse,reverse_lazy
 from django.http import HttpResponseRedirect
-from .AuthMiddleware import *
 from random import randint,randrange
+from .algorithms import *
 
 
 # Serve Vue Application
@@ -37,8 +37,16 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request):
-        api_result = Post.objects.create(request.data)
+        api_result = Post.objects.create(request.data.post)
         api_result.save()
+        for i in request.data.labels:
+            if len(Label.objects.filter(name=i.name))==0:
+                l=Label.objects.create(i)
+                l.save()
+            else:
+                l=Label.objects.get(name=i.name)
+            pl=PostLabelling.objects.create(post=api_result,label=l)
+            pl.save()
         api=Post.objects.all()
         serializer=PostSerializer(api, context={'request': request})
         return Response(serializer.data)
@@ -95,6 +103,7 @@ class PostViewSet(viewsets.ModelViewSet):
             Action.objects.get(user=request.user,post=post,type='Like').delete()
             post.NumberOfLikes-=1
             serializer=PostSerializer(post, context={'request': request})
+        UpdateProfileScores(user=request.user)
         return Response(serializer.data)
 
 
@@ -211,6 +220,22 @@ class ActionViewSet(viewsets.ModelViewSet):
     """
     queryset = Action.objects.all()
     serializer_class = ActionSerializer
+
+class TemplateViewSet(viewsets.ModelViewSet):
+
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = Template.objects.all()
+    serializer_class = TemplateSerializer
+
+class MemeContentViewSet(viewsets.ModelViewSet):
+
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = MemeContent.objects.all()
+    serializer_class = MemeContentSerializer
 
     #def create(self,request):
     #    if request.method=='POST':

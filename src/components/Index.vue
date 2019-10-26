@@ -31,11 +31,11 @@
      meme_post,
      comment_section,
      Navbar,
-     timeline:[]
      },
     data: function(){
         return{
           isActive: false
+          //timeline:[]
         }
     },
     resolve: {
@@ -45,7 +45,7 @@
     },
     computed: mapState({
       timeline: state => state.post.timeline,
-      IsAuthenticated:'authentication/accessToken',
+      IsAuthenticated:'authentication/login'
     }),
     methods: mapActions('post', [
       'addPost',

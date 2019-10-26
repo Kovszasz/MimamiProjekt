@@ -7,7 +7,7 @@
 </template>
 <script>
 
-//import { mapState } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 //import Vue from 'vue';
 //import MemeEditor from './components/MemeEditor';
 import Navbar from './components/Navbar';
@@ -23,6 +23,19 @@ export default {
   components: {
     //  Index,
       Navbar
+  },
+  computed: mapState({
+    timeline: state => state.post.timeline,
+    IsAuthenticated:'authentication/login'
+  }),
+  methods: mapActions('post', [
+    'addPost',
+    'deletePost'
+  ]),
+  created() {
+    this.$store.dispatch('post/getTimeLine')
+    this.$store.dispatch('comments/getComment')
+    this.$store.dispatch('post/getAction')
   }
 };
 </script>

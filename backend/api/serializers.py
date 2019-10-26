@@ -5,7 +5,14 @@ from rest_framework.validators import UniqueValidator
 import jwt
 from rest_framework_jwt.utils import jwt_payload_handler
 
+class ScoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=PersonalScoringProfile
+        exlude=['user']
+        fields=('score','label',)
+
 class MimeUserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model=MimeUser
         exlude=['user']
@@ -13,10 +20,11 @@ class MimeUserSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     mimeuser = MimeUserSerializer()
-
+    #score = serializers.RelatedField(many=True, read_only=True)
+    score=ScoreSerializer(many=True,read_only=True)
     class Meta:
         model = User
-        fields = ('username','password','first_name','last_name','mimeuser','is_staff','is_superuser','is_authenticated')
+        fields = ['username','password','first_name','last_name','mimeuser','is_staff','is_superuser','is_authenticated','score',]
 
     def create(self, validated_data):
         mimeuser = validated_data.pop('mimeuser')
@@ -24,13 +32,14 @@ class UserSerializer(serializers.ModelSerializer):
         MimeUser.objects.create(user=user, **mimeuser)
         user.set_password(user.password)
         user.save()
+        labels=Label.objects.all()
+        for i in labels:
+            p=PersonalScoringProfile.objects.create(user=user,label=i,score=0)
+            p.save()
         return user
 
     def update(self, instance, validated_data):
         mimeuser = validated_data.pop('mimeuser')
-        # Unless the application properly enforces that this field is
-        # always set, the follow could raise a `DoesNotExist`, which
-        # would need to be handled.
         mimeuser = instance.mimeuser
 
         instance.username = validated_data.get('username', instance.username)
@@ -55,7 +64,10 @@ class ActionSerializer(serializers.ModelSerializer):
         model=Action
         fields=('post','user','date','type',)
 
-
+class TemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Template
+        fields='__all__'
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -63,11 +75,22 @@ class MessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = ('url', 'subject', 'body', 'pk')
 
+class MemeContentSerializer(serializers.ModelSerializer):
+    IMG_url=serializers.SerializerMethodField()
+    class Meta:
+        model = MemeContent
+        fields = ('IMG_url','index',)
+    def get_IMG_url(self, MemeContent):
+        request = self.context.get('request')
+        IMG_url = MemeContent.IMG.url
+        return request.build_absolute_uri(IMG_url)
+
 class PostSerializer(serializers.ModelSerializer):
     ID=serializers.CharField(max_length=20)
     description=serializers.CharField()
     IsLiked = serializers.SerializerMethodField()
     #IMG=serializers.ImageField(allow_empty_file=False)
+    imgs=MemeContentSerializer(many=True,read_only=True)
     user=UserSerializer()
     IsModerated=serializers.BooleanField(default=False)
     IsAdvert=serializers.BooleanField(default=False)
@@ -75,7 +98,7 @@ class PostSerializer(serializers.ModelSerializer):
     AdURL=serializers.URLField(max_length=250,default="")
     AppearenceFrequency=serializers.IntegerField(default=1)
     NumberOfLikes=serializers.IntegerField(default=0)
-    IMG_url = serializers.SerializerMethodField()
+    #IMG_url = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         """
@@ -100,11 +123,11 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('user', 'description', 'IMG_url', 'ID','IsModerated','IsAdvert','IsInlinePost','AdURL','AppearenceFrequency','NumberOfLikes','IsLiked')
-    def get_IMG_url(self, Post):
-        request = self.context.get('request')
-        IMG_url = Post.IMG.url
-        return request.build_absolute_uri(IMG_url)
+        fields = ['user', 'description', 'imgs', 'ID','IsModerated','IsAdvert','IsInlinePost','AdURL','AppearenceFrequency','NumberOfLikes','IsLiked',]
+    #def get_IMG_url(self, Post):
+    #    request = self.context.get('request')
+    #    IMG_url = Post.IMG.url
+    #    return request.build_absolute_uri(IMG_url)
     def get_IsLiked(self, Post):
         request=self.context.get('request')
         if request.user.is_authenticated:

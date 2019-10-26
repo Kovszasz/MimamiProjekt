@@ -6,15 +6,18 @@
         <b-card  header-tag="header" footer-tag="footer" >
           <advert v-slot:header></advert>
           <v-carousel
-            cycle
             height="480"
             width="1024"
             hide-delimiter-background
-            show-arrows-on-hover
+            :show-arrows='MultipleImgs'
+            :show-arrows-on-hover='MultipleImgs'
+            :hide-delimiters='!MultipleImgs'
           >
             <v-carousel-item
-              :key="post.ID"
-              :src="get_url"
+              v-for="subpost in post.imgs"
+              :key="KeyGenerator(subpost.index)"
+              :src="IMGurl(subpost)"
+              interval="0"
             >
             </v-carousel-item>
           </v-carousel>
@@ -56,8 +59,8 @@ export default {
       IsLiked:Boolean
     },data() {
         return {
-          like:this.post.NumberOfLikes,
-          get_url:require(`../assets${this.post.IMG_url.replace('http://localhost:8000/src/assets','')}`) //majd összekötni a valós képekkel
+          like:this.post.NumberOfLikes
+        //  get_url:require(`../assets${this.post.IMG_url.replace('http://localhost:8000','')}`) //majd összekötni a valós képekkel
           //IsLiked:this.post.IsLiked
         }
       },
@@ -70,16 +73,25 @@ export default {
       'vue$': 'vue/dist/vue.esm.js'
       }
     },
-      computed:mapState('authentication',{
+      computed:{...mapState('authentication',{
         IsAuthenticated:'accessToken',
         refreshToken:'refreshToken',
-        user:'user',
-        ImageURL:function(){
-        return require(`${this.post.IMG_url.replace('http://localhost:8000','../assets')}`)
-    }//,post: state => state.post.post //Ide majd az imgs rész fog jönni!
+        user:'user'
+    //    ImageURL:function(){
+      //  return require(`${this.post.IMG_url.replace('http://localhost:8000','../assets')}`)
+  //  }//,post: state => state.post.post //Ide majd az imgs rész fog jönni!
 
-}),
-  methods: mapActions('post', {
+}),    MultipleImgs:function(){
+          if (this.post.imgs.length > 1){
+              return true
+
+          }else{
+              return false
+          }
+        }
+
+},
+  methods:{ ...mapActions('post', {
   addPost:'addPost',
   deletePost:'deletePost',
   LikePost:'LikePost',
@@ -93,7 +105,14 @@ export default {
       }
       this.IsLiked=!this.IsLiked
   }
-}),
+}),IMGurl:function(img){
+        return require(`../assets${img.IMG_url.replace('http://localhost:8000','')}`)
+        },
+    KeyGenerator:function(index){
+      return this.post.ID+String(index)
+    }
+
+},
 created() {
   this.$store.dispatch('post/getPost',this.post.ID)
 }

@@ -4,7 +4,8 @@ CONTENT_CHOICES=[
             ('None','None'),
             ('Like','Like'),
             ('View','View'),
-            ('Click','Click')
+            ('Click','Click'),
+            ('Favourite','Favourite')
 ]
 
 
@@ -50,6 +51,7 @@ class MimeUser(models.Model):
     company=models.CharField(max_length=100,default='')
     balance=models.FloatField(default=0)
 
+
     def __str__(self):
         return self.user.username
 
@@ -70,3 +72,30 @@ class Action(models.Model):
     post=models.ForeignKey(Post,on_delete=models.CASCADE)
     date = models.DateField( auto_now_add=True)
     type=models.CharField(max_length=100,choices=CONTENT_CHOICES)
+
+
+class Label(models.Model):
+    name=models.CharField(primary_key=True,default='' ,max_length=100)
+    type=models.CharField(default='',max_length=100)
+
+class PostLabelling(models.Model):
+    post=models.ForeignKey(Post,on_delete=models.CASCADE)
+    label=models.ForeignKey(Label,on_delete=models.CASCADE)
+
+
+class Template(models.Model):
+    IMG=models.ImageField(upload_to='template',blank=True)
+    ID=models.CharField(primary_key=True, default='', max_length=100)
+    user=models.ForeignKey(User,unique=True, on_delete=models.CASCADE, default="")
+    IsPublic=models.BooleanField(default=False)
+
+class MemeContent(models.Model):
+    IMG=models.ImageField(upload_to='post',blank=True)
+    index=models.IntegerField(default=0)
+    post=models.ForeignKey(Post,on_delete=models.CASCADE, default="", related_name='imgs')
+    #id=models.AutoField(primary_key=True, default="")
+
+class PersonalScoringProfile(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE,default='',related_name='score')
+    label=models.ForeignKey(Label,on_delete=models.CASCADE,default='')
+    score=models.FloatField(default=1)

@@ -2,7 +2,6 @@
 <div>
 <Navbar/>
   <div class="hello">
-    <img src='@/../backend/media/post/logo-django.png' style="width: 250px" />
     <p>Statistics</p>
     <br/>
     <p>Subject</p>

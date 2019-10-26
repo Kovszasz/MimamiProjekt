@@ -16,6 +16,7 @@
     "idle-vue": "^2.0.5",
     "js-cookie": "^2.2.0",
     "jsonwebtoken": "^8.5.1",
+    "nuxt": "^2.10.2",
     "querystring": "^0.2.0",
     "vue": "^2.6.10",
     "vue-jwt-decode": "^0.1.0",

@@ -1,0 +1,51 @@
+<template>
+  <v-row justify="center">
+    <v-dialog v-model="dialog" width="600px">
+      <template v-slot:activator="{ on }">
+        <v-btn icon v-on="on"><v-icon @click="getComments()">mdi-message-text</v-icon></v-btn>
+      </template>
+      <v-card>
+        <v-btn icon dark @click="dialog = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+        <div>
+          <v-form>
+            <v-container>
+              <v-row>
+                <v-col cols="12">
+                  <v-text-field
+                    v-model="content"
+                    :append-outer-icon="content ? 'mdi-send' : 'mdi-send'"
+                    :prepend-icon="'mdi-emoticon-excited'"
+                    outlined
+                    clear-icon="mdi-close-circle"
+                    clearable
+                    label="Comment..."
+                    type="text"
+                    @click:append-outer="sendComment"
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-form>
+          <v-container>
+          <v-row v-for="comment in comments" v-bind:key="comment.ID">
+          <v-alert  color="#E7DED9" light >
+                 {{ comment.content }}
+                </v-alert>
+          </v-row>
+          </v-container>
+          </div>
+      </v-card>
+    </v-dialog>
+  </v-row>
+</template>
+<script>
+  export default {
+    data () {
+      return {
+        dialog: false,
+      }
+    },
+  }
+</script>
