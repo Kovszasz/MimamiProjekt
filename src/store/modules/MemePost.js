@@ -6,7 +6,8 @@ import postService from '../../services/postService'
 const state = {
   post: [],
   action:[],
-  advert:[]
+  advert:[],
+  timeline:[]
 }
 
 function randomgenerator(length){
@@ -22,6 +23,12 @@ const getters = {
   },
   advert: state =>{
     return randomgenerator(state.advert.length)
+  },
+  /*get_timeline: state =>(id) => {
+    return state.timeline.filter(post => post.user.username === id)
+  }*/
+  get_timeline:state =>(id) => {
+    return state.timeline.filter(post => post.user.username === id)
   }
 }
 

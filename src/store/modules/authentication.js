@@ -20,7 +20,8 @@ const  state= {
        mime_user:localStorage.getItem('mimeuser') || null,
        is_staff:localStorage.getItem('is_staff') || null,
        is_superuser:localStorage.getItem('is_staff') || null,
-       is_authenticated:localStorage.getItem('is_authenticated') || null
+       is_authenticated:localStorage.getItem('is_authenticated') || null,
+       channel:localStorage.getItem('channel') || null
      }
 
   }
@@ -45,7 +46,7 @@ const  mutations= {
       state.accessToken = null
       state.refreshToken = null
     },
-    updateUser(state,{username,first_name,last_name,mimeuser,is_staff,is_superuser,is_authenticated}){
+    updateUser(state,{username,first_name,last_name,mimeuser,is_staff,is_superuser,is_authenticated,channel}){
       localStorage.setItem('username',username)
       localStorage.setItem('first_name',first_name)
       localStorage.setItem('last_name',last_name)
@@ -53,6 +54,7 @@ const  mutations= {
       localStorage.setItem('is_staff',is_staff)
       localStorage.setItem('is_superuser',is_superuser)
       localStorage.setItem('is_authenticated',is_authenticated)
+      localStorage.setItem('channel',channel)
       state.user.username=username
       state.user.first_name=first_name
       state.user.last_name=last_name
@@ -60,6 +62,7 @@ const  mutations= {
       state.user.is_staff=is_staff
       state.user.is_superuser=is_superuser
       state.user.is_authenticated=is_authenticated
+      state.user.channel=channel
     }
   }
 const  actions= {
@@ -109,7 +112,8 @@ const  actions= {
             .then(response => {
               localStorage.removeItem('access_token')
               localStorage.removeItem('refresh_token')
-              localStorage.removeItem('user_data')
+              localStorage.setItem('user',{})
+              localStorage.setItem('login',false)
             //  localStorage.removeItem('user-token')
               context.commit('destroyToken')
             })
@@ -154,7 +158,8 @@ const  actions= {
                 mimeuser:response.data.mimeuser,
                 is_staff:response.data.is_staff,
                 is_superuser:response.data.is_superuser,
-                is_authenticated:response.data.is_authenticated
+                is_authenticated:response.data.is_authenticated,
+                channel:response.data.channel
 
               }) //, token:response.data.user }) // store the access and refresh token in localstorage
               resolve()

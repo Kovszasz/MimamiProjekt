@@ -11,20 +11,38 @@ class ScoreSerializer(serializers.ModelSerializer):
         exlude=['user']
         fields=('score','label',)
 
-class MimeUserSerializer(serializers.ModelSerializer):
 
+class FollowSerializer(serializers.ModelSerializer):
+    profile=serializers.SerializerMethodField()
+    class Meta:
+        model = Follow
+        fields = ['channel','profile']
+        depth=1
+
+    def get_profile(self,Follow):
+        profile=Follow.channel.mimeuser
+        serialized=MimeUserSerializer(profile)
+        return serialized.data
+
+class MimeUserSerializer(serializers.ModelSerializer):
+    avatar=serializers.SerializerMethodField()
     class Meta:
         model=MimeUser
         exlude=['user']
-        fields=('IsAdvertiser',)
+        fields=('IsAdvertiser','avatar',)
+    def get_avatar(self,MimeUser):
+        request = self.context.get('request')
+        IMG_url = MimeUser.profile_pic.url
+        return IMG_url
 
 class UserSerializer(serializers.ModelSerializer):
     mimeuser = MimeUserSerializer()
     #score = serializers.RelatedField(many=True, read_only=True)
     score=ScoreSerializer(many=True,read_only=True)
+    channel=serializers.SerializerMethodField()#FollowSerializer(many=True,read_only=True)
     class Meta:
         model = User
-        fields = ['username','password','first_name','last_name','mimeuser','is_staff','is_superuser','is_authenticated','score',]
+        fields = ['username','password','first_name','last_name','mimeuser','is_staff','is_superuser','is_authenticated','score','channel']
 
     def create(self, validated_data):
         mimeuser = validated_data.pop('mimeuser')
@@ -57,6 +75,11 @@ class UserSerializer(serializers.ModelSerializer):
         mimeuser.save()
 
         return instance
+
+    def get_channel(self,User):
+        follows=Follow.objects.filter(follower=User)
+        serialized=FollowSerializer(follows,many=True)
+        return serialized.data
 
 
 class ActionSerializer(serializers.ModelSerializer):
@@ -143,9 +166,16 @@ class CommentSerializer(serializers.ModelSerializer):
     date=models.DateField(auto_now_add=True)
     #reply_to = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
     NumberOfLikes=models.IntegerField(default=0)
+    #user=serializers.SerializerMethodField()
+    user=UserSerializer()
+
     class Meta:
         model = Comment
-        fields = ('content','date','NumberOfLikes','ID')
+        fields = ('content','date','NumberOfLikes','ID','post','user')
+
+    #def get_user(self,Comment):
+    #    pass
+
 
 # output serializer class for  'Mods' model
 class ModSerializer(serializers.ModelSerializer):

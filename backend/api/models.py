@@ -99,3 +99,7 @@ class PersonalScoringProfile(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE,default='',related_name='score')
     label=models.ForeignKey(Label,on_delete=models.CASCADE,default='')
     score=models.FloatField(default=1)
+
+class Follow(models.Model):
+    channel=models.ForeignKey(User,on_delete=models.CASCADE,default='',related_name='channel')
+    follower=models.ForeignKey(User,on_delete=models.CASCADE,default='',related_name='follower')

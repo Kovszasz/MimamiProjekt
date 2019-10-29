@@ -38,9 +38,9 @@
         max-width="400"
         tile
       >
-        <v-list avatar="true" rounded="true" >
+        <v-list avatar rounded >
           <v-subheader>Favourites</v-subheader>
-          <v-list-item-group v-model="item" color="#b12233">
+          <v-list-item-group color="#b12233">
             <v-list-item>
               <v-list-item-avatar >
                 <v-img src="@/assets/top.png"></v-img>
@@ -54,25 +54,36 @@
                 <v-img src="@/assets/mymeme.png"></v-img>
               </v-list-item-avatar>
               <v-list-item-content  >
-            <v-list-item-title >  <router-link :to = "{ name:'mypost' }">
+            <v-list-item-title > <v-btn :to = "{ name:'mypost', params:{user:User } }">
                   MyMemes
-              </router-link></v-list-item-title>
+              </v-btn></v-list-item-title>
               </v-list-item-content>
             </v-list-item>
-          <!--  <v-list-item
-              v-for="(item, i) in items"
+          </v-list-item-group>
+          </v-list>
+        </v-card>
+        <v-card
+          class="mx-auto"
+          max-width="400"
+          tile
+        >
+        <v-list v-if ="IsAuthenticated" avatar rounded >
+          <v-subheader>Favourites</v-subheader>
+          <v-list-item-group color="#b12233">
+          <v-list-item
+              v-for="(c, i) in user.channel"
               :key="i"
             >
-              <v-list-item-avatar v-if="avatar">
-                <v-img :src="item.avatar"></v-img>
+              <v-list-item-avatar >
+               <v-img :src="IMGurl(c.profile)"></v-img>
               </v-list-item-avatar>
               <v-list-item-content>
-                <v-list-item-title v-html="item.title"></v-list-item-title>
+                <v-list-item-title v-html="c.channel.username"></v-list-item-title>
               </v-list-item-content>
-            </v-list-item>-->
+            </v-list-item>
           </v-list-item-group>
-        </v-list>
-      </v-card>
+          </v-list>
+        </v-card>
       </v-navigation-drawer>
     </div>
 
@@ -88,11 +99,18 @@ export default {
   name: 'Navbar',
   data(){
     return{
+    User:'User'
     }
   },
   components: {
       MemeEditor
-  }, computed: mapState('authentication',{IsAuthenticated:'login',user:'user',IsAdmin:'is_superuser'})
+  }, computed:{ ...mapState('authentication',{IsAuthenticated:'login',user:'user',IsAdmin:'is_superuser'})},
+  methods:{
+  IMGurl:function(img){
+          return require(`../assets${img.avatar}`)
+          }
+  }
+
 };
 </script>
 <style>

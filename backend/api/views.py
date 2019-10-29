@@ -27,6 +27,13 @@ class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
 
+class FollowViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows messages to be viewed or edited.
+    """
+    queryset = Follow.objects.all()
+    serializer_class = FollowSerializer
+
 class PostViewSet(viewsets.ModelViewSet):
     permission_classes = (AllowAny,)
     queryset = Post.objects.all()
@@ -93,16 +100,13 @@ class PostViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def like(self,request, pk=None):
         post=Post.objects.get(pk=pk)
-        print(Action.objects.filter(user=request.user,post=post,type='Like'))
         if len(Action.objects.filter(user=request.user,post=post,type='Like'))==0:
             post.NumberOfLikes+=1
             post.save()
             serializer=PostSerializer(post, context={'request': request})
             #action=ActionSerializer(post,context={'request': request})
-            print('hereee')
             Action.objects.create(user=request.user,post=post,type='Like')
         else:
-            print('hereee2')
             Action.objects.get(user=request.user,post=post,type='Like').delete()
             post.NumberOfLikes-=1
             post.save()
@@ -131,8 +135,8 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
     def list(self,request):
-        queryset=Post.objects.all()
-        serializer = PostSerializer(queryset,many=True, context={'request': request})
+        queryset=Comment.objects.all()
+        serializer = CommentSerializer(queryset,many=True, context={'request': request})
         return Response(serializer.data)
 
     def create(self, request):

@@ -19,7 +19,7 @@ api.interceptors.request.use(
 
 
 export default {
-  fetchComment(postID) {
+  fetchComment() {
     return api.get(`comment/`)
               .then(response => response.data)
   },

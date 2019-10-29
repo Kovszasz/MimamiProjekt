@@ -29,11 +29,29 @@
             </v-container>
           </v-form>
           <v-container>
-          <v-row v-for="comment in comments" v-bind:key="comment.ID">
-          <v-alert  color="#E7DED9" light >
-                 {{ comment.content }}
-                </v-alert>
-          </v-row>
+          <v-list three-line>
+            <div v-for="comment in comments" v-bind:key="comment.ID">
+              <template>
+                <v-divider
+                  :key="comment.ID +'_divider'"
+                  inset="true"
+                ></v-divider>
+
+                <v-list-item
+                  :key="comment.ID +'_item'"
+                >
+                  <v-list-item-avatar>
+                    <v-img :src="IMGurl(comment.user.mimeuser)"></v-img>
+                  </v-list-item-avatar>
+
+                  <v-list-item-content>
+                    <v-list-item-title v-html="comment.user.username"></v-list-item-title>
+                    <v-list-item-subtitle v-html="comment.content"></v-list-item-subtitle>
+                  </v-list-item-content>
+                </v-list-item>
+              </template>
+              </div>
+            </v-list>
           </v-container>
           </div>
       </v-card>
@@ -42,7 +60,7 @@
 </template>
 <script>
 import Vue from 'vue'
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
 import { mdiShareVariant } from '@mdi/js'
 Vue.use(mdiShareVariant);
 
@@ -57,19 +75,22 @@ Vue.use(mdiShareVariant);
     }),props:{
       postID:String
 
-    },methods: mapActions({
+    },methods:{ ...mapActions({
           add:'comments/addComment',
           delete:'comments/deleteComment',
           getComments(){
             //this.$store.dispatch('comments/getComment',this.postID)
-            this.comments = state => state.comment.comment.filter(comment => comment.post.ID == this.postID )
+            this.comments = this.getComment(this.postID)
           },
           sendComment(){
             this.add({ID:String(Math.round(Math.random()*10000)),content:this.content,post:this.postID})
-            this.comments = state => state.comment.comment.filter(comment => comment.post.ID == this.postID )
+            this.comments = this.getComment(this.postID)
           }
-    }),
-    computed: mapState({
+    }), IMGurl:function(img){
+            return require(`../assets${img.avatar}`)
+      }
+    },
+    computed:{ ...mapState({
     //  comments: state => state.comments.comments,
       clearComment(){
       this.content = ''
@@ -77,6 +98,12 @@ Vue.use(mdiShareVariant);
 
       //user:'authentication/user'
     }),
+      ...mapGetters({
+          getComment:'comments/comments'
+
+      })
+
+    },
     created() {
     //  this.$store.dispatch('comments/getComment',this.postID)
     }

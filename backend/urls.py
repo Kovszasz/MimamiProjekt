@@ -22,6 +22,7 @@ router.register('comment', CommentViewSet,basename='comment')
 router.register('users',UserViewSet,basename='users')
 router.register('action',ActionViewSet,basename='actions')
 router.register('template',TemplateViewSet,basename='template')
+router.register('follow',FollowViewSet,basename='follow')
 
 urlpatterns = [
 

@@ -36,7 +36,6 @@
     data: function(){
         return{
           isActive: false
-          //timeline:[]
         }
     },
     resolve: {

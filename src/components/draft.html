@@ -1,16 +1,24 @@
-<v-row>
-   <v-col
-     v-for="n in 3"
-     :key="n"
-     cols="6"
-     md="4"
-   >
-     <v-card
-       class="pa-2"
-       outlined
-       tile
-     >
-       .col-6 .col-md-4
-     </v-card>
-   </v-col>
- </v-row>
+<v-list three-line>
+    <template v-for="comment in comments" v-bind:key="comment.ID">
+
+      <v-divider
+        :key="comment.ID +'_divider'"
+        inset="true"
+      ></v-divider>
+
+      <v-list-item
+        v-else
+        :key="comment.ID +'_item'"
+        @click=""
+      >
+        <v-list-item-avatar>
+          <v-img :src="IMGurl(comment.user.mimeuser)"></v-img>
+        </v-list-item-avatar>
+
+        <v-list-item-content>
+          <v-list-item-title v-html="comment.user.username"></v-list-item-title>
+          <v-list-item-subtitle v-html="comment.content"></v-list-item-subtitle>
+        </v-list-item-content>
+      </v-list-item>
+    </template>
+  </v-list>

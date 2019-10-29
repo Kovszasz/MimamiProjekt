@@ -5,14 +5,14 @@ const state = {
 }
 
 const getters = {
-  comments: state => {
-    return state.comments
+  comments: state =>(id) => {
+    return state.comments.filter(comment => comment.post === id)
   }
 }
 
 const actions = {
-  getComment({ commit },postID){
-    commentService.fetchComment(postID)
+  getComment({ commit }){
+    commentService.fetchComment()
     .then(comment => {
         commit('setComment',comment)
     })}

@@ -2,15 +2,18 @@
   <div>
     <Navbar/>
     <v-content>
+    <b-col md="6" offset-md="3">
     <div  v-for="i in timeline" v-bind:key="i.id" >
       <div>
+      <v-lazy v-model="isActive" :options="{ threshold: .5 }" transition="fade-transition">
         <meme_post
           v-bind:post="i"
           v-bind:like="i.NumberOfLikes"
           v-bind:IsLiked="i.IsLiked"
         ></meme_post>
+        </v-lazy>
       </div>
-    </div>
+    </div></b-col>
     </v-content>
   </div>
 </template>
@@ -21,17 +24,21 @@
   import { NavbarPlugin } from 'bootstrap-vue'
   Vue.use(NavbarPlugin)
   import Navbar from './Navbar.vue'
-  import { mapState, mapActions } from 'vuex'
+  import { mapState, mapActions, mapGetters } from 'vuex'
   //Vue.use(Navbar)
   export default {
-    name: 'Index',
+    name: 'MyPost',
+    props:{
+      user:String,
+    },
     components:{
      meme_post,
      comment_section,
-     Navbar
+     Navbar,
      },
     data: function(){
         return{
+          isActive: false,
         }
     },
     resolve: {
@@ -39,19 +46,34 @@
         'vue$': 'vue/dist/vue.esm.js'
       }
     },
-    computed: mapState({
-      user:'user',
-      timeline: state => state.post.timeline.filter(timeline => timeline.user.username == 'User' ),
-      IsAuthenticated:'authentication/accessToken',
+    computed:{ ...mapState({
+      //timeline: state => state.post.get_timeline,
+      IsAuthenticated:'authentication/login'
+    }),timeline:function(){
+        return this.getTimeLine(this.user)
+    }
 
-
-    }),
-    methods: mapActions('post', [
+    },
+    methods:{ ...mapActions('post', [
       'addPost',
       'deletePost'
     ]),
+      ...mapGetters({
+          getTimeLine:'post/get_timeline'
+
+      })
+
+    },
     created() {
-      this.$store.dispatch('post/getTimeLine')
+      //this.$store.dispatch('post/getTimeLine')
+      //this.$store.dispatch('comments/getComment')
+      //this.$store.dispatch('post/getAction')
     }
     }
 </script>
+<style scope>
+  .sidemenu{
+  margin-top:80px;
+
+  }
+</style>

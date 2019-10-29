@@ -78,9 +78,14 @@ export default new Router({
       path: '/my-posts',
       name: 'mypost',
       component: MyPost,
+      props:{
+        user:'User'
+      },
       meta: {
         requiresAuth: true
       }
+
+
   },
   {
     path: '/statistics',
