@@ -75,7 +75,7 @@ export default new Router({
         }
     },
     {
-      path: '/my-posts',
+      path: '/my-posts/:user',
       name: 'mypost',
       component: MyPost,
       props:{

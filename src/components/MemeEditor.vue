@@ -18,7 +18,7 @@
             <v-btn class="button" text @click="dialog = false">Post</v-btn>
           </v-toolbar-items>
         </v-toolbar>
-        <v-row v-if="IsAuthenticated" md="6" cols="2">
+        <v-row  md="6" cols="2">
         <b-card  header-tag="header" footer-tag="footer" >
           <label>Text</label><input type="text" >
           <v-carousel
@@ -39,21 +39,7 @@
         </b-card>
         <v-divider vertical="true"></v-divider>
         </v-row>
-        <div v-if="!IsAuthenticated">
-        <h1> Sorry, you have to sign in, or sign up for posting</h1>
-        <div v-if="!IsSignIn">
-            <RegisterCore/>
-                  <v-btn  class="mr-4" @click="ChangeSignin">
-                         Sign In
-                  </v-btn>
-        </div>
-        <div v-if="IsSignIn">
-            <LoginCore/>
-              <v-btn  class="mr-4" @click="ChangeSignin">
-                    Register
-              </v-btn>
-        </div>
-        </div>
+
       </v-card>
 
 
@@ -66,10 +52,6 @@ import { mapState, mapActions } from 'vuex'
 import RegisterCore from './RegisterCore.vue'
 import LoginCore from './LoginCore.vue'
   export default {
-    props:{
-    IsAuthenticated:Boolean
-
-  },
     data () {
       return {
         dialog: false,

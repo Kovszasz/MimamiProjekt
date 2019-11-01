@@ -2,7 +2,7 @@
   <v-row justify="center">
     <v-dialog v-model="dialog" width="600px">
       <template v-slot:activator="{ on }">
-        <v-btn icon v-on="on"><v-icon @click="getComments()">mdi-message-text</v-icon></v-btn>
+        <v-btn icon v-on="on"><v-icon >mdi-message-text</v-icon></v-btn><p>{{ NumberOfComments }}</p>
       </template>
       <v-card>
         <v-btn icon dark @click="dialog = false">
@@ -34,7 +34,7 @@
               <template>
                 <v-divider
                   :key="comment.ID +'_divider'"
-                  inset="true"
+                  :inset="true"
                 ></v-divider>
 
                 <v-list-item
@@ -69,7 +69,7 @@ Vue.use(mdiShareVariant);
       password: 'Password',
       marker: true,
       show: false,
-      comments:[],
+      //comments:[],
       content:'',
       dialog:false
     }),props:{
@@ -78,34 +78,35 @@ Vue.use(mdiShareVariant);
     },methods:{ ...mapActions({
           add:'comments/addComment',
           delete:'comments/deleteComment',
-          getComments(){
-            //this.$store.dispatch('comments/getComment',this.postID)
-            this.comments = this.getComment(this.postID)
-          },
           sendComment(){
             this.add({ID:String(Math.round(Math.random()*10000)),content:this.content,post:this.postID})
-            this.comments = this.getComment(this.postID)
+            this.content = ''
           }
     }), IMGurl:function(img){
             return require(`../assets${img.avatar}`)
-      }
-    },
-    computed:{ ...mapState({
-    //  comments: state => state.comments.comments,
+      },
       clearComment(){
       this.content = ''
       }
+    },
+    computed:{ ...mapState({
 
       //user:'authentication/user'
     }),
+    comments(){
+      //this.$store.dispatch('comments/get_comment',this.postID)
+      return this.get_comment(this.postID)
+    },
+
       ...mapGetters({
-          getComment:'comments/comments'
+          get_comment:'comments/postcomment'
 
-      })
-
+      }),NumberOfComments:function(){
+              return this.get_comment(this.postID).count
+          },
     },
     created() {
-    //  this.$store.dispatch('comments/getComment',this.postID)
+      this.$store.dispatch('comments/getComment')
     }
   }
 </script>

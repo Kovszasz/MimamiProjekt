@@ -47,10 +47,9 @@
       }
     },
     computed:{ ...mapState({
-      //timeline: state => state.post.get_timeline,
       IsAuthenticated:'authentication/login'
     }),timeline:function(){
-        return this.getTimeLine(this.user)
+        return this.$store.state.post.timeline.filter(post=>post.user.username === this.user)
     }
 
     },
@@ -59,7 +58,6 @@
       'deletePost'
     ]),
       ...mapGetters({
-          getTimeLine:'post/get_timeline'
 
       })
 

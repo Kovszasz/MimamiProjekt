@@ -1,6 +1,6 @@
 <template>
 <div>
-    <Navbar/>
+    <Navbar :hideNavDrawer="true" />
       <RegisterCore/>
   </div>
 </template>

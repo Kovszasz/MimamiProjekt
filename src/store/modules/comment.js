@@ -1,12 +1,16 @@
 import commentService from '../../services/commentService'
 
 const state = {
-  comments: []
+  comments: [],
+  postcomment:[]
 }
 
 const getters = {
-  comments: state =>(id) => {
+  postcomment: state =>(id) => {
     return state.comments.filter(comment => comment.post === id)
+  },
+  comments:state=>{
+    return state.comments
   }
 }
 

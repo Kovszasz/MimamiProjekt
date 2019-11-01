@@ -24,12 +24,15 @@ const getters = {
   advert: state =>{
     return randomgenerator(state.advert.length)
   },
+  timeline:state =>{
+    return state.timeline
+  }
   /*get_timeline: state =>(id) => {
     return state.timeline.filter(post => post.user.username === id)
-  }*/
-  get_timeline:state =>(id) => {
-    return state.timeline.filter(post => post.user.username === id)
   }
+  get_timeline:state => {
+    return state.timeline.filter(post => post.user.username === 'User')
+  }*/
 }
 
 const actions = {

@@ -4,10 +4,10 @@
     <b-row>
 
         <b-card  header-tag="header" footer-tag="footer" >
-          <advert v-slot:header></advert>
+          <advert v-slot:header v-if="!IsRegistration"></advert>
           <v-carousel
-            height="480"
-            width="1024"
+            v-bind:height="height"
+            v-bind:width="width"
             hide-delimiter-background
             :show-arrows='MultipleImgs'
             :show-arrows-on-hover='MultipleImgs'
@@ -21,15 +21,15 @@
             >
             </v-carousel-item>
           </v-carousel>
-            <v-row >
+            <v-row  v-if="!IsRegistration">
               <v-col v-if="IsLiked"><v-icon color="#fe5552" @click="liking()">mdi-thumb-up</v-icon><p>{{ like }}</p>
               </v-col>
               <v-col v-if="!IsLiked"><v-icon  @click="liking()">mdi-thumb-up</v-icon><p>{{ like }}</p>
               </v-col>
-              <v-col><v-icon>mdi-message-text</v-icon></v-col>
+              <v-col><comment_section v-if="IsAuthenticated" v-slot:footer :postID="post.ID"></comment_section></v-col>
               <v-col><v-icon> </v-icon></v-col>
           </v-row>
-          <comment_section v-if="IsAuthenticated" v-slot:footer :postID="post.ID"></comment_section>
+
         </b-card>
       </b-row>
     </b-container>
@@ -56,12 +56,22 @@ Vue.use(mdiShareVariant);
 export default {
     props:{
       post:Object,
-      IsLiked:Boolean
+      IsRegistration:{
+          type:Boolean,
+          default:false
+      },
+      height:{
+      type:Number,
+      default:480
+      },
+      width:{
+      type:Number,
+      default:1024
+      }
     },data() {
         return {
-          like:this.post.NumberOfLikes
-        //  get_url:require(`../assets${this.post.IMG_url.replace('http://localhost:8000','')}`) //majd összekötni a valós képekkel
-          //IsLiked:this.post.IsLiked
+          like:this.post.NumberOfLikes,
+          IsLiked:false
         }
       },
   components:{
@@ -77,10 +87,6 @@ export default {
         IsAuthenticated:'accessToken',
         refreshToken:'refreshToken',
         user:'user'
-    //    ImageURL:function(){
-      //  return require(`${this.post.IMG_url.replace('http://localhost:8000','../assets')}`)
-  //  }//,post: state => state.post.post //Ide majd az imgs rész fog jönni!
-
 }),    MultipleImgs:function(){
           if (this.post.imgs.length > 1){
               return true
@@ -95,25 +101,30 @@ export default {
   addPost:'addPost',
   deletePost:'deletePost',
   LikePost:'LikePost',
-  liking(){
-      if (this.IsLiked){
-          this.LikePost(this.post.ID,1)
-          this.like=this.post.NumberOfLikes++
-      }else{
-          this.LikePost(this.post.ID,-1)
-          this.like=this.post.NumberOfLikes--
-      }
-      this.IsLiked=!this.IsLiked
-  }
+
 }),IMGurl:function(img){
         return require(`../assets${img.IMG_url.replace('http://localhost:8000','')}`)
         },
     KeyGenerator:function(index){
       return this.post.ID+String(index)
+    },
+    liking(){
+        if (this.IsLiked){
+            this.LikePost(this.post.ID,1)
+            this.like=this.post.NumberOfLikes++
+        }else{
+            this.LikePost(this.post.ID,-1)
+            this.like=this.post.NumberOfLikes--
+        }
+        this.IsLiked=!this.IsLiked
     }
 
 },
-created() {
+updated(){
+  this.IsLiked= this.$store.state.post.timeline.filter(post => post.ID === this.post.ID).IsLiked
+
+},
+mounted() {
   this.$store.dispatch('post/getPost',this.post.ID)
 }
 };

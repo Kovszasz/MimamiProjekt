@@ -24,15 +24,25 @@ class FollowSerializer(serializers.ModelSerializer):
         serialized=MimeUserSerializer(profile)
         return serialized.data
 
+class ProfilePicSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MimeUser
+        fields = ['profile_pic']
+        #owner = serializers.Field(source='user.username')
+
 class MimeUserSerializer(serializers.ModelSerializer):
     avatar=serializers.SerializerMethodField()
     class Meta:
         model=MimeUser
         exlude=['user']
         fields=('IsAdvertiser','avatar',)
+        read_only_fields = ['profile_pic']
     def get_avatar(self,MimeUser):
         request = self.context.get('request')
-        IMG_url = MimeUser.profile_pic.url
+        try:
+            IMG_url = MimeUser.profile_pic.url
+        except:
+            IMG_url='/media/profile/e2.png'
         return IMG_url
 
 class UserSerializer(serializers.ModelSerializer):
@@ -45,6 +55,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['username','password','first_name','last_name','mimeuser','is_staff','is_superuser','is_authenticated','score','channel']
 
     def create(self, validated_data):
+        print(validated_data)
         mimeuser = validated_data.pop('mimeuser')
         user = User.objects.create(**validated_data)
         MimeUser.objects.create(user=user, **mimeuser)
@@ -154,6 +165,7 @@ class PostSerializer(serializers.ModelSerializer):
     def get_IsLiked(self, Post):
         request=self.context.get('request')
         if request.user.is_authenticated:
+            print(Action.objects.filter(user=request.user,post=Post,type='Like'))
             if len(Action.objects.filter(user=request.user,post=Post,type='Like'))>0:
                 return True
 

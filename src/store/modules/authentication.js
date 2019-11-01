@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios' //!!I just changed axios to api
+import MemePost from './MemePost'
+import ImgUpload from './upload'
 //import api from '../../services/api'
 
 Vue.use(Vuex)
@@ -86,16 +88,7 @@ const  actions= {
     },
     registerUser (context, data) {
       return new Promise((resolve, reject) => {
-        axios.post('/api/users/', {
-          first_name: data.first_name,
-          last_name:data.last_name,
-          email: data.email,
-          username: data.username,
-          password: data.password,
-          mimeuser:{
-            IsAdvertiser:true
-          }
-        },
+        axios.post('/api/users/', data.user
       )
           .then(response => {
             resolve(response)
@@ -103,6 +96,13 @@ const  actions= {
           .catch(error => {
             reject(error)
           })
+          ImgUpload(`/api/users/${data.user.username}/pic/`, data.profile_pic, name='profile_pic')
+          .then(response=>{
+              console.log("Uploaded picture successfully");
+          })
+          .catch(err=>{
+              console.error(err);
+          });
       })
     },
     logoutUser (context) {

@@ -1,6 +1,6 @@
 <template>
 <div>
-  <Navbar></Navbar>
+  <Navbar :hideNavDrawer="true"></Navbar>
   <LoginCore/>
 </div>
 </template>

@@ -6,7 +6,9 @@ from rest_framework.decorators import action
 from rest_framework import generics
 from rest_framework.response import Response
 from .models import *
+from rest_framework import parsers
 from .serializers import *
+from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from django.contrib.auth import authenticate, login, logout
@@ -137,14 +139,14 @@ class CommentViewSet(viewsets.ModelViewSet):
     def list(self,request):
         queryset=Comment.objects.all()
         serializer = CommentSerializer(queryset,many=True, context={'request': request})
+        print('AllCommentLoaded')
         return Response(serializer.data)
 
     def create(self, request):
         #request.data.update({'user':request.user})
         api_result = Comment.objects.create(user=request.user, ID=request.data['ID'],content=request.data["content"], post=Post.objects.get(ID=request.data["post"]))
         api_result.save()
-        api=Comment.objects.all()
-        serializer=CommentSerializer(api, many=True, context={'request': request})
+        serializer=CommentSerializer(api_result,context={'request': request})
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
@@ -200,6 +202,19 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.exclude(is_superuser=1)
     serializer_class = UserSerializer
+
+    @action(detail=True, methods=['POST'],serializer_class=ProfilePicSerializer,parser_classes=[parsers.MultiPartParser],)
+    def pic(self, request, pk):
+        user= User.objects.get(username='User4')
+        print(request.files)
+        print(request.data['profile_pic'])
+        user.mimeuser.profile_pic= request.data['profile_pic']
+        user.save()
+        serializer = UserSerializer(user)
+        if serializer.is_valid():
+            serializer.save()
+            return response.Response(serializer.data)
+        return response.Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,methods=['get'])
     def user_login(self, request,pk=None):

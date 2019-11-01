@@ -1,6 +1,5 @@
 <template>
 <div>
-<Navbar/>
   <div class="hello">
     <p>The data below is added/removed from the SQLite Database using Django's ORM and Rest Framework.</p>
     <br/>

@@ -1,24 +1,16 @@
-<v-list three-line>
-    <template v-for="comment in comments" v-bind:key="comment.ID">
-
-      <v-divider
-        :key="comment.ID +'_divider'"
-        inset="true"
-      ></v-divider>
-
-      <v-list-item
-        v-else
-        :key="comment.ID +'_item'"
-        @click=""
-      >
-        <v-list-item-avatar>
-          <v-img :src="IMGurl(comment.user.mimeuser)"></v-img>
-        </v-list-item-avatar>
-
-        <v-list-item-content>
-          <v-list-item-title v-html="comment.user.username"></v-list-item-title>
-          <v-list-item-subtitle v-html="comment.content"></v-list-item-subtitle>
-        </v-list-item-content>
-      </v-list-item>
-    </template>
-  </v-list>
+<picture-input
+  ref="pictureInput"
+  @change="onChange"
+  width="200"
+  height="200"
+  margin="16"
+  accept="image/jpeg,image/png,image/gif"
+  size="10"
+  buttonClass="btn"
+  zIndex='0'
+  radius="50"
+  :customStrings="{
+    upload: '<h1>Bummer!</h1>',
+    drag: 'Drag a 😺 GIF or GTFO'
+  }">
+</picture-input>

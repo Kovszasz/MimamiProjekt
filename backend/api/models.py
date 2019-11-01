@@ -16,7 +16,7 @@ class Message(models.Model):
 class Post(models.Model):
     ID=models.CharField(max_length=20,primary_key=True)
     description=models.TextField()
-    IMG=models.ImageField(upload_to='post',blank=True)
+    IMG=models.ImageField(upload_to='post',blank=True, default='')
     user=models.ForeignKey(User, on_delete=models.CASCADE, default='')
     IsModerated=models.BooleanField(default=False)
     IsAdvert=models.BooleanField(default=False)
@@ -46,14 +46,23 @@ class Mods(models.Model):
 
 class MimeUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    profile_pic = models.ImageField(upload_to='profile',blank=True)
+    profile_pic = models.ImageField(upload_to='profile',blank=True, default='/media/profile/e2.png')
     IsAdvertiser=models.BooleanField(default=False)
     company=models.CharField(max_length=100,default='')
     balance=models.FloatField(default=0)
+    sex=models.BooleanField(default=True)
+    #age=models.DateField(auto_now_add=True)
+    IsOfficial=models.BooleanField(default=False)#official: icon -> ID card
 
 
     def __str__(self):
         return self.user.username
+
+    def get_profile_picture(self):
+        if self.profile_pic:
+            return profile_pic_url
+        else:
+            return 'your_default_img_url_path'
 
 
 class TimeLine(models.Model):

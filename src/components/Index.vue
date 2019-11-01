@@ -8,12 +8,11 @@
       <v-lazy v-model="isActive" :options="{ threshold: .5 }" transition="fade-transition">
         <meme_post
           v-bind:post="i"
-          v-bind:like="i.NumberOfLikes"
-          v-bind:IsLiked="i.IsLiked"
         ></meme_post>
         </v-lazy>
       </div>
-    </div></b-col>
+    </div>
+      </b-col>
     </v-content>
   </div>
 </template>
