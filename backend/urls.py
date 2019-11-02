@@ -23,6 +23,7 @@ router.register('users',UserViewSet,basename='users')
 router.register('action',ActionViewSet,basename='actions')
 router.register('template',TemplateViewSet,basename='template')
 router.register('follow',FollowViewSet,basename='follow')
+router.register('meme',MemeContentViewSet,basename='meme')
 
 urlpatterns = [
 

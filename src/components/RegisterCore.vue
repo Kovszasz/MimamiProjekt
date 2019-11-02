@@ -179,7 +179,6 @@ import meme_post from './MemePost.vue';
       }
     },
     methods: {registerUser() {
-    console.log(this.$refs.pictureInput.file)
     //https://alligator.io/vuejs/uploading-vue-picture-input/
         this.$store.dispatch('authentication/registerUser', {user:{
           first_name: this.first_name,

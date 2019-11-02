@@ -46,18 +46,18 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request):
-        api_result = Post.objects.create(request.data.post)
+        api_result = Post.objects.create(user=request.user,ID=request.data['post']['ID'],description=request.data['post']['description'],IsPublic=request.data['post']['IsPublic'])
         api_result.save()
-        for i in request.data.labels:
-            if len(Label.objects.filter(name=i.name))==0:
-                l=Label.objects.create(i)
+        for i in request.data['labels']:
+            if len(Label.objects.filter(name=i))==0:
+                l=Label.objects.create(name=i,type='category')
                 l.save()
             else:
-                l=Label.objects.get(name=i.name)
+                l=Label.objects.get(name=i)
             pl=PostLabelling.objects.create(post=api_result,label=l)
             pl.save()
-        api=Post.objects.all()
-        serializer=PostSerializer(api, context={'request': request})
+        print('created')
+        serializer=PostSerializer(api_result, context={'request': request})
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
@@ -205,16 +205,15 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['POST'],serializer_class=ProfilePicSerializer,parser_classes=[parsers.MultiPartParser],)
     def pic(self, request, pk):
-        user= User.objects.get(username='User4')
-        print(request.files)
-        print(request.data['profile_pic'])
-        user.mimeuser.profile_pic= request.data['profile_pic']
-        user.save()
+        user= User.objects.get(username=pk)
+        mimeuser=MimeUser.objects.get(user=user)
+        mimeuser.profile_pic= request.FILES['profile_pic']
+        mimeuser.save()
         serializer = UserSerializer(user)
-        if serializer.is_valid():
-            serializer.save()
-            return response.Response(serializer.data)
-        return response.Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+#        if serializer.is_valid():
+#            serializer.save()
+        return Response(serializer.data)
+        #return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,methods=['get'])
     def user_login(self, request,pk=None):
@@ -260,108 +259,12 @@ class MemeContentViewSet(viewsets.ModelViewSet):
     queryset = MemeContent.objects.all()
     serializer_class = MemeContentSerializer
 
-    #def create(self,request):
-    #    if request.method=='POST':
-    #        if (len(User.objects.filter(username=request.POST.get('username')))==0):
-    #            u=User.objects.create(username=request.POST.get('username'),first_name=request.POST.get('first_name'))
-    #            u.set_password(request.POST.get('password'))
-    #            u.set_email(request.POST.get('email'))
-    #            u.save()
-    #            serializer = ModSerializer(queryset, many=True)
-    #            return Response(serializer.data)
-
-    #lookup_field = 'username'
-
-
-
-"""
-class UserViewSet(viewsets.ModelViewSet):
-    #permission_classes = (IsAuthenticated,)
-    queryset=User.objects.all()
-    serializer_class = UserSerializer
-    #lookup_field = 'username'
-    #lookup_url_kwarg = 'username'
-    def list(self,request):
-        queryset=User.objects.all()
-        serializer = UserSerializer(queryset,many=True, context={'request': request})
-        return Response(serializer.data)
-
-    @api_view(['POST'])
-    def register(request):
-        serialized = UserSerializer(data=request.DATA)
-        if serialized.is_valid():
-            User.objects.create_user(
-                serialized.init_data['email'],
-                serialized.init_data['username'],
-                serialized.init_data['password']
-                )
-            return Response(serialized.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serialized._errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def detail(self, request, pk=None):
-        api=User.objects.get(username=pk)
-        serializer=UserSerializer(api, context={'request': request})
-        return Response(serializer.data)
-
-    def update(self, request, pk=None):
-        api_result = User.objects.get(username=pk)
-        api_result.update(request.data)
-        api_result.save()
-        serializer=UserSerializer(api_result, context={'request': request})
-        return Response(serializer.data)
-
-    def partial_update(self, request, pk=None):
-        pass
-
-    def destroy(self, request, pk=None):
-        api_result = User.objects.get(username=pk)
-        api=User.objects.all()
-        serializer=PostSerializer(api, context={'request': request})
-        return Response(serializer.data)
-
-
-"""
-
-
-
-"""
-class UserViewSet(viewsets.ViewSet):
-    ""Userviewset
-    Restful Structure:
-        | URL style      | HTTP Method | URL Nanme   | Action Function |
-        |----------------|-------------|-------------|-----------------|
-        | /users         | GET, POST   | user-list   | user_list       |
-        | /users/<email> | GET, DELETE | user-detail | user_detail     |
-    ""
-    # Router class variables
-    lookup_field = 'email'
-    lookup_value_regex = '[\w.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}'
-
-    # Viewsets class variables
-    #queryset = User.objects.all()
-
-    def list(self, request):
-        ""GET - Show all users""
-        print request.version
-        api_result = user_list.lists_all_users()
-        return Response(api_result)
-
     def create(self, request):
-        ""POST - Add new user""
-        api_result = user_list.create_new_user(request.data)
-        return Response(api_result)
-
-    def retrieve(self, request, email=None):
-        ""GET - Show <email> user""
-        api_result = user_detail.retrieve_the_user(email)
-        return Response(api_result)
-
-    def partial_update(self, request, email=None):
-        return Response()
-
-    def destroy(self, request, email=None):
-        ""DETELE - Delete <email> user""
-        api_result = user_detail.destroy_the_user(email)
-        return Response(api_result)
-"""
+        #post = Post.objects.get(ID=request.data['post'])
+        print('helloooo')
+        post =Post.objects.get(ID=request.data['post'])
+        for index in range(int(request.data['size'])):
+            t=MemeContent.objects.create(post=post,index=index,IMG=request.FILES['meme'+str(index)])
+            t.save()
+        serializer=PostSerializer(post,context={'request': request})
+        return Response(serializer.data)

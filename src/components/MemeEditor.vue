@@ -7,39 +7,90 @@
       </template>
 
       <v-card>
-        <v-toolbar class="color_line">
+        <v-toolbar >
           <v-btn icon dark @click="dialog = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
           <v-toolbar-title>Post meme</v-toolbar-title>
           <v-spacer></v-spacer>
           <v-toolbar-items>
-            <v-btn class="button" text @click="dialog = false">Save</v-btn>
-            <v-btn class="button" text @click="dialog = false">Post</v-btn>
+            <v-btn  text @click="dialog = false">Save</v-btn>
+            <v-btn  text @click="sendMeme">Post</v-btn>
           </v-toolbar-items>
         </v-toolbar>
-        <v-row  md="6" cols="2">
-        <b-card  header-tag="header" footer-tag="footer" >
-          <label>Text</label><input type="text" >
-          <v-carousel
-            cycle
-            height="480"
-            width="1024"
-            hide-delimiter-background
-            show-arrows-on-hover
-          >
-            <v-carousel-item>
-                <v-file-input
-                  label="File input"
-                  filled
-                  prepend-icon="mdi-camera"
-                ></v-file-input>
-            </v-carousel-item>
-          </v-carousel>
-        </b-card>
-        <v-divider vertical="true"></v-divider>
-        </v-row>
-
+        <b-container fluid class="bv-example-row">
+          <b-row>
+          <b-col cols="8">
+              <b-card  header-tag="header" footer-tag="footer" >
+                <template v-slot:header >
+                <v-text-field
+                    v-model='postText'
+                    placeholder="Post description"
+                    filled
+                    rounded
+                    dense
+                    >
+                      <template v-slot:append-outer>
+                          <v-btn>Edit</v-btn>
+                                <v-switch v-model="IsPublic" label="Public"></v-switch>
+                      </template>
+                    </v-text-field>
+                </template>
+                <v-carousel
+                  hide-delimiter-background
+                  :show-arrows='MultipleImgs'
+                  :show-arrows-on-hover='MultipleImgs'
+                  :hide-delimiters='!MultipleImgs'
+                >
+                  <v-carousel-item interval="0" v-for="(upload,index) in subIMGs" v-bind:key="upload">
+                    <picture-input
+                      ref="pictureInput"
+                      @change="onChange"
+                      width="1024"
+                      height="600"
+                      margin="16"
+                      accept="image/jpeg,image/png,image/gif"
+                      size="10"
+                      buttonClass="btn"
+                      :zIndex="0"
+                      :customStrings="{
+                        upload: '<h1>Bummer!</h1>',
+                        drag: 'Drag a 😺 GIF or GTFO'
+                      }">
+                    </picture-input>
+                  </v-carousel-item>
+                </v-carousel>
+                <template v-slot:footer >
+                <v-combobox
+                  v-model="chips"
+                  :items="items"
+                  chips
+                  clearable
+                  label="Meme labels"
+                  multiple
+                  prepend-icon="filter_list"
+                  solo
+                >
+                  <template v-slot:selection="{ attrs, item, select, selected }">
+                    <v-chip
+                      v-bind="attrs"
+                      :input-value="selected"
+                      close
+                      @click="select"
+                      @click:close="remove(item)"
+                    >
+                      <strong>{{ item }}</strong>&nbsp;
+                    </v-chip>
+                  </template>
+                </v-combobox>
+                </template>
+              </b-card>
+              </b-col>
+              <b-col cols="4">
+              <Template/>
+              </b-col>
+            </b-row>
+          </b-container>
       </v-card>
 
 
@@ -51,6 +102,8 @@
 import { mapState, mapActions } from 'vuex'
 import RegisterCore from './RegisterCore.vue'
 import LoginCore from './LoginCore.vue'
+import PictureInput from 'vue-picture-input'
+import Template from './Template'
   export default {
     data () {
       return {
@@ -58,7 +111,15 @@ import LoginCore from './LoginCore.vue'
         notifications: false,
         sound: true,
         widgets: false,
-        IsSignIn:true
+        MultipleImgs:false,
+        subIMGs:[0],
+        imgs:[],
+        IsPublic:false,
+        chips: [],
+        items: [],
+        imgindex:0,
+        postText:'',
+        postcreated:false
       }
       },
       computed: mapState({
@@ -66,12 +127,42 @@ import LoginCore from './LoginCore.vue'
       }),
       components:{
           RegisterCore,
-          LoginCore
+          LoginCore,
+          PictureInput,
+          Template
       },
-      methods:{
-          ChangeSignin:function(){
-              this.IsSignIn=!this.IsSignIn
+      methods:{...mapActions({
+        addPost:'post/addPost',
+        addMeme:'post/addMeme'
+
+      }),
+        onChange(){
+          this.MultipleImgs=true
+          this.imgs.push(this.$refs.pictureInput[this.imgindex])
+          this.imgindex+=1
+          this.subIMGs.push(this.imgindex)
+        },
+        remove (item) {
+        this.chips.splice(this.chips.indexOf(item), 1)
+        this.chips = [...this.chips]
+      },
+      sendMeme(){
+        var id='Post'+String(Math.round(Math.random()*10000))
+        this.addPost({post:{post:{ID:id,description:this.postText,IsPublic:this.IsPublic},labels:this.chips}
+                      ,meme:{imgs:this.imgs,payload:{post:id,size:this.imgs.length}}},true)
+        this.postcreated=true
+        this.$store.dispatch('post/getTimeLine')
+        this.dialog=false
+
+      }
+      },
+      watch:{
+        uploadMeme:function(){
+          if ( this.postcreated){
+            return this.addMeme({imgs:this.imgs,payload:{post:id,size:this.imgs.length}},true)
           }
+        }
+
       }
     }
 
@@ -80,7 +171,6 @@ import LoginCore from './LoginCore.vue'
 .color_line {
   background: -webkit-linear-gradient(right,#fe9a22, #fe5552);
   -webkit-text-fill-color: transparent;
-  z-index:-1;
 }
 .button {
   background: "#f6cbca";

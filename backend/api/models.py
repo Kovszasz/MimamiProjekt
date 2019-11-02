@@ -25,6 +25,7 @@ class Post(models.Model):
     AppearenceFrequency=models.IntegerField(default=1)
     NumberOfLikes=models.IntegerField(default=0)
     IsActive=models.BooleanField(default=True)
+    IsPublic=models.BooleanField(default=True)
     #date=models.DateField(auto_now_add=True)
 
 class Comment(models.Model):

@@ -92,17 +92,19 @@ const  actions= {
       )
           .then(response => {
             resolve(response)
+            ImgUpload(`/api/users/${data.user.username}/pic/`, data.profile_pic, name='profile_pic')
+            .then(response=>{
+                console.log("Uploaded picture successfully");
+            })
+            .catch(err=>{
+                console.error(err);
+            });
+
           })
           .catch(error => {
             reject(error)
           })
-          ImgUpload(`/api/users/${data.user.username}/pic/`, data.profile_pic, name='profile_pic')
-          .then(response=>{
-              console.log("Uploaded picture successfully");
-          })
-          .catch(err=>{
-              console.error(err);
-          });
+
       })
     },
     logoutUser (context) {

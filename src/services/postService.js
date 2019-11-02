@@ -1,5 +1,5 @@
 import api from '@/services/api'
-
+import ImgUpload from '../store/modules/upload'
 
 export default {
   fetchPost(postID) {
@@ -10,9 +10,10 @@ export default {
     return api.get(`post/${postID}/like/`)
               .then(response => response.data)
   },
-  postPost(payload) {
-    return api.post(`post/`, payload)
-              .then(response => response.data)
+  postPost(payload,multiple) {
+    api.post(`post/`, payload.post)
+    return ImgUpload(`/api/meme/`, payload.meme.imgs, payload.meme.payload,multiple, name='meme')
+            .then(response => response.data)
   },
   deletePost(postID) {
     return api.delete(`post/${postID}`)
@@ -32,6 +33,10 @@ export default {
   },
   getAction(){
     return api.get(`action/`)
+            .then(response => response.data)
+  },
+  postMeme(payload,multiple) {
+    return ImgUpload(`/api/meme/`, payload.imgs, payload.payload,multiple, name='meme')
             .then(response => response.data)
   }
 }

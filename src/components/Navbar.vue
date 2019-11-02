@@ -2,6 +2,7 @@
   <div>
   <v-app-bar app>
     <v-toolbar-title><router-link :to = "{ name:'home' }" class="title">mimami</router-link></v-toolbar-title>
+    <!--<v-switch v-model="switch1" inset ></v-switch>-->
     <v-spacer></v-spacer>
     <v-text-field
     class="mx-4"

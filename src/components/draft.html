@@ -1,16 +1,25 @@
-<picture-input
-  ref="pictureInput"
-  @change="onChange"
-  width="200"
-  height="200"
-  margin="16"
-  accept="image/jpeg,image/png,image/gif"
-  size="10"
-  buttonClass="btn"
-  zIndex='0'
-  radius="50"
-  :customStrings="{
-    upload: '<h1>Bummer!</h1>',
-    drag: 'Drag a 😺 GIF or GTFO'
-  }">
-</picture-input>
+<template>
+  <v-combobox
+    v-model="chips"
+    :items="items"
+    chips
+    clearable
+    label="Your favorite hobbies"
+    multiple
+    prepend-icon="filter_list"
+    solo
+  >
+    <template v-slot:selection="{ attrs, item, select, selected }">
+      <v-chip
+        v-bind="attrs"
+        :input-value="selected"
+        close
+        @click="select"
+        @click:close="remove(item)"
+      >
+        <strong>{{ item }}</strong>&nbsp;
+        <span>(interest)</span>
+      </v-chip>
+    </template>
+  </v-combobox>
+</template>

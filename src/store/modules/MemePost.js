@@ -3,6 +3,7 @@ import postService from '../../services/postService'
 
 
 
+
 const state = {
   post: [],
   action:[],
@@ -49,9 +50,9 @@ const actions = {
       commit('setPost', post)
     })
   },
-  addPost({ commit }, post) {
-    postService.postPost(post)
-    .then(() => {
+  addPost({ commit }, post,multiple) {
+    postService.postPost(post,multiple)
+    .then(post => {
       commit('addPost', post)
     })
   },
@@ -85,6 +86,12 @@ const actions = {
       .then(action => {
         commit('setAction',action)
       })},
+  addMeme({ commit }, meme,multiple) {
+      postService.postMeme(meme,multiple)
+      .then(() => {
+      //  commit('addPost', post)
+      })
+    }
 }
 
 const mutations = {
@@ -93,6 +100,7 @@ const mutations = {
   },
   addPost(state, post) {
     state.post.push(post)
+    //state.post=post
   },
   deletePost(state, postId) {
     state.post = state.post.filter(obj => obj.pk !== postId)
