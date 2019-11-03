@@ -9,6 +9,7 @@ import Logout from '@/components/Logout'
 import MyPost from '@/components/MyPosts'
 import Moderate from '@/components/Moderate'
 import Statistics from '@/components/Statistics'
+import ImgEditor from '@/components/ImgEditor'
 
 Vue.use(Router)
 export default new Router({
@@ -94,6 +95,11 @@ export default new Router({
     meta: {
       requiresAuth: true
     }
+},
+{
+  path: '/editor',
+  name: 'editor',
+  component: ImgEditor
 }
   ]
 })

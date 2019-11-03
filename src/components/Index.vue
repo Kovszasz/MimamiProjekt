@@ -43,7 +43,7 @@
       }
     },
     computed: mapState({
-      timeline: state => state.post.timeline,
+      timeline: state => state.post.timeline.reverse(),
       IsAuthenticated:'authentication/login'
     }),
     methods: mapActions('post', [

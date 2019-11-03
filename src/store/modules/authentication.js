@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios' //!!I just changed axios to api
 import MemePost from './MemePost'
-import ImgUpload from './upload'
+import ImgUpload from './uploadUser'
 //import api from '../../services/api'
 
 Vue.use(Vuex)
@@ -92,7 +92,7 @@ const  actions= {
       )
           .then(response => {
             resolve(response)
-            ImgUpload(`/api/users/${data.user.username}/pic/`, data.profile_pic, name='profile_pic')
+            ImgUpload(`/api/users/${data.user.username}/pic/`, data.profile_pic,name='profile_pic')
             .then(response=>{
                 console.log("Uploaded picture successfully");
             })
@@ -122,6 +122,8 @@ const  actions= {
             .catch(err => {
               localStorage.removeItem('access_token')
               localStorage.removeItem('refresh_token')
+              localStorage.setItem('user',{})
+              localStorage.setItem('login',false)
             //  localStorage.removeItem('user-token')
               context.commit('destroyToken')
               resolve(err)

@@ -109,19 +109,22 @@ export default {
       return this.post.ID+String(index)
     },
     liking(){
+      this.IsLiked=!this.IsLiked
         if (this.IsLiked){
-            this.LikePost(this.post.ID,1)
-            this.like=this.post.NumberOfLikes++
+          //  this.LikePost(this.post.ID,1)
+            //this.like=this.post.NumberOfLikes++
+            this.like+=1
         }else{
-            this.LikePost(this.post.ID,-1)
-            this.like=this.post.NumberOfLikes--
+          //  this.LikePost(this.post.ID,-1)
+            //this.like=this.post.NumberOfLikes--
+            this.like-=1
         }
-        this.IsLiked=!this.IsLiked
+
     }
 
 },
 updated(){
-  this.IsLiked= this.$store.state.post.timeline.filter(post => post.ID === this.post.ID).IsLiked
+  //this.IsLiked= this.$store.state.post.timeline.filter(post => post.ID === this.post.ID).IsLiked
 
 },
 mounted() {
