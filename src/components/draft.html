@@ -1,25 +1,133 @@
-<template>
-  <v-combobox
-    v-model="chips"
-    :items="items"
-    chips
-    clearable
-    label="Your favorite hobbies"
-    multiple
-    prepend-icon="filter_list"
-    solo
-  >
-    <template v-slot:selection="{ attrs, item, select, selected }">
-      <v-chip
-        v-bind="attrs"
-        :input-value="selected"
-        close
-        @click="select"
-        @click:close="remove(item)"
-      >
-        <strong>{{ item }}</strong>&nbsp;
-        <span>(interest)</span>
-      </v-chip>
-    </template>
-  </v-combobox>
-</template>
+<v-card>
+  <v-toolbar >
+    <v-btn icon dark @click="dialog = false">
+      <v-icon>mdi-close</v-icon>
+    </v-btn>
+    <v-toolbar-title>Post meme</v-toolbar-title>
+    <v-spacer></v-spacer>
+    <v-toolbar-items>
+      <v-btn  text @click="advert = !advert">Create advert</v-btn>
+      <v-btn  text @click="dialog = false">Save</v-btn>
+      <v-btn  text @click="sendMeme">Post</v-btn>
+    </v-toolbar-items>
+  </v-toolbar>
+  <b-container fluid class="bv-example-row">
+    <b-row>
+    <b-col cols="8">
+        <b-card  header-tag="header" footer-tag="footer" >
+          <template v-slot:header >
+          <v-text-field
+              v-model='postText'
+              placeholder="Post description"
+              filled
+              rounded
+              dense
+              >
+                <template v-slot:append-outer>
+                    <v-btn>Edit</v-btn>
+                          <v-switch v-model="IsPublic" label="Public"></v-switch>
+                </template>
+              </v-text-field>
+          </template>
+          <v-carousel
+            hide-delimiter-background
+            :show-arrows='MultipleImgs'
+            :show-arrows-on-hover='MultipleImgs'
+            :hide-delimiters='!MultipleImgs'
+          >
+            <v-carousel-item interval="0" v-for="(upload,index) in subIMGs" v-bind:key="upload">
+              <picture-input
+                ref="pictureInput"
+                @change="onChange"
+                :prefill="imgSrc"
+                width="1024"
+                height="600"
+                margin="16"
+                accept="image/jpeg,image/png,image/gif"
+                size="10"
+                buttonClass="btn"
+                :zIndex="0"
+                :customStrings="{
+                  upload: '<h1>Bummer!</h1>',
+                  drag: 'Drag a 😺 GIF or GTFO'
+                }">
+              </picture-input>
+            </v-carousel-item>
+          </v-carousel>
+          <template v-slot:footer >
+          <v-combobox
+            v-model="chips"
+            :items="items"
+            chips
+            clearable
+            label="Meme labels"
+            multiple
+            solo
+          >
+            <template v-slot:selection="{ attrs, item, select, selected }">
+              <v-chip
+                v-bind="attrs"
+                :input-value="selected"
+                close
+                @click="select"
+                @click:close="remove(item)"
+              >
+                <strong>{{ item }}</strong>&nbsp;
+              </v-chip>
+            </template>
+          </v-combobox>
+          </template>
+        </b-card>
+        </b-col>
+        <b-col cols="4">
+        <v-card v-if="!advert">
+           <v-tabs
+             background-color="white"
+             color="deep-purple accent-4"
+             right
+           >
+             <v-tab>MyTemplates</v-tab>
+             <v-tab>Recycle</v-tab>
+             <v-tab>Browse</v-tab>
+
+             <v-tab-item
+               v-for="n in 3"
+               :key="n"
+             >
+               <v-container fluid>
+                 <v-row>
+                   <v-col
+                     v-for="i in 6"
+                     :key="i"
+                     cols="12"
+                     md="4"
+                   >
+                     <v-img
+                       :src="`https://picsum.photos/500/300?image=${i * n * 10 + 10}`"
+                       :lazy-src="`https://picsum.photos/10/6?image=${i * n * 5 + 10}`"
+                       @click="getSrc(`settings.png`)"
+                     ></v-img>
+                   </v-col>
+                 </v-row>
+               </v-container>
+             </v-tab-item>
+           </v-tabs>
+         </v-card>
+         <v-card v-if="advert">
+         <div>
+            <v-row justify="space-around">
+              <v-col cols="12">
+                <header>Appearance</header>
+              </v-col>
+              <v-checkbox v-model="IsInlinePost" class="mx-2" label="IsInlinePost"></v-checkbox>
+              <v-checkbox v-model="" class="mx-2" label="Flat">Single post</v-checkbox>
+              <v-col cols="12">
+                <header>Advertising time frame</header>
+              </v-col>
+             </v-row>
+          </div>
+         </v-card>
+        </b-col>
+      </b-row>
+    </b-container>
+</v-card>

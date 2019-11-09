@@ -10,6 +10,7 @@ import MyPost from '@/components/MyPosts'
 import Moderate from '@/components/Moderate'
 import Statistics from '@/components/Statistics'
 import ImgEditor from '@/components/ImgEditor'
+import MyAdverts from '@/components/MyAdverts'
 
 Vue.use(Router)
 export default new Router({
@@ -100,6 +101,14 @@ export default new Router({
   path: '/editor',
   name: 'editor',
   component: ImgEditor
+},
+{
+  path: '/advert',
+  name: 'advert',
+  component: MyAdverts,
+  props:{
+    user:'AdUser'
+  },
 }
   ]
 })

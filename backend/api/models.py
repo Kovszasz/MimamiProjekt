@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import datetime
 CONTENT_CHOICES=[
             ('None','None'),
             ('Like','Like'),
@@ -25,8 +26,9 @@ class Post(models.Model):
     AppearenceFrequency=models.IntegerField(default=1)
     NumberOfLikes=models.IntegerField(default=0)
     IsActive=models.BooleanField(default=True)
+    CampaignTime=models.DateTimeField(default=datetime.now, blank=True)
     IsPublic=models.BooleanField(default=True)
-    #date=models.DateField(auto_now_add=True)
+    date=models.DateTimeField(default=datetime.now, blank=True)
 
 class Comment(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE, default="")

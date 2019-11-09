@@ -4,9 +4,9 @@ export default function (url, file,payload={}, multiple=true,name = 'img') {
   if (typeof url !== 'string') {
     throw new TypeError(`Expected a string, got ${typeof url}`);
   }
-
+let token = localStorage.getItem('access_token');
   // You can add checks to ensure the url is valid, if you wish
-
+console.log("img upload")
   const formData = new FormData();
   if (multiple){
     console.log(file)
@@ -24,7 +24,9 @@ export default function (url, file,payload={}, multiple=true,name = 'img') {
   }
   const config = {
     headers: {
-      'content-type': 'multipart/form-data'
+      'content-type': 'multipart/form-data',
+      'Authorization': `JWT ${ token }`
+
     }
   };
   return axios.post(url, formData, config);

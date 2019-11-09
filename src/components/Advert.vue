@@ -4,13 +4,25 @@
                   once: true,
                   throttle: 10000
                   }" >
+      <p>{{ ViewAdded }}{{ ad.ID }}</p>
+      <template v-if="ad!=null" @click="clicked">
 
-      <div @click="clicked" >
-          <p>{{ ViewAdded }}</p>
-          <v-responsive :aspect-ratio="10/1">
-            <img src="@/assets/media/post/adheader.png"/>
-          </v-responsive>
-      </div>
+      <v-carousel
+        height="80%"
+        hide-delimiters
+        :show-arrows="false"
+          cycle
+          >
+    <v-carousel-item
+      v-for="subpost in ad.imgs"
+      :key="KeyGenerator(subpost.index)"
+      :src="IMGurl(subpost)"
+      interval="1000"
+    >
+      </v-carousel-item>
+      </v-carousel>
+
+    </template>
   </div>
 </template>
 
@@ -23,10 +35,22 @@ Vue.directive('observe-visibility', ObserveVisibility)
 
 export default {
   name: 'Advert',
+  props:{
+    SingleAd:{
+      type:Object,
+      default:function(){
+        return{
+          ID:'',
+          AdURL:''
+          }
+      }
+    }
+
+  },
   data: function(){
   return{
     ViewAdded:'NotSeen',
-    Clicked:'NotClicked',
+    Clicked:'NotClicked'
     //ad:{ID:''}
   }
 
@@ -40,19 +64,46 @@ export default {
     IsAuthenticated:'authentication/login'
   }),
   ...mapGetters({
-    ad: 'post/advert'
-  })
+    adpool: 'post/advert_in',
+
+  }),
+    ad:function(){
+      if(this.SingleAd.ID==''){
+      var n=this.randomgenerator(this.adpool.length,0.5)
+        if (n!=-1){
+            return this.adpool[n]
+        }else{
+            return {
+                ID:'',
+                AdURL:'',
+                imgs:[]
+            }
+        }
+
+    }else{
+      return this.SingleAd
+
+    }
+    }
 
   },
 methods:{...mapActions({
         addPost:'post/addPost',
         viewAd:'post/viewAd',
-        clickAd:'post/clickAd'
+        clickAd:'post/clickAd',
+      //  getAd:'post/randomgenerator'
         }),
+        randomgenerator(length,Frequency){
+            if(Math.random()<Frequency){
+                return Math.round(Math.random()*length)
+            }
+              return -1
+        }
+        ,
           visibilityChanged(isVisible){
           if(isVisible){
               if(this.IsAuthenticated){
-                  this.$store.dispatch('post/viewAd',{post:'AdPost1',type:'View'})
+                  this.$store.dispatch('post/viewAd',{post:this.ad.ID,type:'View'})
                   this.ViewAdded='Seen'
                   }
           }else{
@@ -61,15 +112,20 @@ methods:{...mapActions({
         },
           clicked:function(){
             if(this.IsAuthenticated){
-                this.$store.dispatch('post/clickAd',{post:'AdPost1',type:'Click'})
+                this.$store.dispatch('post/clickAd',{post:this.ad.ID,type:'Click'})
           }
-            window.open("https://dreher.hu", "_blank");
+            window.open(`${this.ad.AdURL}`, "_blank");
             this.Clicked='Clicked'
-          }
-}
+          },IMGurl:function(img){
+                  return require(`../assets${img.IMG_url.replace('http://localhost:8000','')}`)
+                  },
+        KeyGenerator:function(index){
+            return this.ad.ID+String(index)
+        }
+  }
 ,
 created() {
-//this.$store.dispatch('post/getAdvert/')
+
 },components:{
   ObserveVisibility
 }

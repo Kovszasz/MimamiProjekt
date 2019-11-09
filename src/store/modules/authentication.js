@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import axios from 'axios' //!!I just changed axios to api
 import MemePost from './MemePost'
 import ImgUpload from './uploadUser'
+import comment from './comment'
 //import api from '../../services/api'
 
 Vue.use(Vuex)

@@ -5,8 +5,11 @@ from django.contrib.auth.models import User
 def UpdateProfileScores(user):
     labelpooldict={}
     labelpool=0
-    likes=Action.objects.filter(type='Like',user=user)
-    posts=[PostLabelling.objects.filter(post=post.post) for post in likes]
+    likes=Action.objects.filter(type='Like',user=user).order_by('-date')
+    if len(likes)>150:
+        posts=[PostLabelling.objects.filter(post=post.post) for post in likes[:150]]
+    else:
+        posts=[PostLabelling.objects.filter(post=post.post) for post in likes]
     labels=PersonalScoringProfile.objects.all()
     for label in labels:
         labelpooldict[label.label]=0

@@ -6,8 +6,8 @@
         <b-card  header-tag="header" footer-tag="footer" >
           <advert v-slot:header v-if="!IsRegistration"></advert>
           <v-carousel
-            v-bind:height="height"
-            v-bind:width="width"
+            height="100%"
+            width="100%"
             hide-delimiter-background
             :show-arrows='MultipleImgs'
             :show-arrows-on-hover='MultipleImgs'
@@ -54,6 +54,7 @@ Vue.use(CardPlugin);
 Vue.use(mdiShareVariant);
 
 export default {
+  name:'MemePost',
     props:{
       post:Object,
       IsRegistration:{
@@ -94,7 +95,8 @@ export default {
           }else{
               return false
           }
-        }
+        },
+
 
 },
   methods:{ ...mapActions('post', {
@@ -102,7 +104,8 @@ export default {
   deletePost:'deletePost',
   LikePost:'LikePost',
 
-}),IMGurl:function(img){
+})
+,IMGurl:function(img){
         return require(`../assets${img.IMG_url.replace('http://localhost:8000','')}`)
         },
     KeyGenerator:function(index){
@@ -128,7 +131,7 @@ updated(){
 
 },
 mounted() {
-  this.$store.dispatch('post/getPost',this.post.ID)
+  //this.$store.dispatch('post/getPost',this.post.ID)
 }
 };
 

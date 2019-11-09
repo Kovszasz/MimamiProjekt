@@ -172,6 +172,7 @@ class PostSerializer(serializers.ModelSerializer):
         return False
 
 
+
 class CommentSerializer(serializers.ModelSerializer):
     ID=serializers.CharField(max_length=20, default="")
     content=serializers.CharField()

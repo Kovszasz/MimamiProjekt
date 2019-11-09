@@ -32,10 +32,11 @@ export default {
     'addPost',
     'deletePost'
   ]),
-  created() {
+  beforeCreate() {
     this.$store.dispatch('post/getTimeLine')
-    this.$store.dispatch('comments/getComment')
-    this.$store.dispatch('post/getAction')
+//    this.$store.dispatch('comments/getComment')
+//    this.$store.dispatch('post/getAction')
+    this.$store.dispatch('post/getAdvert')
   }
 };
 </script>

@@ -23,6 +23,7 @@
           <v-list-item ><v-list-item-title><router-link :to = "{ name:'messages' }" class="dropdown-item">Message</router-link></v-list-item-title></v-list-item>
           <v-list-item v-if="!IsAuthenticated "><v-list-item-title><router-link :to = "{ name:'register' }" class="dropdown-item">Register</router-link></v-list-item-title></v-list-item>
           <v-list-item v-if="!IsAuthenticated "><v-list-item-title><router-link :to = "{ name:'editor' }" class="dropdown-item">Editor</router-link></v-list-item-title></v-list-item>
+          <v-list-item v-if="IsAuthenticated"><v-list-item-title><router-link :to = "{ name:'advert',params:{user:user.username } }" class="dropdown-item">Advert</router-link></v-list-item-title></v-list-item>
           <v-list-item v-if="!IsAuthenticated "><v-list-item-title><router-link :to = "{ name:'login' }" class="dropdown-item">LogIn</router-link></v-list-item-title></v-list-item>
           <v-list-item v-if="user.is_staff "><v-list-item-title><router-link :to = "{ name:'moderate' }" class="dropdown-item">Moderating</router-link></v-list-item-title></v-list-item>
           <v-list-item v-if="user.is_superuser "><v-list-item-title><router-link :to = "{ name:'statistics' }" class="dropdown-item">Statistics</router-link></v-list-item-title></v-list-item>
@@ -130,6 +131,10 @@ export default {
   IMGurl:function(img){
           return require(`../assets${img.avatar}`)
           }
+  },
+  beforeCreate(){
+    //this.$store.dispatch('authentication/updateUser')
+
   }
 
 };

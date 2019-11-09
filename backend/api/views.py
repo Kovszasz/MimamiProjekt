@@ -41,23 +41,54 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     def list(self,request):
-        queryset=Post.objects.filter(IsAdvert=False,IsActive=True)
-        serializer = PostSerializer(queryset,many=True, context={'request': request})
+        queryset=Post.objects.filter(IsAdvert=False,IsActive=True,IsPublic=True).order_by('-date')
+        print(isinstance(request.user,User))
+        if isinstance(request.user,User):
+            postpool=[]
+            for post in queryset:
+                postlabel=PostLabelling.objects.filter(post=post)
+                score=0
+                for label in postlabel:
+                    if len(PersonalScoringProfile.objects.filter(user=request.user, label=label.label))>0:
+                        score=score+PersonalScoringProfile.objects.get(user=request.user,label=label.label).score
+                print(post.ID,'\t',score)
+                if randrange(0,1)<score:
+                    postpool.append(post)
+            serializer = PostSerializer(postpool,many=True,context={'request':request})
+        else:
+            serializer = PostSerializer(queryset,many=True, context={'request': request})
         return Response(serializer.data)
 
     def create(self, request):
-        api_result = Post.objects.create(user=request.user,ID=request.data['post']['ID'],description=request.data['post']['description'],IsPublic=request.data['post']['IsPublic'])
-        api_result.save()
+        booldict={'false':False,'true':True}
+        print(booldict[request.data['IsAdvert']])
+        print(request.user)
+        if booldict[request.data['IsAdvert']]:
+            post = Post.objects.create(user=request.user,
+                                            ID=request.data['ID'],
+                                            IsInlinePost=booldict[request.data['IsInlinePost']],
+                                            AppearenceFrequency=request.data['AppearenceFrequency'],
+                                            #date=request.data['date'],
+                                            #CampaignTime=request.data['CampaignTime'],
+                                            IsAdvert=True,
+                                            AdURL=request.data['AdURL']
+                                            )
+        else:
+            post = Post.objects.create(user=request.user,ID=request.data['ID'],description=request.data['description'],IsPublic=booldict[request.data['IsPublic']])
+        post.save()
         for i in request.data['labels']:
             if len(Label.objects.filter(name=i))==0:
                 l=Label.objects.create(name=i,type='category')
                 l.save()
             else:
                 l=Label.objects.get(name=i)
-            pl=PostLabelling.objects.create(post=api_result,label=l)
+            pl=PostLabelling.objects.create(post=post,label=l)
             pl.save()
-        print('created')
-        serializer=PostSerializer(api_result, context={'request': request})
+        for index in range(int(request.data['size'])):
+            t=MemeContent.objects.create(post=post,index=index,IMG=request.FILES['meme'+str(index)])
+            t.save()
+            serializer=PostSerializer(post,context={'request': request})
+        serializer=PostSerializer(post, context={'request': request})
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
@@ -70,17 +101,17 @@ class PostViewSet(viewsets.ModelViewSet):
         ads=Post.objects.filter(IsAdvert=True,IsActive=True)
         setting=AdvertSettings.objects.get(admin=User.objects.get(username="kovszasz"))
         AdPool=[]
-        if randrange(0,100)<setting.AdFrequency:
-            for i in ads:
-                for j in range(i.AppearenceFrequency):
-                    AdPool.append(i)
+        #if randrange(0,100)<setting.AdFrequency:
+        for i in ads:
+            for j in range(i.AppearenceFrequency):
+                AdPool.append(i)
             #ad=PostSerializer(AdPool[randrange(0,len(AdPool))],context={'request':request})
-            ad=PostSerializer(AdPool,many=True,context={'request':request})
-            return Response(ad.data)
-        else:
-            empty=Post.objects.get(ID='empty')
-            ad=PostSerializer(empty,context={'request':request})
-            return Response(ad.data)
+        ad=PostSerializer(AdPool,many=True,context={'request':request})
+        return Response(ad.data)
+        #else:
+        #    empty=Post.objects.get(ID='empty')
+        #    ad=PostSerializer(empty,context={'request':request})
+        #    return Response(ad.data)
 
     def update(self, request, pk=None):
         api_result = Post.objects.get(pk=pk)
@@ -119,11 +150,27 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def action(self,request):
+        setting=AdvertSettings.objects.get(admin=User.objects.get(username="kovszasz"))
         post=Post.objects.get(ID=request.data['post'])
+        postOwner=User.objects.get(username=post.user)
         #action=ActionSerializer(post,data={'type':request.data['type']})
         a=Action.objects.create(post=post,user=request.user,type=request.data["type"])
         a.save()
-
+        if request.data["type"]=='Click':
+            if postOwner.balance-setting.MoneyForCick <=0:
+                post.IsActive=False
+                post.save()
+                #notify(owner)
+            else:
+                postOwner.balance=postOwner.balance-setting.MoneyForClick
+        elif request.data["type"]=='View':
+            if postOwner.balance-setting.MoneyForSeen <=0:
+                post.IsActive=False
+                post.save()
+            else:
+                postOwner.mimeuser.balance=postOwner.mimeuser.balance-setting.MoneyForSeen
+        postOwner.mimeuser.save()
+        postOwner.save()
         serializer = PostSerializer(post,context={'request': request} )
         return Response(serializer.data)
 

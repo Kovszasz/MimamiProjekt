@@ -11,10 +11,6 @@ const state = {
   timeline:[]
 }
 
-function randomgenerator(length){
-   return state.advert[Math.random()*length]
-
-}
 const getters = {
   post: state => {
     return state.post
@@ -22,11 +18,17 @@ const getters = {
   action: state => {
     return state.action
   },
+  advert_in: state =>{
+    return state.advert.filter(ad=>ad.IsInlinePost === true)
+  },
   advert: state =>{
-    return randomgenerator(state.advert.length)
+    return state.advert.filter(ad=>ad.IsInlinePost === false && ad.IsAdvert === true)
   },
   timeline:state =>{
     return state.timeline
+  },
+  single_post:state=>(id)=>{
+      return state.timeline.filter(post=>post.ID === id)
   }
   /*get_timeline: state =>(id) => {
     return state.timeline.filter(post => post.user.username === id)
@@ -91,7 +93,13 @@ const actions = {
       .then(() => {
       //  commit('addPost', post)
       })
-    }
+    },//randomgenerator(length,Frequency){
+        //if(Math.random()<1){
+        //    return Math.round(Math.random()*11)//length.length)
+        //}
+        //  return -1
+    //}
+
 }
 
 const mutations = {

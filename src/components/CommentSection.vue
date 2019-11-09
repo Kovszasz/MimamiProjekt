@@ -106,7 +106,7 @@ Vue.use(mdiShareVariant);
           },
     },
     created() {
-      this.$store.dispatch('comments/getComment')
+  //    this.$store.dispatch('comments/getComment')
     }
   }
 </script>

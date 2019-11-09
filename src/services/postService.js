@@ -11,9 +11,8 @@ export default {
               .then(response => response.data)
   },
   postPost(payload,multiple) {
-    api.post(`post/`, payload.post)
-    return ImgUpload(`/api/meme/`, payload.meme.imgs, payload.meme.payload,multiple, name='meme')
-            .then(response => response.data)
+    //api.post(`post/`, payload.post).then(
+    return ImgUpload(`/api/post/`, payload.meme.imgs, payload,multiple, name='meme').then(response => response.data)
   },
   deletePost(postID) {
     return api.delete(`post/${postID}`)
