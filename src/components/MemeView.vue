@@ -1,10 +1,10 @@
 <template>
   <div class="post">
+  <Navbar></Navbar>
   <b-container fluid class="bv-example-row">
     <b-row>
 
         <b-card  header-tag="header" footer-tag="footer" >
-          <advert v-slot:header v-if="!IsRegistration"></advert>
           <template  v-if="IsAuthenticated">
             <v-list-item two-line height="100">
               <v-list-item-avatar size="55" >
@@ -76,10 +76,10 @@
 import { CardPlugin,CarouselPlugin,LayoutPlugin, FormTextareaPlugin  } from 'bootstrap-vue';
 import { mapState, mapActions } from 'vuex'
 import Vue from 'vue';
-import advert from './Advert.vue';
 import comment_section from './CommentSection.vue';
 import { NavbarPlugin } from 'bootstrap-vue'
 import { mdiShareVariant } from '@mdi/js'
+import Navbar from './Navbar.vue'
 Vue.use(NavbarPlugin)
 Vue.use(CarouselPlugin)
 Vue.use(CardPlugin)
@@ -92,7 +92,6 @@ Vue.use(mdiShareVariant);
 export default {
   name:'MemePost',
     props:{
-      post:Object,
       IsRegistration:{
           type:Boolean,
           default:false
@@ -113,7 +112,7 @@ export default {
       },
   components:{
     comment_section,
-    advert
+    Navbar
     },
       resolve: {
       alias: {
@@ -123,7 +122,8 @@ export default {
       computed:{...mapState('authentication',{
         IsAuthenticated:'accessToken',
         refreshToken:'refreshToken',
-        user:'user'
+        user:'user',
+        post:state=>state.post.timeline.filter(p=>p.ID === this.$refs.params.post)
 }),    MultipleImgs:function(){
           if (this.post.imgs.length > 1){
               return true
@@ -132,9 +132,13 @@ export default {
               return false
           }
         },
+        post(){
+          return this.$store.state.post.post//timeline.filter(post=>post.ID === this.$route.params.post)
+        }
 
 
 },
+
   methods:{ ...mapActions('post', {
   addPost:'addPost',
   deletePost:'deletePost',
@@ -148,16 +152,16 @@ AvatarUrl:function(img){
         return require(`../assets${img.avatar}`)
     },
     KeyGenerator:function(index){
-      return this.post.ID+String(index)
+      return this.$refs.params.post+String(index)
     },
     liking(){
       this.IsLiked=!this.IsLiked
         if (this.IsLiked){
-          //  this.LikePost(this.post.ID,1)
+          //  this.LikePost(this.$refs.params.post,1)
             //this.like=this.post.NumberOfLikes++
             this.like+=1
         }else{
-          //  this.LikePost(this.post.ID,-1)
+          //  this.LikePost(this.$refs.params.post,-1)
             //this.like=this.post.NumberOfLikes--
             this.like-=1
         }
@@ -166,11 +170,11 @@ AvatarUrl:function(img){
 
 },
 updated(){
-  //this.IsLiked= this.$store.state.post.timeline.filter(post => post.ID === this.post.ID).IsLiked
+  //this.IsLiked= this.$store.state.post.timeline.filter(post => post.ID === this.$refs.params.post).IsLiked
 
 },
-mounted() {
-  //this.$store.dispatch('post/getPost',this.post.ID)
+beforeCreate() {
+  this.$store.dispatch('post/getPost',this.$refs.params.post)
 }
 };
 

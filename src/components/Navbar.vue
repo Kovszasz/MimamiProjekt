@@ -20,6 +20,7 @@
         </v-btn>
       </template>
       <v-list>
+          <v-list-item v-if="IsAuthenticated "><v-list-item-title><router-link :to = "{ name:'memeview',params:{post:'Post1',key:'key'} }" class="dropdown-item">Meme</router-link></v-list-item-title></v-list-item>
           <v-list-item ><v-list-item-title><router-link :to = "{ name:'messages' }" class="dropdown-item">Message</router-link></v-list-item-title></v-list-item>
           <v-list-item v-if="!IsAuthenticated "><v-list-item-title><router-link :to = "{ name:'register' }" class="dropdown-item">Register</router-link></v-list-item-title></v-list-item>
           <v-list-item v-if="!IsAuthenticated "><v-list-item-title><router-link :to = "{ name:'editor' }" class="dropdown-item">Editor</router-link></v-list-item-title></v-list-item>
@@ -46,6 +47,17 @@
       >
         <v-list avatar rounded >
           <v-subheader>Main</v-subheader>
+          <template v-slot:prepend v-if="IsAuthenticated">
+              <v-list-item two-line>
+                <v-list-item-avatar>
+                    <img src="https://randomuser.me/api/portraits/women/81.jpg">
+                </v-list-item-avatar>
+                <v-list-item-content>
+                    <v-list-item-title>Jane Smith</v-list-item-title>
+                    <v-list-item-subtitle>Logged In</v-list-item-subtitle>
+                  </v-list-item-content>
+                  </v-list-item>
+                  </template>
           <v-list-item-group color="#b12233">
             <v-list-item>
               <v-list-item-avatar >

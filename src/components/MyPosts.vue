@@ -49,7 +49,7 @@
     computed:{ ...mapState({
       IsAuthenticated:'authentication/login'
     }),timeline:function(){
-        return this.$store.state.post.timeline.filter(post=>post.user.username === this.user)
+        return this.$store.state.post.timeline.filter(post=>post.user.username === this.$route.params.user)
     }
 
     },

@@ -16,6 +16,8 @@ from rest_framework.reverse import reverse,reverse_lazy
 from django.http import HttpResponseRedirect
 from random import randint,randrange
 from .algorithms import *
+from collections import OrderedDict
+import json
 
 
 # Serve Vue Application
@@ -112,6 +114,19 @@ class PostViewSet(viewsets.ModelViewSet):
         #    empty=Post.objects.get(ID='empty')
         #    ad=PostSerializer(empty,context={'request':request})
         #    return Response(ad.data)
+    @action(detail=True, methods=['get'])
+    def gender_stat(self,pk):
+        endpoint={}
+        ad=Post.objects.get(ID=pk)
+        actions=Action.objects.filter(post=ad)
+        male=0
+        female=0
+        for i in actions:
+            if i.user.memeuser.sex:
+                male=male+1
+            else:
+                female=female+1
+        return Response({'male':male,'female':female})
 
     def update(self, request, pk=None):
         api_result = Post.objects.get(pk=pk)
@@ -173,6 +188,8 @@ class PostViewSet(viewsets.ModelViewSet):
         postOwner.save()
         serializer = PostSerializer(post,context={'request': request} )
         return Response(serializer.data)
+
+
 
 
 
@@ -297,7 +314,7 @@ class TemplateViewSet(viewsets.ModelViewSet):
     """
     queryset = Template.objects.all()
     serializer_class = TemplateSerializer
-
+#OUT OF SERVICE#################################################################################
 class MemeContentViewSet(viewsets.ModelViewSet):
 
     """
@@ -308,10 +325,29 @@ class MemeContentViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         #post = Post.objects.get(ID=request.data['post'])
-        print('helloooo')
         post =Post.objects.get(ID=request.data['post'])
         for index in range(int(request.data['size'])):
             t=MemeContent.objects.create(post=post,index=index,IMG=request.FILES['meme'+str(index)])
             t.save()
         serializer=PostSerializer(post,context={'request': request})
         return Response(serializer.data)
+################################################################################################
+class StatisticsViewSet(viewsets.ModelViewSet):
+    queryset = Action.objects.all()
+    serializer_class=StatisticsSerializer
+
+    @action(detail=False, methods=['get'])
+    def users(self,request):
+        endpoint={}
+        endpoint['male']=len(MimeUser.objects.filter(sex=True))
+        endpoint['female']=len(MimeUser.objects.filter(sex=False))
+        #qs=User.objects.all().values('date_joined','username').annotate(newuser=Count('date_joined')).order_by('-date_joined')
+        #serialized=json.dumps([OrderedDict(('user', x['username']),('date_joined', x['date_joinded'])) for x in qs])
+        #serialized=json.dumps([OrderedDict(('Female',x['female']),('male',x['male'])) for x in endpoint])
+        return Response(endpoint)
+#        qs = (User.objects
+#      .filter(user=user)
+#      .values('show_id', 'show__movie__name', 'show__day__date', 'show__time')
+#      .annotate(total_tickets=Count('show'), last_booking=Max('booked_at'))
+#      .order_by('-last_booking')
+#      )

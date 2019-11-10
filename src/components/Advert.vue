@@ -21,7 +21,7 @@
     >
       </v-carousel-item>
       </v-carousel>
-
+      <v-divider ></v-divider>
     </template>
   </div>
 </template>
@@ -117,7 +117,7 @@ methods:{...mapActions({
             window.open(`${this.ad.AdURL}`, "_blank");
             this.Clicked='Clicked'
           },IMGurl:function(img){
-                  return require(`../assets${img.IMG_url.replace('http://localhost:8000','')}`)
+                  return require(`../assets${img.IMG_url}`)
                   },
         KeyGenerator:function(index){
             return this.ad.ID+String(index)

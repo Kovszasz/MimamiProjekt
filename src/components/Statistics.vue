@@ -1,39 +1,86 @@
 <template>
 <div>
-<Navbar/>
-  <div class="hello">
-    <p>Statistics</p>
-    <br/>
-    <p>Subject</p>
-    <input type="text" placeholder="Hello" v-model="subject">
-    <p>Message</p>
-    <input type="text" placeholder="From the other side" v-model="msgBody">
-    <br><br>
-    <input
-      type="submit"
-      value="Add"
-      @click="addMessage({ subject: subject, body: msgBody })"
-      :disabled="!subject || !msgBody">
+<Navbar :hideNavDrawer="true"></Navbar>
+<v-card>
+    <v-navigation-drawer
+      permanent
+      baseline
+      fixed
+      class="sidemenu"
+    >
+      <template v-slot:prepend>
+        <v-list>
+          <v-list-item>
+            <v-list-item-avatar>
+              <v-img src="https://randomuser.me/api/portraits/women/85.jpg"></v-img>
+            </v-list-item-avatar>
+          </v-list-item>
 
-    <hr/>
-    <h3>Messages on Database</h3>
-    <p v-if="messages.length === 0">No Messages</p>
-    <div class="msg" v-for="(msg, index) in messages" :key="index">
-        <p class="msg-index">[{{index}}]</p>
-        <p class="msg-subject" v-html="msg.subject"></p>
-        <p class="msg-body" v-html="msg.body"></p>
-        <input type="submit" @click="deleteMessage(msg.pk)" value="Delete" />
-    </div>
-  </div>
+          <v-list-item
+            link
+            two-line
+          >
+            <v-list-item-content>
+              <v-list-item-title class="title">Nasa</v-list-item-title>
+              <v-list-item-subtitle>statistical centre</v-list-item-subtitle>
+            </v-list-item-content>
+            <v-list-item-action>
+              <v-icon>mdi-menu-down</v-icon>
+            </v-list-item-action>
+          </v-list-item>
+        </v-list>
+      </template>
+
+      <v-divider></v-divider>
+
+      <v-list
+        nav
+        dense
+      >
+        <v-list-item link>
+          <v-list-item-icon>
+            <v-icon>mdi-folder</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Dashboard</v-list-item-title>
+        </v-list-item>
+        <v-list-item link>
+          <v-list-item-icon>
+            <v-icon>mdi-folder</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Users</v-list-item-title>
+        </v-list-item>
+        <v-list-item link>
+          <v-list-item-icon>
+            <v-icon>mdi-account-multiple</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Posts</v-list-item-title>
+        </v-list-item>
+        <v-list-item link>
+          <v-list-item-icon>
+            <v-icon>mdi-star</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Labels</v-list-item-title>
+        </v-list-item>
+        <v-list-item link>
+          <v-list-item-icon>
+            <v-icon>mdi-star</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Money</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-navigation-drawer>
+  </v-card>
+  <Dashboard></Dashboard>
   </div>
 </template>
 
 <script>
 import { mapState, mapActions } from 'vuex'
 import Navbar from './Navbar'
+import Dashboard from './statistics/Dashboard.vue'
 
 export default {
-  name: "Messages",
+  name: "Statistics",
   data() {
     return {
       subject: "",
@@ -51,7 +98,8 @@ export default {
     this.$store.dispatch('messages/getMessages')
   },
   components:{
-      Navbar
+      Navbar,
+      Dashboard
   }
 };
 </script>
@@ -80,6 +128,14 @@ img {
   width: 250px;
   padding-top: 50px;
   padding-bottom: 50px;
+}
+
+.sidemenu{
+margin-top:80px;
+
+}
+.dashboard{
+    margin-top:80px
 }
 
 </style>

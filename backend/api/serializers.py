@@ -116,8 +116,11 @@ class MemeContentSerializer(serializers.ModelSerializer):
         fields = ('IMG_url','index',)
     def get_IMG_url(self, MemeContent):
         request = self.context.get('request')
-        IMG_url = MemeContent.IMG.url
-        return request.build_absolute_uri(IMG_url)
+        try:
+            IMG_url = MemeContent.IMG.url
+        except:
+            IMG_url= ''
+        return IMG_url
 
 class PostSerializer(serializers.ModelSerializer):
     ID=serializers.CharField(max_length=20)
@@ -163,11 +166,12 @@ class PostSerializer(serializers.ModelSerializer):
     #    IMG_url = Post.IMG.url
     #    return request.build_absolute_uri(IMG_url)
     def get_IsLiked(self, Post):
-        request=self.context.get('request')
-        if request.user.is_authenticated:
-            print(Action.objects.filter(user=request.user,post=Post,type='Like'))
-            if len(Action.objects.filter(user=request.user,post=Post,type='Like'))>0:
-                return True
+        if self.context.get('request') is not None:
+            request=self.context.get('request')
+            if request.user.is_authenticated:
+                print(Action.objects.filter(user=request.user,post=Post,type='Like'))
+                if len(Action.objects.filter(user=request.user,post=Post,type='Like'))>0:
+                    return True
 
         return False
 
@@ -189,9 +193,52 @@ class CommentSerializer(serializers.ModelSerializer):
     #def get_user(self,Comment):
     #    pass
 
-
+class PostLabellingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=PostLabelling
+        fields='__all__'
 # output serializer class for  'Mods' model
 class ModSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mods
-        fields = '__all__'
+        fields='__all__'
+
+class LabelSerializer(serializers.ModelSerializer):
+    posts=serializers.SerializerMethodField()
+    users=serializers.SerializerMethodField()
+    class Meta:
+        model= Label
+        fields=['name','type','posts','users',]
+
+    def get_posts(self,Label):
+        post=PostLabelling.objects.filter(label=Label)
+        serialized=PostLabellingSerializer(post,many=True)
+        return serialized.data
+    def get_users(self,Label):
+        user=PersonalScoringProfile.objects.filter(label=Label)
+        serialized=ScoreSerializer(user,many=True)
+        return serialized.data
+
+
+class StatisticsSerializer(serializers.ModelSerializer):
+    #all_post=serializers.SerializerMethodField()
+    #all_user=serializers.SerializerMethodField()
+    #all_label=serializers.SerializerMethodField()
+    class Meta:
+        model =Action
+        fields = ['post','date','type',]
+
+    def get_all_post(self,Action):
+        post=Post.objects.all()
+        serialized=PostSerializer(post,many=True)
+        return serialized.data
+
+    def get_all_user(self,Action):
+        user=User.objects.filter(is_staff=False,is_superuser=False)
+        serialized=UserSerializer(user,many=True)
+        return serialized.data
+
+    def get_all_label(self,Action):
+        label=Label.objects.all()
+        serialized=LabelSerializer(label,many=True)
+        return serialized.data

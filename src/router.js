@@ -11,6 +11,7 @@ import Moderate from '@/components/Moderate'
 import Statistics from '@/components/Statistics'
 import ImgEditor from '@/components/ImgEditor'
 import MyAdverts from '@/components/MyAdverts'
+import MemeView from '@/components/MemeView'
 
 Vue.use(Router)
 export default new Router({
@@ -81,7 +82,7 @@ export default new Router({
       name: 'mypost',
       component: MyPost,
       props:{
-        user:'User'
+        user:String
       },
       meta: {
         requiresAuth: true
@@ -89,6 +90,23 @@ export default new Router({
 
 
   },
+  {
+    path: '/meme/:post/:key',
+    name: 'memeview',
+    component: MemeView,
+    props:{
+      post:String,
+      key:{
+        type:String,
+        default:''
+      }
+    },
+    meta: {
+      requiresAuth: true
+    }
+
+
+},
   {
     path: '/statistics',
     name: 'statistics',

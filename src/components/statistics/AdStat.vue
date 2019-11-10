@@ -81,7 +81,7 @@
                       class="md-6"
                     >
                   <v-card-subtitle class="pb-0">Number 10</v-card-subtitle>
-                      <pie-chart :data="[['Blueberry', 44], ['Strawberry', 23]]"></pie-chart>
+                      <pie-chart data="`/post/gender_stat/${post.ID}/`"></pie-chart>
                   </v-card>
                 </v-col>
             </v-tab-item>

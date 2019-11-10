@@ -12,7 +12,7 @@
         </v-lazy>
       </div>
       <v-lazy v-model="isActive" :options="{threshold: .5}" transition="fade-transition" v-if="index%5===0" >
-            <advert :SingleAd="ad"></advert>
+            <advert v-if="ad!=null" :SingleAd="ad"></advert>
       </v-lazy>
     </div>
       </b-col>

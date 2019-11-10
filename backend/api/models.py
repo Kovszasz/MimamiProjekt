@@ -50,6 +50,7 @@ class Mods(models.Model):
 class MimeUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_pic = models.ImageField(upload_to='profile',blank=True, default='/media/profile/e2.png')
+    #IsOfficial=models.BooleanField(default=False)
     IsAdvertiser=models.BooleanField(default=False)
     company=models.CharField(max_length=100,default='')
     balance=models.FloatField(default=0)

@@ -192,7 +192,9 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         #'AuthMiddleware'
-    )
+    )#,'DEFAULT_FILTER_BACKENDS': (
+    #    'rest_framework_filters.backends.DjangoFilterBackend',...
+    #),
 }
 
 
