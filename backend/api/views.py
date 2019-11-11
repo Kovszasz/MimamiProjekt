@@ -351,3 +351,34 @@ class StatisticsViewSet(viewsets.ModelViewSet):
 #      .annotate(total_tickets=Count('show'), last_booking=Max('booked_at'))
 #      .order_by('-last_booking')
 #      )
+
+
+class TemplateViewSet(viewsets.ModelViewSet):
+    queryset = Template.objects.all()
+    serializer_class = TemplateSerializer
+
+    def list(self,request):
+        if isinstance(request.user, User):
+            qs = Template.objects.all()
+            serialized = TemplateSerializer(qs, many=True, context={'request':request})
+            return Response(serialized.data)
+        else:
+            return Response({})
+            
+    @action(detail=False, methods=['get'])
+    def personal(self,request):
+        if isinstance(request.user, User):
+            qs = Template.objects.filter(user=request.user)
+            serialized = TemplateSerializer(qs, many=True, context={'request':request})
+            return Response(serialized.data)
+        else:
+            return Response({})
+
+    @action(detail=False, methods=['get'])
+    def browser(self,request):
+        if isinstance(request.user, User):
+            qs = Template.objects.filter(IsPublic=True)
+            serialized = TemplateSerializer(qs, many=True, context={'request':request})
+            return Response(serialized.data)
+        else:
+            return Response({})

@@ -1,4 +1,5 @@
 import api from '@/services/api'
+import axios from 'axios'
 import ImgUpload from '../store/modules/upload'
 
 export default {
@@ -37,5 +38,9 @@ export default {
   postMeme(payload,multiple) {
     return ImgUpload(`/api/meme/`, payload.imgs, payload.payload,multiple, name='meme')
             .then(response => response.data)
+  },
+  memeIMGflip(){
+    return api.get('template/')
+    .then(response => response.data)
   }
 }

@@ -14,6 +14,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView
     )
 from .api.views import *
+import djoser
 
 router = routers.DefaultRouter()
 router.register('messages', MessageViewSet)
@@ -25,6 +26,7 @@ router.register('template',TemplateViewSet,basename='template')
 router.register('follow',FollowViewSet,basename='follow')
 router.register('meme',MemeContentViewSet,basename='meme')
 router.register('statistics',StatisticsViewSet,basename='statistics')
+router.register('template',TemplateViewSet,basename='template')
 
 urlpatterns = [
 
@@ -40,5 +42,7 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('mods/',ModsView.as_view(),name='mods'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('auth/', include('djoser.urls'),name='auth'),
+    path('auth/', include('djoser.urls.jwt'),name='auth-jwt'),
     #url(r'^api/auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]

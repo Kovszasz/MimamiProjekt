@@ -8,7 +8,8 @@ const state = {
   post: [],
   action:[],
   advert:[],
-  timeline:[]
+  timeline:[],
+  memeTemplate:[]
 }
 
 const getters = {
@@ -29,6 +30,18 @@ const getters = {
   },
   single_post:state=>(id)=>{
       return state.timeline.filter(post=>post.ID === id)
+  },
+  memeTemplates:state=>{
+    return state.memeTemplate
+  },
+  myTemplates:state=>(id)=>{
+    return state.memeTemplate.filter(post=>post.user.username === id)
+  },
+  publicTemplates:state=>{
+    return state.memeTemplate.filter(post=>post.IsPublic === true)
+  },
+  recycledTemplates:state=>{
+    return state.memeTemplate.filter(post=>post.recycler !== true)
   }
   /*get_timeline: state =>(id) => {
     return state.timeline.filter(post => post.user.username === id)
@@ -93,15 +106,14 @@ const actions = {
       .then(() => {
       //  commit('addPost', post)
       })
-    },//randomgenerator(length,Frequency){
-        //if(Math.random()<1){
-        //    return Math.round(Math.random()*11)//length.length)
-        //}
-        //  return -1
-    //}
-
+    },
+  getTemplate({ commit },type){
+        postService.memeIMGflip()
+        .then(template =>{
+          commit('getTemplate',template)
+        })
+      }
 }
-
 const mutations = {
   setPost(state, post) {
     state.post = post
@@ -125,6 +137,9 @@ const mutations = {
   },
   setAction(state, action) {
     state.action=action
+  },
+  getTemplate(state,template){
+    state.memeTemplates=template
   }
 }
 

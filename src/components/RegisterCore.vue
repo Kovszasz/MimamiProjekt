@@ -106,13 +106,18 @@
       <v-stepper-content step="2">
       <b-container class="bv-example-row overflow-auto">
       <h1>{{ choose }} is remained</h1>
-    <template v-for="(p,index) in posts">
-    <b-row >
-      <b-col v-bind:key="p.ID">
-        <meme_post @click.native="chooseMeme(p)" :post="p" :IsRegistration="true" :width="200" :height="250" />
-    </b-col>
-    </b-row>
-    </template>
+    <template v-for ="index in postsize">
+    <v-row v-bind:key="index+'_row'">
+      <v-col
+        v-for="i in 4"
+        v-bind:key="index*4+i+'_col'"
+        cols="12"
+        md="3"
+      >
+        <meme_post @click.native="chooseMeme(index*4+i)" :post="postindex(index*4+i)" :IsRegistration="true" :width="200" :height="250" />
+      </v-col>
+      </v-row>
+      </template>
     </b-container>
 
         <v-btn
@@ -195,12 +200,12 @@ import meme_post from './MemePost.vue';
           this.$router.push({ name: 'login' })
         })
       },
-      chooseMeme(post){
+      chooseMeme(index){
         this.choose-=1
         if(this.choose==0){
             this.disabled=false
         }
-        this.memes.push(post)
+        this.memes.push(this.posts[index])
 
       },onChange (image) {
       console.log('New picture selected!')
@@ -210,13 +215,19 @@ import meme_post from './MemePost.vue';
       } else {
         console.log('FileReader API not supported: use the <form>, Luke!')
       }
-      }
+      },
+      postindex(index){
+                return this.posts[index]
+        }
   }
   ,
   computed:{ ...mapState({
     posts: state => state.post.timeline,
     IsAuthenticated:'authentication/login'
   }),
+  postsize(){
+      return Math.round(this.posts.length/4)+1
+  }
 
   },
 }

@@ -242,3 +242,27 @@ class StatisticsSerializer(serializers.ModelSerializer):
         label=Label.objects.all()
         serialized=LabelSerializer(label,many=True)
         return serialized.data
+
+class RecycleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recycle
+        fields = '__all__'
+
+class TemplateSerializer(serializers.ModelSerializer):
+    recycler = serializers.SerializerMethodField()
+    IMG_url = serializers.SerializerMethodField()
+    class Meta:
+        model = Template
+        fields =['IMG_url','user','ID','IsPublic','recycler']
+
+    def get_recycler(self,Template):
+        request=self.context.get('request')
+        template = Recycle.objects.filter(user=request.user,template=Template)
+        if len(template)==0:
+            return False
+        else:
+            serialized=RecycleSerializer(template)
+            return serialized.data
+
+    def get_IMG_url(self,Template):
+        return Template.IMG.url

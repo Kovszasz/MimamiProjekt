@@ -50,12 +50,12 @@ class Mods(models.Model):
 class MimeUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_pic = models.ImageField(upload_to='profile',blank=True, default='/media/profile/e2.png')
-    #IsOfficial=models.BooleanField(default=False)
+    IsOfficial=models.BooleanField(default=False)
     IsAdvertiser=models.BooleanField(default=False)
     company=models.CharField(max_length=100,default='')
     balance=models.FloatField(default=0)
     sex=models.BooleanField(default=True)
-    #age=models.DateField(auto_now_add=True)
+    age=models.DateField(default=datetime.now, blank=True)
     IsOfficial=models.BooleanField(default=False)#official: icon -> ID card
 
 
@@ -99,7 +99,7 @@ class PostLabelling(models.Model):
 class Template(models.Model):
     IMG=models.ImageField(upload_to='template',blank=True)
     ID=models.CharField(primary_key=True, default='', max_length=100)
-    user=models.ForeignKey(User,unique=True, on_delete=models.CASCADE, default="")
+    user=models.ForeignKey(User,on_delete=models.CASCADE, default="")
     IsPublic=models.BooleanField(default=False)
 
 class MemeContent(models.Model):
@@ -116,3 +116,8 @@ class PersonalScoringProfile(models.Model):
 class Follow(models.Model):
     channel=models.ForeignKey(User,on_delete=models.CASCADE,default='',related_name='channel')
     follower=models.ForeignKey(User,on_delete=models.CASCADE,default='',related_name='follower')
+
+class Recycle(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE,default='')
+    template=models.ForeignKey(Template, on_delete=models.CASCADE,default='')
+    date = models.DateField( auto_now_add=True)

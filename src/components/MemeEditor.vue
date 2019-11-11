@@ -175,8 +175,6 @@
                    <v-tab>Browse</v-tab>
 
                    <v-tab-item
-                     v-for="n in 3"
-                     :key="n"
                    >
                      <v-container fluid>
                        <v-row>
@@ -187,12 +185,53 @@
                            md="4"
                          >
                            <v-img
-                             :src="`https://picsum.photos/500/300?image=${i * n * 10 + 10}`"
-                             :lazy-src="`https://picsum.photos/10/6?image=${i * n * 5 + 10}`"
+                             :src="`https://picsum.photos/500/300?image=${i * 1 * 10 + 10}`"
+                             :lazy-src="`https://picsum.photos/10/6?image=${i * 1 * 5 + 10}`"
                              @click="getSrc(`settings.png`)"
                            ></v-img>
                          </v-col>
                        </v-row>
+                     </v-container>
+                   </v-tab-item>
+                   <v-tab-item
+                   >
+                     <v-container fluid>
+                       <v-row>
+                         <v-col
+                           v-for="i in 6"
+                           :key="i"
+                           cols="12"
+                           md="4"
+                         >
+                           <v-img
+                             :src="`https://picsum.photos/500/300?image=${i * 2 * 10 + 10}`"
+                             :lazy-src="`https://picsum.photos/10/6?image=${i * 2 * 5 + 10}`"
+                             @click="getSrc(`settings.png`)"
+                           ></v-img>
+                         </v-col>
+                       </v-row>
+                     </v-container>
+                   </v-tab-item>
+                   <v-tab-item
+                   >
+                     <v-container fluid>
+                     <p>{{ user }}</p>
+                     <template v-for="index in publicTemplates.length%3">
+                       <v-row v-bind:key="index +'_row'">
+                         <v-col
+                          v-for="n in 3"
+                          v-bind:key="index*3 + n+'col'"
+                           cols="12"
+                           md="4"
+                         >
+                           <v-img
+                             :src="IMG_url(temp(index*3+n,'public'))"
+                             :lazy-src="IMG_url(temp(index*3+n,'public'))"
+                             @click="getSrc("IMG_url(temp(index*3+n,'public'))")"
+                           ></v-img>
+                         </v-col>
+                       </v-row>
+                       </template>
                      </v-container>
                    </v-tab-item>
                  </v-tabs>
@@ -252,13 +291,14 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
 import RegisterCore from './RegisterCore.vue'
 import LoginCore from './LoginCore.vue'
 import PictureInput from 'vue-picture-input'
 import Template from './Template'
 import DateRangePicker from 'vue2-daterange-picker'
 import 'vue2-daterange-picker/dist/vue2-daterange-picker.css'
+import axios from 'axios'
 
   export default {
     data () {
@@ -291,15 +331,35 @@ import 'vue2-daterange-picker/dist/vue2-daterange-picker.css'
         imgsInLine:[],
         MultipleImgsInLine:false,
         IsSinglePost:true,
-        appearance:1
+        appearance:1,
+        template:''
       }
       },
       computed:{ ...mapState({
       //      IsAuthenticated:'authentication/accessToken'
+          user:'authentication/user'
       }),reachedUsers(){
             return 8
 
+      },...mapGetters({
+        get_myTemplate:'post/myTemplates',
+        get_browserTemplate:'post/publicTemplates',
+        get_recycledTemplate:'post/recycledTemplates'
+
+      }),
+      getTemplate(index){
+        return this.template[index]
+      },
+      myTemplates(){
+        return this.get_myTemplate(this.user.username)
+      },
+      publicTemplates(){
+        return this.get_browserTemplate
+      },
+      recycledTemplates(){
+        return this.get_recycledTemplate
       }
+
       },
       components:{
           RegisterCore,
@@ -366,16 +426,29 @@ import 'vue2-daterange-picker/dist/vue2-daterange-picker.css'
       },checkOpen(){
 
 
-      }
+      },
+      temp:function(index,type){
+              if(type == 'public'){
+                  return this.publicTemplates[index]
+              }else if (type == 'my'){
+                  return this.myTemplates[index]
+              }else{
+                  return this.recycledTemplates[index]
+              }
 
-
+        },IMGurl:function(img){
+              return require(`../assets${img.IMG_url}`)
+        },
       },
       watch:{
         uploadMeme:function(){
         }
 
-      }
+      },
+    beforeCreate(){
+      this.$store.dispatch('post/getTemplate')
     }
+  }
 
 </script>
 <style>

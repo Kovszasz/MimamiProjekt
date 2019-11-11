@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 import os
 from corsheaders.defaults import default_headers
 import datetime
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 SETTINGS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DIR = os.path.dirname(SETTINGS_DIR)
@@ -29,6 +30,18 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 80
+
+#Are you trying to use a gmail account? Maybe try this then:
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'kovszasz@gmail.com'
+EMAIL_HOST_PASSWORD = 'nederlandshaga'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -42,6 +55,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'backend.api',
     'rest_framework_simplejwt.token_blacklist',
+    'djoser',
 ]
 
 
@@ -184,7 +198,13 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 
-
+DJOSER = {
+    'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
+    'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
+    'ACTIVATION_URL': '#/activate/{uid}/{token}',
+    'SEND_ACTIVATION_EMAIL': True,
+    'SERIALIZERS': {},
+}
 
 
 REST_FRAMEWORK = {
