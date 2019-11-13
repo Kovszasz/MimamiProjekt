@@ -37,7 +37,18 @@
                     dense
                     >
                       <template v-slot:append-outer>
-                          <v-btn>Edit</v-btn>
+                          <v-dialog v-model="editor_dialog" >
+                              <template v-slot:activator="{ on }">
+                                <v-btn color="primary" dark v-on="on">Edit</v-btn>
+                              </template>
+
+                                  <ImgEditor></ImgEditor>
+                                <v-card-actions>
+                                  <v-spacer></v-spacer>
+                                  <v-btn color="green darken-1" text @click="editor_dialog = false">Disagree</v-btn>
+                                  <v-btn color="green darken-1" text @click="editor_dialog = false">Agree</v-btn>
+                                </v-card-actions>
+                            </v-dialog>
                                 <v-switch v-model="IsPublic" label="Public"></v-switch>
                       </template>
                     </v-text-field>
@@ -287,6 +298,8 @@
           </b-container>
       </v-card>
     </v-dialog>
+    <v-row justify="center">
+  </v-row>
   </v-row>
 </template>
 
@@ -299,11 +312,14 @@ import Template from './Template'
 import DateRangePicker from 'vue2-daterange-picker'
 import 'vue2-daterange-picker/dist/vue2-daterange-picker.css'
 import axios from 'axios'
+import ImgEditor from './ImgEditor.vue'
+import { EventBus } from './memeeditor/event-bus.js';
 
   export default {
     data () {
       return {
         dialog: false,
+        editor_dialog:false,
         notifications: false,
         sound: true,
         widgets: false,
@@ -366,7 +382,8 @@ import axios from 'axios'
           LoginCore,
           PictureInput,
           Template,
-          DateRangePicker
+          DateRangePicker,
+          ImgEditor
       },
       methods:{...mapActions({
         addPost:'post/addPost',
@@ -375,6 +392,7 @@ import axios from 'axios'
       }),
         onChange(){
           this.MultipleImgs=true
+          console.log(this.$refs.pictureInput)
           this.imgs.push(this.$refs.pictureInput[this.imgindex])
           this.imgindex+=1
           this.subIMGs.push(this.imgindex)
@@ -447,6 +465,14 @@ import axios from 'axios'
       },
     beforeCreate(){
       this.$store.dispatch('post/getTemplate')
+    },
+    created(){
+    EventBus.$on('new_meme', (data) => {
+        //if(data.IsFile){
+        //  console.log(data)
+        //}
+        console.log(data)
+      })
     }
   }
 
