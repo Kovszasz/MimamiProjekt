@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'backend.api',
     'rest_framework_simplejwt.token_blacklist',
     'djoser',
+    'django_filters',
 ]
 
 

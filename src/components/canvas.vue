@@ -78,8 +78,8 @@ export default {
                     }
         var blob=new Blob([new Uint8Array(array)], {type: 'image/png'});
         var file = new File([blob],name,{type:'image/png'})
-        console.log(file)
-          return {file:file,is_file:true}
+        console.log(image)
+          return {file:file,is_file:true,img:image}
       }else{
           return {is_file:false}
       }
@@ -103,19 +103,22 @@ export default {
     if(!this.provider.context) return;
     const canvas = this.provider.context
     const ctx=canvas.getContext('2d');
+    var imgobj=this.gImgObj
     var img = new Image()
-      img.src=this.gImgObj.src
-      img.width=this.gImgObj.width
-      img.height=this.gImgObj.height
-      img.crossOrigin = "Anonymous"
-      img.id=this.gImgObj.id
-      if(this.gImgObj.alignment=='bottom'){
-        ctx.drawImage(img, this.x, this.y)
-      }else if(this.gImgObj.alignment=="top"){
-        ctx.drawImage(img, 0, 0)
-      }else{
-        ctx.drawImage(img, this.x, (ctx.canvas.height/2)-(this.y*this.gImgObj.increment/2))
-      }
+    img.width=imgobj.width
+    img.height=imgobj.height
+    img.id=imgobj.id
+    console.log(imgobj)
+    img.onload = function() {
+        if(imgobj.alignment=='bottom'){
+              ctx.drawImage(img, this.x, this.y)
+        }else if(imgobj.alignment=='top'){
+              ctx.drawImage(img, 0, 0)
+        }else{
+              ctx.drawImage(img, this.x, (ctx.canvas.height/2)-(this.y*imgobj.increment/2))
+        }
+    }
+    img.src=imgobj.src
 
 
     for(var i=0;i<this.texts.length;i++){
@@ -123,7 +126,6 @@ export default {
 
     }
 
-     console.log(this.saveMeme(canvas,'meme.png'))
      EventBus.$emit('new_meme', this.saveMeme(canvas,'meme.png'));
   }
 }

@@ -41,13 +41,16 @@
                               <template v-slot:activator="{ on }">
                                 <v-btn color="primary" dark v-on="on">Edit</v-btn>
                               </template>
-
-                                  <ImgEditor></ImgEditor>
+                              <v-container>
+                              <v-card>
+                                  <ImgEditor v-bind:temp="editedTemplate"></ImgEditor>
                                 <v-card-actions>
                                   <v-spacer></v-spacer>
                                   <v-btn color="green darken-1" text @click="editor_dialog = false">Disagree</v-btn>
                                   <v-btn color="green darken-1" text @click="editor_dialog = false">Agree</v-btn>
                                 </v-card-actions>
+                                </v-card>
+                                </v-container>
                             </v-dialog>
                                 <v-switch v-model="IsPublic" label="Public"></v-switch>
                       </template>
@@ -60,11 +63,13 @@
                   :show-arrows-on-hover='MultipleImgs'
                   :hide-delimiters='!MultipleImgs'
                 >
-                  <v-carousel-item interval="0" v-for="(upload,index) in subIMGs" v-bind:key="upload">
+                  <v-carousel-item interval="0" v-for="(upload,index) in subIMGs" v-bind:key="index+'carouselmeme'">
                     <picture-input
+                    v-if="!upload.isimg"
                       ref="pictureInput"
                       @change="onChange"
                       :prefill="imgSrc"
+                      :crop="false"
                       width="1024"
                       height="600"
                       margin="16"
@@ -77,6 +82,12 @@
                         drag: 'Drag a 😺 GIF or GTFO'
                       }">
                     </picture-input>
+                   <img
+                    v-if="upload.isimg"
+                    :width="600"
+                    :height="600"
+                    :src="`${upload.img}`"
+                    />
                   </v-carousel-item>
                 </v-carousel>
                 </template>
@@ -101,10 +112,11 @@
                   :show-arrows-on-hover='MultipleImgs'
                   :hide-delimiters='!MultipleImgs'
                 >
-                  <v-carousel-item interval="0" v-for="(upload,index) in subIMGs" v-bind:key="upload">
+                  <v-carousel-item interval="0" v-for="(upload,index) in subIMGs" v-bind:key="index+'caruseladline'">
                     <picture-input
                       ref="pictureInput"
                       @change="onChange"
+                      :crop="false"
                       width="1024"
                       height="600"
                       margin="16"
@@ -117,6 +129,7 @@
                         drag: 'Drag a 😺 GIF or GTFO'
                       }">
                     </picture-input>
+
                   </v-carousel-item>
                 </v-carousel>
                 </v-tab-item>
@@ -127,10 +140,11 @@
                   :show-arrows-on-hover='MultipleImgsInLine'
                   :hide-delimiters='!MultipleImgsInLine'
                 >
-                  <v-carousel-item interval="0" v-for="(upload,index) in subIMGs" v-bind:key="upload">
+                  <v-carousel-item interval="0" v-for="(upload,index) in subIMGs" v-bind:key="index+'carousel_ad'">
                     <picture-input
                       ref="pictureInputInLine"
                       @change="onChangeInLine"
+                      :crop="false"
                       width="1024"
                       height="100"
                       margin="16"
@@ -143,6 +157,7 @@
                         drag: 'Drag a 😺 GIF or GTFO'
                       }">
                     </picture-input>
+
                   </v-carousel-item>
                 </v-carousel>
                 </v-tab-item>
@@ -195,11 +210,26 @@
                            cols="12"
                            md="4"
                          >
-                           <v-img
-                             :src="`https://picsum.photos/500/300?image=${i * 1 * 10 + 10}`"
-                             :lazy-src="`https://picsum.photos/10/6?image=${i * 1 * 5 + 10}`"
-                             @click="getSrc(`settings.png`)"
-                           ></v-img>
+                         <v-hover>
+                             <template v-slot:default="{ hover }">
+                             <div>
+                             <v-img
+                               :src="`https://picsum.photos/500/300?image=${i * 1 * 10 + 10}`"
+                               :lazy-src="`https://picsum.photos/10/6?image=${i * 1 * 5 + 10}`"
+                             ></v-img>
+                                 <v-fade-transition>
+                                   <v-overlay
+                                     v-if="hover"
+                                     absolute
+                                     color="#036358"
+                                   >
+                                     <v-btn @click="getSrc(`add.png`)">Choose</v-btn>
+                                   </v-overlay>
+                                 </v-fade-transition>
+                                 </div>
+                             </template>
+                           </v-hover>
+
                          </v-col>
                        </v-row>
                      </v-container>
@@ -319,12 +349,13 @@ import { EventBus } from './memeeditor/event-bus.js';
     data () {
       return {
         dialog: false,
+        overlay:false,
         editor_dialog:false,
         notifications: false,
         sound: true,
         widgets: false,
         MultipleImgs:false,
-        subIMGs:[0],
+        subIMGs:[{isimg:false,index:0}],
         imgs:[],
         IsPublic:false,
         chips: [],
@@ -348,7 +379,8 @@ import { EventBus } from './memeeditor/event-bus.js';
         MultipleImgsInLine:false,
         IsSinglePost:true,
         appearance:1,
-        template:''
+        template:'',
+        editedTemplate:{}
       }
       },
       computed:{ ...mapState({
@@ -395,12 +427,12 @@ import { EventBus } from './memeeditor/event-bus.js';
           console.log(this.$refs.pictureInput)
           this.imgs.push(this.$refs.pictureInput[this.imgindex])
           this.imgindex+=1
-          this.subIMGs.push(this.imgindex)
+          this.subIMGs.push({isimg:false,index:this.imgindex})
         },onChangeInLine(){
           this.MultipleImgsInLine=true
           this.imgs.push(this.$refs.pictureInputInLine[this.inlineindex])
           this.inlineindex+=1
-          this.subIMGs.push(this.inlineindex)
+          this.subIMGs.push({isimg:false,index:this.imgindex})
         },
         remove (item) {
         this.chips.splice(this.chips.indexOf(item), 1)
@@ -434,9 +466,15 @@ import { EventBus } from './memeeditor/event-bus.js';
         this.dialog=false
       },
       getSrc(src){
-          this.imgSrc=require(`../assets/${src}`)
-          this.onChange()
-          //this.imgSrc=''
+        this.editedTemplate={
+              id:'try',
+              src:require(`../assets/${src}`),
+              width:300,
+              height:300,
+              increment:1.3,
+              alignment:'center'
+        },
+        this.editor_dialog=true
       },
       updateValues(){
 
@@ -468,10 +506,16 @@ import { EventBus } from './memeeditor/event-bus.js';
     },
     created(){
     EventBus.$on('new_meme', (data) => {
-        //if(data.IsFile){
-        //  console.log(data)
-        //}
-        console.log(data)
+        if(data.is_file){
+            this.MultipleImgs=true
+            console.log(data)
+            this.imgs.push(data)
+            this.imgindex+=1
+            console.log(data)
+            this.subIMGs.push({isimg:true,index:this.imgindex, img:data.img})
+            this.editor_dialog=false
+            EventBus.$off('new_meme');
+        }
       })
     }
   }

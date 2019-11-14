@@ -1,7 +1,8 @@
 from django.views.generic import TemplateView
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated,AllowAny
 from django.views.decorators.cache import never_cache
-from rest_framework import viewsets,status
+from rest_framework import viewsets,status, filters
 from rest_framework.decorators import action
 from rest_framework import generics
 from rest_framework.response import Response
@@ -30,6 +31,8 @@ class MessageViewSet(viewsets.ModelViewSet):
     """
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
+    filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
+    search_fields=('id',)
 
 class FollowViewSet(viewsets.ModelViewSet):
     """
@@ -42,6 +45,9 @@ class PostViewSet(viewsets.ModelViewSet):
     permission_classes = (AllowAny,)
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
+    search_fields=('user__username',)
+    #search_fields = ['Id']
     def list(self,request):
         queryset=Post.objects.filter(IsAdvert=False,IsActive=True,IsPublic=True).order_by('-date')
         print(isinstance(request.user,User))
@@ -199,7 +205,8 @@ class PostViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-
+    filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
+    search_fields=('id',)
     def list(self,request):
         queryset=Comment.objects.all()
         serializer = CommentSerializer(queryset,many=True, context={'request': request})
@@ -266,7 +273,8 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.exclude(is_superuser=1)
     serializer_class = UserSerializer
-
+    filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
+    search_fields=('username',)
     @action(detail=True, methods=['POST'],serializer_class=ProfilePicSerializer,parser_classes=[parsers.MultiPartParser],)
     def pic(self, request, pk):
         user= User.objects.get(username=pk)
@@ -306,6 +314,7 @@ class ActionViewSet(viewsets.ModelViewSet):
     """
     queryset = Action.objects.all()
     serializer_class = ActionSerializer
+    
 
 class TemplateViewSet(viewsets.ModelViewSet):
 
@@ -364,7 +373,7 @@ class TemplateViewSet(viewsets.ModelViewSet):
             return Response(serialized.data)
         else:
             return Response({})
-            
+
     @action(detail=False, methods=['get'])
     def personal(self,request):
         if isinstance(request.user, User):

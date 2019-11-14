@@ -1,6 +1,6 @@
 <template>
-  <div class="my-canvas-wrapper">
-    <canvas ref="my-canvas" v-bind:width="width" v-bind:height="height"></canvas>
+  <div class="my-canvas-wrapper" style="position:relative;z-index:-100">
+    <canvas ref="my-canvas"  ></canvas>
     <slot></slot>
   </div>
 </template>
@@ -37,8 +37,8 @@ props:{
 
     // Resize the canvas to fit its parent's width.
     // Normally you'd use a more flexible resize system.
-    this.$refs['my-canvas'].width = this.$refs['my-canvas'].parentElement.clientWidth
-    this.$refs['my-canvas'].height = this.$refs['my-canvas'].parentElement.clientHeight
+    this.$refs['my-canvas'].width = this.width//this.$refs['my-canvas'].parentElement.clientWidth
+    this.$refs['my-canvas'].height = this.height//this.$refs['my-canvas'].parentElement.clientHeight
   },
   methods:{
 

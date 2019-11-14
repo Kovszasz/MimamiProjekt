@@ -1,55 +1,66 @@
 <template>
-  <div id="editor">
-  <h1>{{ x }}|{{ y }}</h1>
-    <my-canvas :height="temp.height*temp.increment" :width="temp.width" v-bind:save="IsRender">
-      <my-box
-        v-bind:texts="meme"
-        :gImgObj="temp"
-        :x="0"
-        :y="(temp.height*temp.increment)-temp.height"
-      >
-      </my-box>
-    </my-canvas>
-    <v-container class="grey lighten-5">
-    <v-row>
-      <v-col
-        cols="12"
-        md="8"
-      >
-        <v-card
-          class="pa-2"
-          outlined
-          tile
-        >
-        <div id="memecanvas" style="height: 500px; width: 500px; border: 1px solid red; position: relative;">
-          <img class="meme_bottom" :src="temp.src" :width="temp.width" :height="temp.height" align="middle">
-          <TextBox v-for="(t,index) in texts" v-bind:key="index+'_box'" v-bind:text="t.content" v-bind:Index="index"></TextBox>
-        </div>
-        </v-card>
-      </v-col>
-      <v-col
-        cols="6"
-        md="4"
-      >
-        <v-card
-          class="pa-2"
-          outlined
-          tile
-        >
-        <template v-for="(t,index) in texts">
-            <div v-bind:key="index">
-            <label>#{{ index }}</label><input type="text" v-model="t.content" />
-            </div>
-        </template>
-        <v-btn  @click="addtext">Add text</v-btn>
-        <v-btn@click="renderMeme">Save</v-btn>
-        </v-card>
-      </v-col>
-    </v-row>
-    </v-container>
-  </div>
-</template>
+<v-container class="grey lighten-5">
+<h1>{{ x }}|{{ y }}</h1>
+<v-row>
+  <v-col
 
+  >
+    <v-card
+      class="pa-2"
+      outlined
+      tile
+    >
+  <v-hover>
+    <template v-slot:default="{ hover }">
+      <v-card
+        class="mx-auto"
+      >
+      <my-canvas v-bind:height="temp.height*temp.increment" v-bind:width="temp.width" >
+        <my-box
+          v-bind:save="IsRender"
+          v-bind:texts="meme"
+          v-bind:gImgObj="temp"
+          :x="0"
+          :y="(temp.height*temp.increment)-temp.height"
+        >
+        </my-box>
+      </my-canvas>
+        <v-fade-transition>
+          <v-overlay
+            absolute
+          >
+          <div id="memecanvas" v-bind:style="`height: ${temp.height*temp.increment}px; width: ${temp.width}px; border: 1px solid red; position: relative;`">
+            <img class="meme_bottom" :src="temp.src" :width="temp.width" :height="temp.height" align="middle">
+            <TextBox v-for="(t,index) in texts" v-bind:key="index+'_box'" v-bind:text="t.content" v-bind:Index="index"></TextBox>
+          </div>
+          </v-overlay>
+        </v-fade-transition>
+      </v-card>
+    </template>
+  </v-hover>
+  </v-card>
+  </v-col>
+  <v-col
+    cols="6"
+    md="4"
+  >
+    <v-card
+      class="pa-2"
+      outlined
+      tile
+    >
+    <template v-for="(t,index) in texts">
+        <div v-bind:key="index">
+        <label>#{{ index }}</label><input type="text" v-model="t.content" />
+        </div>
+    </template>
+    <v-btn  @click="addtext">Add text</v-btn>
+    <v-btn@click="renderMeme">Save</v-btn>
+    </v-card>
+  </v-col>
+</v-row>
+</v-container>
+</template>
 <script>
 import MyCanvas from './MemeGenerator.vue';
 import MyBox from './canvas.vue';
