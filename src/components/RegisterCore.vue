@@ -114,7 +114,7 @@
         cols="12"
         md="3"
       >
-        <meme_post @click.native="chooseMeme(index*4+i)" :post="postindex(index*4+i)" :IsRegistration="true" :width="200" :height="250" />
+        <meme_post @click.native="chooseMeme((index-1)*4+(i-1))" :post="postindex((index-1)*4+(i-1))" :IsRegistration="true" :width="200" :height="250" />
       </v-col>
       </v-row>
       </template>
@@ -217,11 +217,13 @@ import meme_post from './MemePost.vue';
       }
       },
       postindex(index){
+        if(index<this.postsize){
                 return this.posts[index]
+        }else{
+          return false
         }
   }
-  ,
-  computed:{ ...mapState({
+  },computed:{ ...mapState({
     posts: state => state.post.timeline,
     IsAuthenticated:'authentication/login'
   }),

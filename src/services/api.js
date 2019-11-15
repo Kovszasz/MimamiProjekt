@@ -1,7 +1,7 @@
 import axios from 'axios'
 //import Cookies from 'js-cookie'
 import store from '../store'
-
+import NProgress from 'nprogress'
 
 
 const api= axios.create({
@@ -54,5 +54,14 @@ api.interceptors.request.use(
   }
 );
 
+api.interceptors.request.use(config => {
+  NProgress.start()
+  return config
+})
 
+// before a response is returned stop nprogress
+api.interceptors.response.use(response => {
+  NProgress.done()
+  return response
+})
 export default api

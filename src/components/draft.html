@@ -1,63 +1,35 @@
-<template>
-  <div id="editor">
-  <h1>{{ x }}|{{ y }}</h1>
-  <v-hover>
-      <template v-slot:default="{ hover }">
-        <v-card>
-        <my-canvas v-bind:height="temp.height*temp.increment" v-bind:width="temp.width" >
-          <my-box
-            v-bind:save="IsRender"
-            v-bind:texts="meme"
-            v-bind:gImgObj="temp"
-            :x="0"
-            :y="(temp.height*temp.increment)-temp.height"
-          >
-          </my-box>
-        </my-canvas>
-            <v-overlay
-              absolute
-            >
-            <v-container class="grey lighten-5">
-            <v-row>
-              <v-col
-                cols="12"
-                md="8"
-              >
-                <v-card
-                  class="pa-2"
-                  outlined
-                  tile
-                >
-                <div id="memecanvas" style="height: 500px; width: 500px; border: 1px solid red; position: relative;">
-                  <img class="meme_bottom" :src="temp.src" :width="temp.width" :height="temp.height" align="middle">
-                  <TextBox v-for="(t,index) in texts" v-bind:key="index+'_box'" v-bind:text="t.content" v-bind:Index="index"></TextBox>
-                </div>
-                </v-card>
-              </v-col>
-              <v-col
-                cols="6"
-                md="4"
-              >
-                <v-card
-                  class="pa-2"
-                  outlined
-                  tile
-                >
-                <template v-for="(t,index) in texts">
-                    <div v-bind:key="index">
-                    <label>#{{ index }}</label><input type="text" v-model="t.content" />
-                    </div>
-                </template>
-                <v-btn  @click="addtext">Add text</v-btn>
-                <v-btn@click="renderMeme">Save</v-btn>
-                </v-card>
-              </v-col>
-            </v-row>
-            </v-container>
-            </v-overlay>
 
-          </v-card>
-      </template>
-    </v-hover>
-  </div>
-</template>
+<v-container fluid>
+    <template v-if="templates!=={}" v-for ="index in templates.public.size">
+          <v-row v-bind:key="index+'_row'">
+        <v-col
+          v-for="i in 3"
+          v-bind:key="index*3+i+'_col'"
+          cols="12"
+          md="4"
+        >
+        <v-hover>
+            <template v-slot:default="{ hover }">
+            <div>
+              <v-img
+                  v-if="IMGurl((index-1)*3+(i-1),'public')"
+                  :src="IMGurl((index-1)*3+(i-1),'public')"
+                  :lazy-src="IMGurl((index-1)*3+(i-1),'public')"
+                  @click="getSrc(IMGurl((index-1)*3+(i-1),'public'))"
+                  ></v-img>
+                <v-fade-transition>
+                  <v-overlay
+                    v-if="hover"
+                    absolute
+                    color="#036358"
+                  >
+                    <v-btn @click="getSrc(IMGurl((index-1)*3+(i-1),'public'))">Choose</v-btn>
+                  </v-overlay>
+                </v-fade-transition>
+                </div>
+            </template>
+          </v-hover>
+      </v-col>
+    </v-row>
+  </template>
+</v-container>

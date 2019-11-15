@@ -15,7 +15,7 @@
       <v-card
         class="mx-auto"
       >
-      <my-canvas v-bind:height="temp.height*temp.increment" v-bind:width="temp.width" >
+      <my-canvas v-bind:height="temp.height" v-bind:width="temp.width" >
         <my-box
           v-bind:save="IsRender"
           v-bind:texts="meme"
@@ -31,7 +31,7 @@
           >
           <div id="memecanvas" v-bind:style="`height: ${temp.height*temp.increment}px; width: ${temp.width}px; border: 1px solid red; position: relative;`">
             <img class="meme_bottom" :src="temp.src" :width="temp.width" :height="temp.height" align="middle">
-            <TextBox v-for="(t,index) in texts" v-bind:key="index+'_box'" v-bind:text="t.content" v-bind:Index="index"></TextBox>
+            <TextBox v-for="(t,index) in texts" v-bind:key="index+'_box'" v-bind:text="t.content" v-bind:fontSize="t.textStyle.size" v-bind:Index="index"></TextBox>
           </div>
           </v-overlay>
         </v-fade-transition>
@@ -52,6 +52,8 @@
     <template v-for="(t,index) in texts">
         <div v-bind:key="index">
         <label>#{{ index }}</label><input type="text" v-model="t.content" />
+        <v-btn @click="t.textStyle.size++">+</v-btn><input style="text" v-model="t.textStyle.size" :placeholder="t.textStyle.size">
+        <v-btn @click="t.textStyle.size--">-</v-btn>
         </div>
     </template>
     <v-btn  @click="addtext">Add text</v-btn>
@@ -80,10 +82,11 @@ export default {
         return{
             id:'proba',
             src:require('../assets/media/template/S2.png'),
-            width:500,
-            height:300,
-            increment:1.7,
-            alignment:'center'
+            width:1200,
+            height:1200,
+            increment:1,
+            alignment:'top',
+            type:'standard'
         }
     }
 
@@ -93,7 +96,7 @@ export default {
     return {
       texts:[
         {
-        content:'hejj',
+        content:'funny text',
         x:10,
         y:10,
         textStyle:{
@@ -114,7 +117,7 @@ export default {
 
         }
       ],
-      textcontent:"dfdfdfd",
+      textcontent:"TEXT",
       x:0,
       y:0,
       width:0,
@@ -128,11 +131,6 @@ export default {
     }
 
   },methods:{
-    addimg:function(e){
-  //        this.temp['width']=200,
-  //        this.temp['height']=200,
-  //        this.temp['src']=e.target.src
-      },
     addtext:function(){
       this.texts.push(this.createText(this.textcontent,20,20))
       this.textcontent=''
@@ -185,16 +183,10 @@ html, body {
   padding: 0;
 }
 
-#editor {
-  position: relative;
-  height: 100vh;
-  width: 100vw;
-  padding: 20px;
-  box-sizing: border-box;
-}
 #meme_bottom:{
   position:absolute;
   top:40px;
+
 
 }
 </style>

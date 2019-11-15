@@ -37,6 +37,7 @@ export default {
 //    this.$store.dispatch('comments/getComment')
 //    this.$store.dispatch('post/getAction')
     this.$store.dispatch('post/getAdvert')
+    this.$store.dispatch('post/getTemplate')
   }
 };
 </script>

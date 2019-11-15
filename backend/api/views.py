@@ -40,6 +40,11 @@ class FollowViewSet(viewsets.ModelViewSet):
     """
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
+class PostSearchViewSet(viewsets.ModelViewSet):
+    queryset=Post.objects.all()
+    serializer_class = PostSerializer
+    filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
+    search_fields=('user__username','ID',)
 
 class PostViewSet(viewsets.ModelViewSet):
     permission_classes = (AllowAny,)
@@ -93,9 +98,15 @@ class PostViewSet(viewsets.ModelViewSet):
             pl=PostLabelling.objects.create(post=post,label=l)
             pl.save()
         for index in range(int(request.data['size'])):
-            t=MemeContent.objects.create(post=post,index=index,IMG=request.FILES['meme'+str(index)])
-            t.save()
+            if len(request.data['templates'])>0:
+                t=Template.objects.get(ID=request.data['templates'])
+                mc=MemeContent.objects.create(post=post,index=index,IMG=request.FILES['meme'+str(index)],template=t)
+            else:
+                mc=MemeContent.objects.create(post=post,index=index,IMG=request.FILES['meme'+str(index)])
+
+            mc.save()
             serializer=PostSerializer(post,context={'request': request})
+
         serializer=PostSerializer(post, context={'request': request})
         return Response(serializer.data)
 
@@ -314,7 +325,7 @@ class ActionViewSet(viewsets.ModelViewSet):
     """
     queryset = Action.objects.all()
     serializer_class = ActionSerializer
-    
+
 
 class TemplateViewSet(viewsets.ModelViewSet):
 

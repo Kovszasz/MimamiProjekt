@@ -50,7 +50,7 @@
       }
     },
     computed:{ ...mapState({
-      timeline: state => state.post.timeline.reverse(),
+      timeline: state => state.post.timeline,
       IsAuthenticated:'authentication/login'
     }),
     ...mapGetters({

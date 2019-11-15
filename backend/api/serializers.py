@@ -253,7 +253,7 @@ class TemplateSerializer(serializers.ModelSerializer):
     IMG_url = serializers.SerializerMethodField()
     class Meta:
         model = Template
-        fields =['IMG_url','user','ID','IsPublic','recycler']
+        fields =['IMG_url','user','ID','IsPublic','recycler','type']
 
     def get_recycler(self,Template):
         request=self.context.get('request')

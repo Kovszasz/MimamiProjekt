@@ -68,7 +68,7 @@ export default {
           }
         }
         context.fillText( text, x, y );
-    },saveMeme(ctx,name){
+    },saveMeme(ctx,name,width,height){
       if(this.save){
           var image=ctx.toDataURL('image/png')
           var blobBin = atob(image.split(',')[1]);
@@ -78,8 +78,7 @@ export default {
                     }
         var blob=new Blob([new Uint8Array(array)], {type: 'image/png'});
         var file = new File([blob],name,{type:'image/png'})
-        console.log(image)
-          return {file:file,is_file:true,img:image}
+          return {file:file,is_file:true,img:{src:image,width:width,height:height}}
       }else{
           return {is_file:false}
       }
@@ -108,14 +107,15 @@ export default {
     img.width=imgobj.width
     img.height=imgobj.height
     img.id=imgobj.id
-    console.log(imgobj)
     img.onload = function() {
         if(imgobj.alignment=='bottom'){
               ctx.drawImage(img, this.x, this.y)
         }else if(imgobj.alignment=='top'){
               ctx.drawImage(img, 0, 0)
-        }else{
+        }else if(imgobj.alignment=="center"){
               ctx.drawImage(img, this.x, (ctx.canvas.height/2)-(this.y*imgobj.increment/2))
+        }else{
+              ctx.drawImage(img,0,0)
         }
     }
     img.src=imgobj.src
@@ -126,7 +126,7 @@ export default {
 
     }
 
-     EventBus.$emit('new_meme', this.saveMeme(canvas,'meme.png'));
+     EventBus.$emit('new_meme', this.saveMeme(canvas,'meme.png',imgobj.width,imgobj.height*imgobj.increment));
   }
 }
 </script>

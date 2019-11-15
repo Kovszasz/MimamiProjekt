@@ -101,11 +101,13 @@ class Template(models.Model):
     ID=models.CharField(primary_key=True, default='', max_length=100)
     user=models.ForeignKey(User,on_delete=models.CASCADE, default="")
     IsPublic=models.BooleanField(default=False)
+    type=models.CharField(max_length=100,default='portrait')
 
 class MemeContent(models.Model):
     IMG=models.ImageField(upload_to='post',blank=True)
     index=models.IntegerField(default=0)
     post=models.ForeignKey(Post,on_delete=models.CASCADE, default="", related_name='imgs')
+    template=models.ForeignKey(Template, on_delete=models.CASCADE, default="")
     #id=models.AutoField(primary_key=True, default="")
 
 class PersonalScoringProfile(models.Model):

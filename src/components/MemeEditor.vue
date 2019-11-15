@@ -84,9 +84,9 @@
                     </picture-input>
                    <img
                     v-if="upload.isimg"
-                    :width="600"
-                    :height="600"
-                    :src="`${upload.img}`"
+                    :width=upload.img.width
+                    :height=upload.img.height
+                    :src="`${upload.img.src}`"
                     />
                   </v-carousel-item>
                 </v-carousel>
@@ -202,78 +202,112 @@
 
                    <v-tab-item
                    >
-                     <v-container fluid>
-                       <v-row>
-                         <v-col
-                           v-for="i in 6"
-                           :key="i"
-                           cols="12"
-                           md="4"
-                         >
-                         <v-hover>
-                             <template v-slot:default="{ hover }">
-                             <div>
-                             <v-img
-                               :src="`https://picsum.photos/500/300?image=${i * 1 * 10 + 10}`"
-                               :lazy-src="`https://picsum.photos/10/6?image=${i * 1 * 5 + 10}`"
-                             ></v-img>
-                                 <v-fade-transition>
-                                   <v-overlay
-                                     v-if="hover"
-                                     absolute
-                                     color="#036358"
-                                   >
-                                     <v-btn @click="getSrc(`add.png`)">Choose</v-btn>
-                                   </v-overlay>
-                                 </v-fade-transition>
-                                 </div>
-                             </template>
-                           </v-hover>
+                   <v-container fluid>
+                       <template v-if="templates!=={}" v-for ="index in templates.my.size">
+                             <v-row v-bind:key="index+'_row'">
+                           <v-col
+                             v-for="i in 3"
+                             v-bind:key="index*3+i+'_col'"
+                             cols="12"
+                             md="4"
+                           >
+                           <v-hover>
+                               <template v-slot:default="{ hover }">
+                               <div>
+                                 <v-img
+                                     v-if="IMGurl((index-1)*3+(i-1),'my')"
+                                     :src="IMGurl((index-1)*3+(i-1),'my')"
+                                     :lazy-src="IMGurl((index-1)*3+(i-1),'my')"
+                                     ></v-img>
+                                   <v-fade-transition>
+                                     <v-overlay
+                                       v-if="hover"
+                                       absolute
+                                       color="#036358"
+                                     >
+                                       <v-btn @click="getSrc(IMGurl((index-1)*3+(i-1),'my'),index-1,'my')">Choose</v-btn>
+                                     </v-overlay>
+                                   </v-fade-transition>
+                                   </div>
+                               </template>
+                             </v-hover>
+                         </v-col>
+                       </v-row>
+                     </template>
+                   </v-container>
 
-                         </v-col>
-                       </v-row>
-                     </v-container>
                    </v-tab-item>
                    <v-tab-item
                    >
-                     <v-container fluid>
-                       <v-row>
-                         <v-col
-                           v-for="i in 6"
-                           :key="i"
-                           cols="12"
-                           md="4"
-                         >
-                           <v-img
-                             :src="`https://picsum.photos/500/300?image=${i * 2 * 10 + 10}`"
-                             :lazy-src="`https://picsum.photos/10/6?image=${i * 2 * 5 + 10}`"
-                             @click="getSrc(`settings.png`)"
-                           ></v-img>
+                   <v-container fluid>
+                       <template v-if="templates!=={}" v-for ="index in templates.recycle.size">
+                             <v-row v-bind:key="index+'_row'">
+                           <v-col
+                             v-for="i in 3"
+                             v-bind:key="index*3+i+'_col'"
+                             cols="12"
+                             md="4"
+                           >
+                           <v-hover>
+                               <template v-slot:default="{ hover }">
+                               <div>
+                                 <v-img
+                                     v-if="IMGurl((index-1)*3+(i-1),'recycle')"
+                                     :src="IMGurl((index-1)*3+(i-1),'recycle')"
+                                     :lazy-src="IMGurl((index-1)*3+(i-1),'recycle')"
+                                     ></v-img>
+                                   <v-fade-transition>
+                                     <v-overlay
+                                       v-if="hover"
+                                       absolute
+                                       color="#036358"
+                                     >
+                                       <v-btn @click="getSrc(IMGurl((index-1)*3+(i-1),'recycle'),index-1,'recycle')">Choose</v-btn>
+                                     </v-overlay>
+                                   </v-fade-transition>
+                                   </div>
+                               </template>
+                             </v-hover>
                          </v-col>
                        </v-row>
-                     </v-container>
+                     </template>
+                   </v-container>
                    </v-tab-item>
                    <v-tab-item
                    >
-                     <v-container fluid>
-                     <p>{{ user }}</p>
-                     <template v-for="index in publicTemplates.length%3">
-                       <v-row v-bind:key="index +'_row'">
-                         <v-col
-                          v-for="n in 3"
-                          v-bind:key="index*3 + n+'col'"
-                           cols="12"
-                           md="4"
-                         >
-                           <v-img
-                             :src="IMG_url(temp(index*3+n,'public'))"
-                             :lazy-src="IMG_url(temp(index*3+n,'public'))"
-                             @click="getSrc("IMG_url(temp(index*3+n,'public'))")"
-                           ></v-img>
+                   <v-container fluid>
+                       <template v-if="templates!=={}" v-for ="index in templates.public.size">
+                             <v-row v-bind:key="index+'_row'">
+                           <v-col
+                             v-for="i in 3"
+                             v-bind:key="index*3+i+'_col'"
+                             cols="12"
+                             md="4"
+                           >
+                           <v-hover>
+                               <template v-slot:default="{ hover }">
+                               <div>
+                                 <v-img
+                                     v-if="IMGurl((index-1)*3+(i-1),'public')"
+                                     :src="IMGurl((index-1)*3+(i-1),'public')"
+                                     :lazy-src="IMGurl((index-1)*3+(i-1),'public')"
+                                     ></v-img>
+                                   <v-fade-transition>
+                                     <v-overlay
+                                       v-if="hover"
+                                       absolute
+                                       color="#036358"
+                                     >
+                                       <v-btn @click="getSrc(IMGurl((index-1)*3+(i-1),'public'),index-1,'public')">Choose</v-btn>
+                                     </v-overlay>
+                                   </v-fade-transition>
+                                   </div>
+                               </template>
+                             </v-hover>
                          </v-col>
                        </v-row>
-                       </template>
-                     </v-container>
+                     </template>
+                   </v-container>
                    </v-tab-item>
                  </v-tabs>
                </v-card>
@@ -334,6 +368,7 @@
 </template>
 
 <script>
+
 import { mapState, mapActions, mapGetters } from 'vuex'
 import RegisterCore from './RegisterCore.vue'
 import LoginCore from './LoginCore.vue'
@@ -380,7 +415,8 @@ import { EventBus } from './memeeditor/event-bus.js';
         IsSinglePost:true,
         appearance:1,
         template:'',
-        editedTemplate:{}
+        editedTemplate:{},
+        memeTemps:[]
       }
       },
       computed:{ ...mapState({
@@ -390,24 +426,22 @@ import { EventBus } from './memeeditor/event-bus.js';
             return 8
 
       },...mapGetters({
-        get_myTemplate:'post/myTemplates',
-        get_browserTemplate:'post/publicTemplates',
-        get_recycledTemplate:'post/recycledTemplates'
+        get_myTemplate:'post/memeTemplates',
+        get_browserTemplate:'post/memeTemplates',//'post/publicTemplates',
+        get_recycledTemplate:'post/memeTemplates',//'post/recycledTemplates'
 
       }),
-      getTemplate(index){
-        return this.template[index]
-      },
-      myTemplates(){
-        return this.get_myTemplate(this.user.username)
-      },
-      publicTemplates(){
-        return this.get_browserTemplate
-      },
-      recycledTemplates(){
-        return this.get_recycledTemplate
-      }
+      templates(){
+        var my= this.get_browserTemplate //this.get_myTemplate(this.user.username)
+        var public_t = this.get_browserTemplate
+        var recycle = this.get_recycledTemplate
+        return {
+            public:{temp:public_t,size:public_t.length},
+            my:{temp:my,size:my.length},
+            recycle:{temp:recycle,size:recycle.length},
 
+        }
+      }
       },
       components:{
           RegisterCore,
@@ -424,7 +458,6 @@ import { EventBus } from './memeeditor/event-bus.js';
       }),
         onChange(){
           this.MultipleImgs=true
-          console.log(this.$refs.pictureInput)
           this.imgs.push(this.$refs.pictureInput[this.imgindex])
           this.imgindex+=1
           this.subIMGs.push({isimg:false,index:this.imgindex})
@@ -439,24 +472,21 @@ import { EventBus } from './memeeditor/event-bus.js';
         this.chips = [...this.chips]
       },
       sendMeme(){
-      console.log(this.$refs.picker)
         var id;
         if(!this.advert){
         id='Post'+String(Math.round(Math.random()*10000))
         this.addPost({ID:id,IsAdvert:false,description:this.postText,IsPublic:this.IsPublic,
                     labels:this.chips,
-                    meme:{imgs:this.imgs,payload:{post:id,size:this.imgs.length}},size:this.imgs.length},true)
+                    meme:{imgs:this.imgs,payload:{post:id,size:this.imgs.length}},size:this.imgs.length,templates:this.memeTemps},true)
         this.$store.dispatch('post/getTimeLine')
 
         }else{
           if(this.IsInlinePost){
-            console.log(this.$refs.picker)
               id='AdPost'+String(Math.round(Math.random()*10000))
               this.addPost({ID:id,AdURL:this.adURL,IsAdvert:true,IsInlinePost:true,AppearenceFrequency:this.appearance,labels:this.chips
                         ,meme:{imgs:this.imgs,payload:{post:id,size:this.imgs.length}},size:this.imgs.length},true)
           }
           if(this.IsSinglePost){
-          console.log(this.$refs.picker)
               id='AdInPost'+String(Math.round(Math.random()*10000))
               this.addPost({ID:id,AdURL:this.adURL,IsAdvert:true,IsInlinePost:false,AppearenceFrequency:this.appearance,labels:this.chips
                         ,meme:{imgs:this.imgs,payload:{post:id,size:this.imgs.length}},size:this.imgs.length},true)
@@ -465,14 +495,25 @@ import { EventBus } from './memeeditor/event-bus.js';
         this.postcreated=true
         this.dialog=false
       },
-      getSrc(src){
+      getSrc(src,index,type){
+      var size;
+      if(type == 'public'){
+          this.memeTemps.push(this.templates.public.temp[index].ID)
+          size=this.getSize(this.templates.public.temp[index].type)
+      }else if (type == 'my'){
+          this.memeTemps.push(this.templates.my.temp[index].ID)
+          size=this.getSize(this.templates.my.temp[index].type)
+      }else{
+          this.memeTemps.push(this.templates.recycle.temp[index].ID)
+          size=this.getSize(this.templates.recycle.temp[index].type)
+      }
         this.editedTemplate={
               id:'try',
-              src:require(`../assets/${src}`),
-              width:300,
-              height:300,
-              increment:1.3,
-              alignment:'center'
+              src:src,
+              width:size.width,
+              height:size.height,
+              increment:1.0,
+              alignment:'top'
         },
         this.editor_dialog=true
       },
@@ -483,18 +524,51 @@ import { EventBus } from './memeeditor/event-bus.js';
 
 
       },
-      temp:function(index,type){
-              if(type == 'public'){
-                  return this.publicTemplates[index]
-              }else if (type == 'my'){
-                  return this.myTemplates[index]
-              }else{
-                  return this.recycledTemplates[index]
-              }
+      temp(index,type){
 
-        },IMGurl:function(img){
-              return require(`../assets${img.IMG_url}`)
+
+        },IMGurl:function(index,type){
+            if(type == 'public'){
+              if(this.templates.public.size>index){
+                return require(`../assets${this.templates.public.temp[index].IMG_url}`)
+              }else{
+                return false
+              }
+            }else if (type == 'my'){
+            if(this.templates.my.size>index){
+              return require(`../assets${this.templates.my.temp[index].IMG_url}`)
+              }else{
+                return false
+              }
+            }else{
+            if(this.templates.recycle.size>index){
+              return require(`../assets${this.templates.recycle.temp[index].IMG_url}`)
+            }else{
+                return false
+              }
+          }
         },
+        getSize(type){
+            console.log(type)
+            if(type=='portrait'){
+
+                return {
+                  width:800*0.5,
+                  height:1200*0.5
+                }
+            }else if(type=='landscape'){
+                return{
+                  width:1024*0.5,
+                  height:512*0.5
+                }
+            }else if(type=='standard'){
+                  return{
+                    width:1200*0.5,
+                    height:1200*0.5
+                }
+            }
+        }
+
       },
       watch:{
         uploadMeme:function(){
@@ -508,10 +582,8 @@ import { EventBus } from './memeeditor/event-bus.js';
     EventBus.$on('new_meme', (data) => {
         if(data.is_file){
             this.MultipleImgs=true
-            console.log(data)
-            this.imgs.push(data)
+            this.imgs.unshift(data)
             this.imgindex+=1
-            console.log(data)
             this.subIMGs.push({isimg:true,index:this.imgindex, img:data.img})
             this.editor_dialog=false
             EventBus.$off('new_meme');

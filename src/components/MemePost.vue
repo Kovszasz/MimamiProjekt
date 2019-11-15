@@ -57,15 +57,21 @@
             >
             </v-carousel-item>
           </v-carousel>
-            <v-row  v-if="!IsRegistration">
-              <v-col v-if="IsLiked"><v-icon color="#fe5552" @click="liking()">mdi-thumb-up</v-icon><p>{{ like }}</p>
-              </v-col>
-              <v-col v-if="!IsLiked"><v-icon  @click="liking()">mdi-thumb-up</v-icon><p>{{ like }}</p>
-              </v-col>
-              <v-col><comment_section v-if="IsAuthenticated" v-slot:footer :postID="post.ID"></comment_section></v-col>
-              <v-col><v-icon> </v-icon></v-col>
+          <v-divider></v-divider>
+          <v-row
+          v-if="!IsRegistration"
+            class="mb-9"
+            no-gutters
+          >
+          <v-col v-if="!post.IsLiked"><v-icon :large="true" class="pa-2" @click="liking()">mdi-thumb-up</v-icon><p>{{ like }}</p>
+          </v-col>
+          <v-col v-if="post.IsLiked"><v-icon :large="true" class="pa-2" color="#fe5552" @click="liking()">mdi-thumb-up</v-icon><p>{{ like }}</p>
+          </v-col>
+            <v-col ><p class="pa-2" @click="recycle"><img src="@/assets/recycle.jpg" width="50" height="50" /></p>
+            </v-col>
+            <v-col v-if="!IsRegistration"><comment_section v-if="IsAuthenticated" v-slot:footer :postID="post.ID"></comment_section>
+            </v-col>
           </v-row>
-
         </b-card>
       </b-row>
     </b-container>
@@ -79,7 +85,12 @@ import Vue from 'vue';
 import advert from './Advert.vue';
 import comment_section from './CommentSection.vue';
 import { NavbarPlugin } from 'bootstrap-vue'
-import { mdiShareVariant } from '@mdi/js'
+import {
+  mdiAccount,
+  mdiPencil,
+  mdiShareVariant,
+  mdiDelete,
+} from '@mdi/js'
 Vue.use(NavbarPlugin)
 Vue.use(CarouselPlugin)
 Vue.use(CardPlugin)
@@ -108,7 +119,7 @@ export default {
     },data() {
         return {
           like:this.post.NumberOfLikes,
-          IsLiked:false
+          //IsLiked:false
         }
       },
   components:{
@@ -151,16 +162,18 @@ AvatarUrl:function(img){
       return this.post.ID+String(index)
     },
     liking(){
-      this.IsLiked=!this.IsLiked
+      this.post.IsLiked=!this.post.IsLiked
         if (this.IsLiked){
-          //  this.LikePost(this.post.ID,1)
-            //this.like=this.post.NumberOfLikes++
+            this.LikePost(this.post.ID,1)
+            this.like=this.post.NumberOfLikes++
             this.like+=1
         }else{
-          //  this.LikePost(this.post.ID,-1)
-            //this.like=this.post.NumberOfLikes--
+            this.LikePost(this.post.ID,-1)
+            this.like=this.post.NumberOfLikes--
             this.like-=1
         }
+
+    },recycle(){
 
     }
 

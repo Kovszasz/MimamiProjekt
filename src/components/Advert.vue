@@ -94,7 +94,7 @@ methods:{...mapActions({
       //  getAd:'post/randomgenerator'
         }),
         randomgenerator(length,Frequency){
-            if(Math.random()<Frequency){
+            if(Math.random()<Frequency && length>0){
                 return Math.round(Math.random()*length)
             }
               return -1

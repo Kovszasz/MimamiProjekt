@@ -78,7 +78,6 @@ const actions = {
   LikePost({ commit }, post,change) {
     postService.likePost(post)
     .then(() => {
-      commit('likePost', post,change)
     })},
   getAdvert({ commit }) {
       postService.getAdvert()
@@ -139,7 +138,7 @@ const mutations = {
     state.action=action
   },
   getTemplate(state,template){
-    state.memeTemplates=template
+    state.memeTemplate=template
   }
 }
 

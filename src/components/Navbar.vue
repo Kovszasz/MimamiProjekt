@@ -9,7 +9,9 @@
     flat
     hide-details
     label="Search"
+    v-model="search_field"
     solo-inverted
+    v-on:keyup.enter="search()"
   ></v-text-field>
     <MemeEditor v-if="IsAuthenticated" />
     <v-spacer v-if="!IsAuthenticated"></v-spacer>
@@ -113,6 +115,22 @@
           </v-list>
         </v-card>
       </v-navigation-drawer>
+      <v-row justify="center">
+    <v-dialog v-model="dialog" width="800px">
+      <v-card>
+        <v-card-title>
+          <span class="headline">Results</span>
+        </v-card-title>
+          <p>{{ search_result }}</p>
+      </v-card>
+      <v-skeleton-loader
+  ref="skeleton"
+    :boilerplate="false"
+    type="article"
+    class="mx-auto"
+  ></v-skeleton-loader>
+    </v-dialog>
+  </v-row>
     </div>
 
 </template>
@@ -123,6 +141,7 @@ import Vue from 'vue';
 import MemeEditor from './MemeEditor';
 import {NavbarPlugin} from 'bootstrap-vue';
 Vue.use(NavbarPlugin);
+import api from '../services/api'
 export default {
   name: 'Navbar',
   props:{
@@ -133,7 +152,10 @@ export default {
   },
   data(){
     return{
-    User:'User'
+    User:'User',
+    search_field:'',
+    search_result:[],
+    dialog:false
     }
   },
   components: {
@@ -142,7 +164,24 @@ export default {
   methods:{
   IMGurl:function(img){
           return require(`../assets${img.avatar}`)
-          }
+          },
+    search(){
+        this.dialog=true
+        let api_url = '/spotlight/';
+        if(this.search_field!==''||this.search_term!==null) {
+          api_url = `/spotlight/?search=${this.search_field}`
+        }
+        this.loading = true;
+        api.get(api_url)
+            .then((response) => {
+              this.search_result = response.data;
+              this.loading = false;
+            })
+            .catch((err) => {
+              this.loading = false;
+              console.log(err);
+            })
+    }
   },
   beforeCreate(){
     //this.$store.dispatch('authentication/updateUser')
