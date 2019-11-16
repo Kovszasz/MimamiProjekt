@@ -28,6 +28,7 @@ router.register('meme',MemeContentViewSet,basename='meme')
 router.register('statistics',StatisticsViewSet,basename='statistics')
 router.register('template',TemplateViewSet,basename='template')
 router.register('spotlight',PostSearchViewSet,basename='spotlight')
+router.register('recycle',RecycleViewSet,basename='recycle')
 
 urlpatterns = [
 

@@ -42,16 +42,16 @@
           </template>
 
           <v-carousel
-            height="100%"
-            width="100%"
             hide-delimiter-background
+            width="100%"
+            height="100%"
             :show-arrows='MultipleImgs'
             :show-arrows-on-hover='MultipleImgs'
             :hide-delimiters='!MultipleImgs'
           >
             <v-carousel-item
-              v-for="subpost in post.imgs"
-              :key="KeyGenerator(subpost.index)"
+              v-for="(subpost,index) in post.imgs"
+              :key="KeyGenerator(index)"
               :src="IMGurl(subpost)"
               interval="0"
             >
@@ -91,6 +91,7 @@ import {
   mdiShareVariant,
   mdiDelete,
 } from '@mdi/js'
+import api from '../services/api'
 Vue.use(NavbarPlugin)
 Vue.use(CarouselPlugin)
 Vue.use(CardPlugin)
@@ -153,17 +154,25 @@ export default {
 
 })
 ,IMGurl:function(img){
-        return require(`../assets${img.IMG_url}`)
+        if(img.IMG_url==''){
+          return require(`../assets/logo.svg`)
+        }else{
+                return require(`../assets${img.IMG_url}`)
+        }
         },
 AvatarUrl:function(img){
+    if(img==null){
+        return require(`../assets/logo.svg`)
+    }else{
         return require(`../assets${img.avatar}`)
+    }
     },
     KeyGenerator:function(index){
-      return this.post.ID+String(index)
+      return this.post.ID+'img'+String(index)
     },
     liking(){
       this.post.IsLiked=!this.post.IsLiked
-        if (this.IsLiked){
+        if (this.post.IsLiked){
             this.LikePost(this.post.ID,1)
             this.like=this.post.NumberOfLikes++
             this.like+=1
@@ -174,6 +183,30 @@ AvatarUrl:function(img){
         }
 
     },recycle(){
+      this.post.IsRecycled=!this.post.IsRecycled
+      var templates=[]
+      for(var i=0;i<this.post.imgs.length;i++){
+        templates.push(this.post.imgs[i].template.ID)
+      }
+
+      if (this.post.IsRecycled){
+          api.post('recycle/',{user:this.user,templates:templates})
+          .then((response) => {
+            console.log('successful recycle')
+          })
+          .catch((err) => {
+            console.log(err);
+          })
+      }else{
+      api.delete('recycle/',{user:this.user,templates:templates})
+            .then((response) => {
+                console.log('deleted recycle')
+            })
+            .catch((err) => {
+                console.log(err);
+      })
+      }
+
 
     }
 

@@ -3,18 +3,19 @@
     <Navbar/>
     <v-content>
     <b-col md="6" offset-md="3">
-    <div  v-for="(i,index) in timeline" v-bind:key="i.id" >
+    <template  v-for="(i,index) in timeline" >
       <div>
       <v-lazy v-model="isActive" :options="{ threshold: .5 }" transition="fade-transition">
         <meme_post
           v-bind:post="i"
+          v-bind:key="i.ID"
         ></meme_post>
         </v-lazy>
       </div>
       <v-lazy v-model="isActive" :options="{threshold: .5}" transition="fade-transition" v-if="index%5===0" >
             <advert v-if="ad!=null" :SingleAd="ad"></advert>
       </v-lazy>
-    </div>
+    </template>
       </b-col>
     </v-content>
   </div>
@@ -50,11 +51,12 @@
       }
     },
     computed:{ ...mapState({
-      timeline: state => state.post.timeline,
+
       IsAuthenticated:'authentication/login'
     }),
     ...mapGetters({
-      adpool:'post/advert'
+      adpool:'post/advert',
+      timeline:'post/timeline'
     }),
     ad:function(){
       var n=this.randomgenerator(this.adpool.length,1)

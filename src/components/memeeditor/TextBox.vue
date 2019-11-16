@@ -1,6 +1,6 @@
 <template>
       <vue-draggable-resizable class="playground" :w="100" :h="100" @dragging="onDrag" @resizing="onResize" :parent="true">
-          <p class="text" v-bind:style="{ fontSize: fontSize + 'px' }"  >{{ text }}</p>
+          <p class="text" v-bind:style="{ fontSize: fontSize + 'px',color:color }"  >{{ text }}</p>
 
         </vue-draggable-resizable>
 </template>
@@ -23,9 +23,19 @@ export default {
     fontSize:{
         type:Number,
         default:50
-        }
-  },
-  methods:{
+        },
+    dark:Boolean
+  },computed:{
+  color(){
+    if(this.dark){
+      return '#ffffff'
+    }else{
+      return '#000000'
+    }
+
+  }
+
+  },methods:{
     onResize: function (x, y, width, height) {
       this.x = x
       this.y = y

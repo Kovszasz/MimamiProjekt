@@ -15,11 +15,12 @@
       <v-card
         class="mx-auto"
       >
-      <my-canvas v-bind:height="temp.height" v-bind:width="temp.width" >
+      <my-canvas v-bind:height="temp.height*temp.increment" v-bind:width="temp.width" >
         <my-box
           v-bind:save="IsRender"
-          v-bind:texts="meme"
-          v-bind:gImgObj="temp"
+          v-bind:texts="texts"
+          :gImgObj="temp"
+          v-bind:dark="dark"
           :x="0"
           :y="(temp.height*temp.increment)-temp.height"
         >
@@ -29,9 +30,9 @@
           <v-overlay
             absolute
           >
-          <div id="memecanvas" v-bind:style="`height: ${temp.height*temp.increment}px; width: ${temp.width}px; border: 1px solid red; position: relative;`">
+          <div id="memecanvas" v-bind:style="`height: ${temp.height*temp.increment}px; width: ${temp.width}px;background-color:${background}; border: 1px solid red; position: relative;`">
             <img class="meme_bottom" :src="temp.src" :width="temp.width" :height="temp.height" align="middle">
-            <TextBox v-for="(t,index) in texts" v-bind:key="index+'_box'" v-bind:text="t.content" v-bind:fontSize="t.textStyle.size" v-bind:Index="index"></TextBox>
+            <TextBox v-for="(t,index) in texts" v-bind:key="index+'_box'" v-bind:text="t.content" v-bind:fontSize="t.textStyle.size" v-bind:Index="index" v-bind:dark="dark"></TextBox>
           </div>
           </v-overlay>
         </v-fade-transition>
@@ -54,6 +55,7 @@
         <label>#{{ index }}</label><input type="text" v-model="t.content" />
         <v-btn @click="t.textStyle.size++">+</v-btn><input style="text" v-model="t.textStyle.size" :placeholder="t.textStyle.size">
         <v-btn @click="t.textStyle.size--">-</v-btn>
+        <v-switch v-model="dark" label="Dark"></v-switch>
         </div>
     </template>
     <v-btn  @click="addtext">Add text</v-btn>
@@ -86,7 +88,7 @@ export default {
             height:1200,
             increment:1,
             alignment:'top',
-            type:'standard'
+            type:'standard',
         }
     }
 
@@ -123,11 +125,18 @@ export default {
       width:0,
       height:0,
       meme:[],
-      IsRender:false
+      IsRender:false,
+      dark:true
     }
   },computed:{
       textsC(){
         return this.texts
+    },background(){
+      if(this.dark){
+        return '#000000'
+      }else{
+        return '#ffffff'
+      }
     }
 
   },methods:{
@@ -136,6 +145,12 @@ export default {
       this.textcontent=''
     },
     createText(line,x,y){
+            var color;
+            if(this.dark){
+                color='#ffffff'
+            }else{
+                color='#000000'
+            }
           return{
                   content: line,
                   textStyle:{
@@ -145,7 +160,7 @@ export default {
                   fontFamily: 'Impact',
                   isOutline: true,
                   lineWidth: 2, // outline width
-                  strokeStyle: '#ffffff',
+                  strokeStyle: color,
                   isShadow: false,
                   shadowColor: '#000000',
                   shadowOffsetX: 1,
@@ -159,7 +174,6 @@ export default {
         }
     },renderMeme(){
       this.IsRender=true
-      this.meme=this.texts
 
     }
   },

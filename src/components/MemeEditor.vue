@@ -58,19 +58,25 @@
                 </template>
                 <template v-if="!advert">
                 <v-carousel
+                  width="100%"
+                  height="100%"
                   hide-delimiter-background
                   :show-arrows='MultipleImgs'
                   :show-arrows-on-hover='MultipleImgs'
                   :hide-delimiters='!MultipleImgs'
                 >
-                  <v-carousel-item interval="0" v-for="(upload,index) in subIMGs" v-bind:key="index+'carouselmeme'">
+                  <v-carousel-item
+                  interval="0" v-for="(upload,index) in subIMGs"
+                  v-bind:key="index+'carouselmeme'"
+                  v-if="!upload.isimg"
+                  >
                     <picture-input
-                    v-if="!upload.isimg"
+
                       ref="pictureInput"
                       @change="onChange"
                       :prefill="imgSrc"
                       :crop="false"
-                      width="1024"
+                      width="600"
                       height="600"
                       margin="16"
                       accept="image/jpeg,image/png,image/gif"
@@ -79,15 +85,19 @@
                       :zIndex="0"
                       :customStrings="{
                         upload: '<h1>Bummer!</h1>',
-                        drag: 'Drag a 😺 GIF or GTFO'
+                        drag: 'Upload meme'
                       }">
                     </picture-input>
-                   <img
-                    v-if="upload.isimg"
+                    <p v-if="upload.isimg">{{ upload.img.width }}|{{ upload.img.height }}</p>
+                  </v-carousel-item>
+                  <v-carousel-item
+                   v-for="(upload,index) in subIMGs" v-bind:key="index+'carouselmeme'"
+                   v-if="upload.isimg"
+                   interval="0"
                     :width=upload.img.width
                     :height=upload.img.height
                     :src="`${upload.img.src}`"
-                    />
+                  >
                   </v-carousel-item>
                 </v-carousel>
                 </template>
@@ -126,7 +136,7 @@
                       :zIndex="0"
                       :customStrings="{
                         upload: '<h1>Bummer!</h1>',
-                        drag: 'Drag a 😺 GIF or GTFO'
+                        drag: 'Upload ad'
                       }">
                     </picture-input>
 
@@ -154,7 +164,7 @@
                       :zIndex="0"
                       :customStrings="{
                         upload: '<h1>Bummer!</h1>',
-                        drag: 'Drag a 😺 GIF or GTFO'
+                        drag: 'Upload ad'
                       }">
                     </picture-input>
 
@@ -426,13 +436,13 @@ import { EventBus } from './memeeditor/event-bus.js';
             return 8
 
       },...mapGetters({
-        get_myTemplate:'post/memeTemplates',
-        get_browserTemplate:'post/memeTemplates',//'post/publicTemplates',
-        get_recycledTemplate:'post/memeTemplates',//'post/recycledTemplates'
+        get_myTemplate:'post/myTemplates',
+        get_browserTemplate:'post/publicTemplates',
+        get_recycledTemplate:'post/recycledTemplates'
 
       }),
       templates(){
-        var my= this.get_browserTemplate //this.get_myTemplate(this.user.username)
+        var my= this.get_myTemplate('')
         var public_t = this.get_browserTemplate
         var recycle = this.get_recycledTemplate
         return {

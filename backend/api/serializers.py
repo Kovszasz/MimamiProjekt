@@ -111,9 +111,10 @@ class MessageSerializer(serializers.ModelSerializer):
 
 class MemeContentSerializer(serializers.ModelSerializer):
     IMG_url=serializers.SerializerMethodField()
+    template=TemplateSerializer()
     class Meta:
         model = MemeContent
-        fields = ('IMG_url','index',)
+        fields = ('IMG_url','index','template')
     def get_IMG_url(self, MemeContent):
         request = self.context.get('request')
         try:
@@ -126,6 +127,7 @@ class PostSerializer(serializers.ModelSerializer):
     ID=serializers.CharField(max_length=20)
     description=serializers.CharField()
     IsLiked = serializers.SerializerMethodField()
+    IsRecycled=serializers.SerializerMethodField()
     #IMG=serializers.ImageField(allow_empty_file=False)
     imgs=MemeContentSerializer(many=True,read_only=True)
     user=UserSerializer()
@@ -160,19 +162,23 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['user', 'description', 'imgs', 'ID','IsModerated','IsAdvert','IsInlinePost','AdURL','AppearenceFrequency','NumberOfLikes','IsLiked',]
+        fields = ['user', 'description', 'imgs', 'ID','IsModerated','IsAdvert','IsInlinePost','AdURL','AppearenceFrequency','NumberOfLikes','IsLiked','IsRecycled']
     #def get_IMG_url(self, Post):
     #    request = self.context.get('request')
     #    IMG_url = Post.IMG.url
     #    return request.build_absolute_uri(IMG_url)
     def get_IsLiked(self, Post):
-        if self.context.get('request') is not None:
-            request=self.context.get('request')
-            if request.user.is_authenticated:
-                print(Action.objects.filter(user=request.user,post=Post,type='Like'))
-                if len(Action.objects.filter(user=request.user,post=Post,type='Like'))>0:
-                    return True
+        request=self.context.get('request')
+        if isinstance(request.user,User):
+            if len(Action.objects.filter(user=request.user,post=Post,type='Like'))>0:
+                return True
+        return False
 
+    def get_IsRecycled(self,Post):
+        request=self.context.get('request')
+        if isinstance(request.user,User):
+            if len(Action.objects.filter(user=request.user,post=Post,type='Recycle'))>0:
+                return True
         return False
 
 

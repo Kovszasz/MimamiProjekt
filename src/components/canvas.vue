@@ -19,7 +19,7 @@ export default {
     }
 
     },
-    // Start coordinates (percentage of canvas dimensions).
+    dark:Boolean,
     x: {
       type: Number,
       default: 0
@@ -69,7 +69,6 @@ export default {
         }
         context.fillText( text, x, y );
     },saveMeme(ctx,name,width,height){
-      if(this.save){
           var image=ctx.toDataURL('image/png')
           var blobBin = atob(image.split(',')[1]);
           var array = [];
@@ -79,54 +78,56 @@ export default {
         var blob=new Blob([new Uint8Array(array)], {type: 'image/png'});
         var file = new File([blob],name,{type:'image/png'})
           return {file:file,is_file:true,img:{src:image,width:width,height:height}}
-      }else{
-          return {is_file:false}
+      },
+      drawMeme(ctx,canvas,imgobj){
+      if(!this.save){
+          ctx.clearRect(0,0,canvas.width,canvas.height)
+        }
+          //ctx.fillStyle =this.isdark;
+          //ctx.fillRect(0, 0, canvas.width, canvas.height);
+          var img = new Image()
+          img.width=imgobj.width
+          img.height=imgobj.height
+          img.id=imgobj.id
+          console.log(img)
+      img.onload = function() {
+          if(imgobj.alignment=='bottom'){
+                ctx.drawImage(img, this.x, this.y,img.width,img.height)
+          }else if(imgobj.alignment=='top'){
+                ctx.drawImage(img, 0, 0,img.width,img.height)
+          }else if(imgobj.alignment=="center"){
+                ctx.drawImage(img, this.x, (ctx.canvas.height/2)-(this.y*imgobj.increment/2),img.width,img.height)
+          }else{
+                ctx.drawImage(img,0,0,img.width,img.height)
+          }
+      }
+      img.src=imgobj.src
+
+      for(var i=0;i<this.texts.length;i++){
+          this.printAt(ctx, this.texts[i].content, this.texts[i].x,this.texts[i].y+35, 10, this.texts[i].width,this.texts[i].textStyle)
+
       }
       }
   },
 
   computed: {
-    calculatedBox () {
-      const ctx = this.provider.context.getContext('2d')
-
-      // Turn start / end percentages into x, y, width, height in pixels.
-      const calculated = {
-      }
-
-      // Yes yes, side-effects. This lets us cache the box dimensions of the previous render.
-      // before we re-calculate calculatedBox the next render.
-      this.oldBox = calculated
-      return calculated
+    isdark(){
+        if(this.dark){
+          return '#000000'
+        }else{
+          return '#ffffff'
+        }
     }
   },render () {
     if(!this.provider.context) return;
     const canvas = this.provider.context
     const ctx=canvas.getContext('2d');
-    var imgobj=this.gImgObj
-    var img = new Image()
-    img.width=imgobj.width
-    img.height=imgobj.height
-    img.id=imgobj.id
-    img.onload = function() {
-        if(imgobj.alignment=='bottom'){
-              ctx.drawImage(img, this.x, this.y)
-        }else if(imgobj.alignment=='top'){
-              ctx.drawImage(img, 0, 0)
-        }else if(imgobj.alignment=="center"){
-              ctx.drawImage(img, this.x, (ctx.canvas.height/2)-(this.y*imgobj.increment/2))
-        }else{
-              ctx.drawImage(img,0,0)
-        }
-    }
-    img.src=imgobj.src
-
-
-    for(var i=0;i<this.texts.length;i++){
-        this.printAt(ctx, this.texts[i].content, this.texts[i].x,this.texts[i].y+35, 10, this.texts[i].width,this.texts[i].textStyle)
-
-    }
-
-     EventBus.$emit('new_meme', this.saveMeme(canvas,'meme.png',imgobj.width,imgobj.height*imgobj.increment));
+    const imgobj=this.gImgObj
+    this.drawMeme(ctx,canvas,imgobj)
+      if(this.save){
+      this.drawMeme(ctx,canvas,imgobj)
+      EventBus.$emit('new_meme', this.saveMeme(canvas,'meme.png',imgobj.width,imgobj.height*imgobj.increment));
+     }
   }
 }
 </script>

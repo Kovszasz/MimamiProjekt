@@ -402,3 +402,19 @@ class TemplateViewSet(viewsets.ModelViewSet):
             return Response(serialized.data)
         else:
             return Response({})
+class RecycleViewSet(viewsets.ModelViewSet):
+    queryset=Recycle.objects.all()
+    serializer_class=RecycleSerializer
+
+    def create(self,request):
+        print(request.data)
+        for t in request.data['templates']:
+            rc=Recycle.objects.create(user=request.user,template=Template.objects.get(ID=t))
+            rc.save()
+        serialized=RecycleSerializer(rc,many=True,context={'request':request})
+        return Response(serialized.data)
+
+    def destroy(self,request,pk):
+        for temp in request.data['templates']:
+            Recycle.objects.get(user=request.user,template=Template.objects.get(ID=temp)).delete()
+        return Response({})

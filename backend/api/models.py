@@ -123,3 +123,4 @@ class Recycle(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE,default='')
     template=models.ForeignKey(Template, on_delete=models.CASCADE,default='')
     date = models.DateField( auto_now_add=True)
+    #IsRemoved=models.BooleanField(default=False)

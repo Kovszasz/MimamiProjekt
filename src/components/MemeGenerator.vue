@@ -1,5 +1,5 @@
 <template>
-  <div class="my-canvas-wrapper" style="position:relative;z-index:-100">
+  <div class="my-canvas-wrapper" >
     <canvas ref="my-canvas"  ></canvas>
     <slot></slot>
   </div>
