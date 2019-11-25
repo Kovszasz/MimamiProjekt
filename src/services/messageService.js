@@ -1,24 +1,5 @@
 import api from '@/services/api'
 
-/*
-api.interceptors.request.use(
-  (config) => {
-    let token = localStorage.getItem('accessToken');
-
-    if (token) {
-      config.headers['Authorization'] = `JWT ${ token }`;
-    }
-
-    return config;
-  },
-
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-*/
-
-
 
 export default {
   fetchMessages() {

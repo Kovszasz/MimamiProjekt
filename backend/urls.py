@@ -40,11 +40,12 @@ urlpatterns = [
 
     # http://localhost:8000/api/admin/
     path('api/admin/', admin.site.urls),
+    path('api/getpost/(?P<user>[^/.]+)/(?P<post>[^/.]+)/$', retrievePost, name='getpost'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('mods/',ModsView.as_view(),name='mods'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    path('auth/', include('djoser.urls'),name='auth'),
+    path('account/', include('djoser.urls'),name='auth'),
     path('auth/', include('djoser.urls.jwt'),name='auth-jwt'),
     #url(r'^api/auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]

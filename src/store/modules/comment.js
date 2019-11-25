@@ -23,7 +23,7 @@ const actions = {
     ,
   addComment({ commit }, comment) {
     commentService.postComment(comment)
-    .then(() => {
+    .then(comment => {
       commit('addComment', comment)
     })
   },

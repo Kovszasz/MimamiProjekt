@@ -4,7 +4,9 @@ import axios from 'axios' //!!I just changed axios to api
 import MemePost from './MemePost'
 import ImgUpload from './uploadUser'
 import comment from './comment'
-//import api from '../../services/api'
+import api from '../../services/api'
+import post from './MemePost.js'
+
 
 Vue.use(Vuex)
 /*const token = localStorage.getItem('user-token')
@@ -16,21 +18,20 @@ const  state= {
      refreshToken: localStorage.getItem('refresh_token') || null,
      APIData: '', // received data from the backend API is stored here.
      login:localStorage.getItem('login') || false,
-     user:{
-       username:localStorage.getItem('username') || null,
-       first_name:localStorage.getItem('first_name') || null,
-       last_name:localStorage.getItem('last_name') || null,
-       mime_user:localStorage.getItem('mimeuser') || null,
-       is_staff:localStorage.getItem('is_staff') || null,
-       is_superuser:localStorage.getItem('is_staff') || null,
-       is_authenticated:localStorage.getItem('is_authenticated') || null,
-       channel:localStorage.getItem('channel') || null
-     }
-
+     user:localStorage.getItem('user') || {complete_account:false},
   }
 const  getters= {
     loggedIn: state => {
       return state.accessToken != null
+    },
+    user:state=>{
+      return state.user
+    },
+    locaStorage:state=>{
+      return state
+    },
+    IsAuthenticated:state=>{
+      return state.login
     }
   }
 const  mutations= {
@@ -49,23 +50,9 @@ const  mutations= {
       state.accessToken = null
       state.refreshToken = null
     },
-    updateUser(state,{username,first_name,last_name,mimeuser,is_staff,is_superuser,is_authenticated,channel}){
-      localStorage.setItem('username',username)
-      localStorage.setItem('first_name',first_name)
-      localStorage.setItem('last_name',last_name)
-      localStorage.setItem('mimeuser',mimeuser)
-      localStorage.setItem('is_staff',is_staff)
-      localStorage.setItem('is_superuser',is_superuser)
-      localStorage.setItem('is_authenticated',is_authenticated)
-      localStorage.setItem('channel',channel)
-      state.user.username=username
-      state.user.first_name=first_name
-      state.user.last_name=last_name
-      state.user.mimeuser=mimeuser
-      state.user.is_staff=is_staff
-      state.user.is_superuser=is_superuser
-      state.user.is_authenticated=is_authenticated
-      state.user.channel=channel
+    updateUser(state,user){
+      localStorage.setItem('user',user)
+      state.user=user
     }
   }
 const  actions= {
@@ -89,12 +76,28 @@ const  actions= {
     },
     registerUser (context, data) {
       return new Promise((resolve, reject) => {
-        axios.post('/api/users/', data.user
-      )
-          .then(response => {
+      //  axios.post('/api/users/', data.user
+      axios.post('http://localhost:8000/account/users/',data
+      ).then(response => {
             resolve(response)
-            ImgUpload(`/api/users/${data.user.username}/pic/`, data.profile_pic,name='profile_pic')
+          })
+          .catch(error => {
+            console.log("error")
+            console.log(error)
+            reject(error)
+          })
+
+      })
+},
+completeUserRegistration (context, data) {
+      return new Promise((resolve, reject) => {
+      api.post(`/users/complete/`,data.user
+      ).then(response => {
+            resolve(response)
+            context.commit('updateUser',response)
+            ImgUpload(`/api/users/pic/`, data.profile_pic,name='profile_pic')
             .then(response=>{
+
                 console.log("Uploaded picture successfully");
             })
             .catch(err=>{
@@ -103,9 +106,10 @@ const  actions= {
 
           })
           .catch(error => {
+            console.log("error")
+            console.log(error)
             reject(error)
           })
-
       })
     },
     logoutUser (context) {
@@ -113,21 +117,17 @@ const  actions= {
         return new Promise((resolve, reject) => {
           axios.post('/api/token/logout/')
             .then(response => {
-              localStorage.removeItem('access_token')
-              localStorage.removeItem('refresh_token')
-              localStorage.setItem('user',{})
-              localStorage.setItem('login',false)
-            //  localStorage.removeItem('user-token')
+              context.commit('updateLocalStorage',{ access:null, refresh:null,login:false })
               context.commit('destroyToken')
+              context.commit('updateUser',false,false)
             })
             .catch(err => {
-              localStorage.removeItem('access_token')
-              localStorage.removeItem('refresh_token')
               localStorage.setItem('user',{})
-              localStorage.setItem('login',false)
             //  localStorage.removeItem('user-token')
-              context.commit('destroyToken')
-              resolve(err)
+            context.commit('updateLocalStorage',{ access:null, refresh:null,login:false })
+            context.commit('destroyToken')
+            context.commit('updateUser',false,false)
+            resolve(err)
             })//.then(axios.post('/api/users/User/user_logout/'))
 
 
@@ -156,18 +156,12 @@ const  actions= {
           axios.get(`/api/users/${credentials.username}/user_login/`, {
 
           }).then(response =>{
-              context.commit('updateUser', {
-                username:response.data.username,
-                first_name:response.data.first_name,
-                last_name:response.data.last_name,
-                mimeuser:response.data.mimeuser,
-                is_staff:response.data.is_staff,
-                is_superuser:response.data.is_superuser,
-                is_authenticated:response.data.is_authenticated,
-                channel:response.data.channel
-
-              }) //, token:response.data.user }) // store the access and refresh token in localstorage
+            context.commit('updateUser', response.data)
+          /*  async (()=>{
+              context.commit('updateUser', response.data)
               resolve()
+            }).then(post.dispatch('getTimeLine'))*/
+            //post.dispatch('getTimeLine')
           })
           .catch(err => {
             reject(err)

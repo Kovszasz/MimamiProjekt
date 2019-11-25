@@ -15,7 +15,20 @@ Vue.use(IdleVue, {
   idleTime: 720000
 }) // sets up the idle time,i.e. time left to logout the user on no activity
 Vue.config.productionTip = false
-/*
+
+store.subscribe((mutation, state) => {
+  console.log(mutation.type)
+  if (mutation.type === 'authentication/updateUser') {
+      store.dispatch('post/getTimeLine')
+      store.dispatch('post/getAction')
+    }
+});
+
+/*router.beforeEach((to, from, next) => {
+  if (!store.authentication.userisAuthenticated) next('/login')
+  else next()
+})*
+
 router.beforeEach((to, from, next) => {
   // if any of the routes in ./router.js has a meta named 'requiresAuth: true'
   // then check if the user is logged in before routing to this path:

@@ -1,9 +1,13 @@
 from rest_framework import serializers
 from .models import *
+#from backend.settings.dev import AUTH_USER_MODEL as User
+from django.contrib.auth import get_user_model
 import backend.settings.dev as settings
 from rest_framework.validators import UniqueValidator
 import jwt
 from rest_framework_jwt.utils import jwt_payload_handler
+from djoser.serializers import UserCreateSerializer as BaseUserRegistrationSerializer
+User = get_user_model()
 
 class ScoreSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,77 +24,89 @@ class FollowSerializer(serializers.ModelSerializer):
         depth=1
 
     def get_profile(self,Follow):
-        profile=Follow.channel.mimeuser
-        serialized=MimeUserSerializer(profile)
+        profile=Follow.channel
+        serialized=UserSerializer(profile)
         return serialized.data
 
 class ProfilePicSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MimeUser
-        fields = ['profile_pic']
+        model = User
+        fields = ['avatar']
         #owner = serializers.Field(source='user.username')
 
-class MimeUserSerializer(serializers.ModelSerializer):
+#class MimeUserSerializer(serializers.ModelSerializer):
+#    avatar=serializers.SerializerMethodField()
+#    class Meta:
+#        model=MimeUser
+#        exlude=['user']
+#        fields=('is_advertiser','avatar',)
+#        read_only_fields = ['profile_pic']
+#    def get_avatar(self,MimeUser):
+#        request = self.context.get('request')
+#        try:
+#            IMG_url = MimeUser.profile_pic.url
+#        except:
+#            IMG_url='/media/profile/e2.png'
+#        return IMG_url
+
+class UserSerializer(serializers.ModelSerializer):
+    score = serializers.RelatedField(many=True, read_only=True)
     avatar=serializers.SerializerMethodField()
+    score=ScoreSerializer(many=True,read_only=True)
+    channel=serializers.SerializerMethodField()#FollowSerializer(many=True,read_only=True)
+    complete_account=serializers.SerializerMethodField()
     class Meta:
-        model=MimeUser
-        exlude=['user']
-        fields=('IsAdvertiser','avatar',)
-        read_only_fields = ['profile_pic']
-    def get_avatar(self,MimeUser):
+        model = User
+        fields = ['username','is_staff','is_superuser','is_authenticated','is_advertiser','score','channel','avatar','complete_account',]
+
+    def get_avatar(self,User):
         request = self.context.get('request')
         try:
-            IMG_url = MimeUser.profile_pic.url
+            IMG_url = MimeUser.avatar.url
+            print(IMG_url)
         except:
             IMG_url='/media/profile/e2.png'
         return IMG_url
 
-class UserSerializer(serializers.ModelSerializer):
-    mimeuser = MimeUserSerializer()
-    #score = serializers.RelatedField(many=True, read_only=True)
-    score=ScoreSerializer(many=True,read_only=True)
-    channel=serializers.SerializerMethodField()#FollowSerializer(many=True,read_only=True)
-    class Meta:
-        model = User
-        fields = ['username','password','first_name','last_name','mimeuser','is_staff','is_superuser','is_authenticated','score','channel']
+#    def create(self, validated_data):
+#        print(validated_data)
+#        user = User.objects.update(**validated_data)
+#        labels=Label.objects.all()
+#        for i in labels:
+#            p=PersonalScoringProfile.objects.create(user=user,label=i,score=0)
+#            p.save()
+#        return user
 
-    def create(self, validated_data):
-        print(validated_data)
-        mimeuser = validated_data.pop('mimeuser')
-        user = User.objects.create(**validated_data)
-        MimeUser.objects.create(user=user, **mimeuser)
-        user.set_password(user.password)
-        user.save()
-        labels=Label.objects.all()
-        for i in labels:
-            p=PersonalScoringProfile.objects.create(user=user,label=i,score=0)
-            p.save()
-        return user
+    #def update(self, instance, validated_data):
+    #    mimeuser = validated_data.pop('mimeuser')
+    #    mimeuser = instance.mimeuser
+#
+#        instance.username = validated_data.get('username', instance.username)
+#        instance.email = validated_data.get('email', instance.email)
+#        instance.save()
 
-    def update(self, instance, validated_data):
-        mimeuser = validated_data.pop('mimeuser')
-        mimeuser = instance.mimeuser
+#        mimeuser.is_advertiser = mimuser_data.get(
+#            'is_advertiser',
+#            mimeuser.is_advertiser
+#        )
+#        mimeuser.company = mimuser_data.get(
+#            'company',
+#            mimeuser.company
+#         )
+#        mimeuser.save()
 
-        instance.username = validated_data.get('username', instance.username)
-        instance.email = validated_data.get('email', instance.email)
-        instance.save()
-
-        mimeuser.IsAdvertiser = mimuser_data.get(
-            'IsAdvertiser',
-            mimeuser.IsAdvertiser
-        )
-        mimeuser.company = mimuser_data.get(
-            'company',
-            mimeuser.company
-         )
-        mimeuser.save()
-
-        return instance
+#        return instance
 
     def get_channel(self,User):
         follows=Follow.objects.filter(follower=User)
         serialized=FollowSerializer(follows,many=True)
         return serialized.data
+
+    def get_complete_account(self,User):
+        if len(PersonalScoringProfile.objects.filter(user=User))==0:
+            return False
+        else:
+            return True
 
 
 class ActionSerializer(serializers.ModelSerializer):
@@ -99,9 +115,18 @@ class ActionSerializer(serializers.ModelSerializer):
         fields=('post','user','date','type',)
 
 class TemplateSerializer(serializers.ModelSerializer):
+    IMG_url=serializers.SerializerMethodField()
     class Meta:
         model=Template
-        fields='__all__'
+        fields=['IMG_url','ID','user','IsPublic','type',]
+
+    def get_IMG_url(self, Template):
+        request = self.context.get('request')
+        try:
+            IMG_url = MemeContent.IMG.url
+        except:
+            IMG_url= ''
+        return IMG_url
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -128,7 +153,6 @@ class PostSerializer(serializers.ModelSerializer):
     description=serializers.CharField()
     IsLiked = serializers.SerializerMethodField()
     IsRecycled=serializers.SerializerMethodField()
-    #IMG=serializers.ImageField(allow_empty_file=False)
     imgs=MemeContentSerializer(many=True,read_only=True)
     user=UserSerializer()
     IsModerated=serializers.BooleanField(default=False)
@@ -136,8 +160,8 @@ class PostSerializer(serializers.ModelSerializer):
     IsInlinePost=serializers.BooleanField(default=False)
     AdURL=serializers.URLField(max_length=250,default="")
     AppearenceFrequency=serializers.IntegerField(default=1)
-    NumberOfLikes=serializers.IntegerField(default=0)
-    #IMG_url = serializers.SerializerMethodField()
+    NumberOfLikes=serializers.SerializerMethodField()
+
 
     def create(self, validated_data):
         """
@@ -163,12 +187,10 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['user', 'description', 'imgs', 'ID','IsModerated','IsAdvert','IsInlinePost','AdURL','AppearenceFrequency','NumberOfLikes','IsLiked','IsRecycled']
-    #def get_IMG_url(self, Post):
-    #    request = self.context.get('request')
-    #    IMG_url = Post.IMG.url
-    #    return request.build_absolute_uri(IMG_url)
+
     def get_IsLiked(self, Post):
         request=self.context.get('request')
+        print(type(request.user))
         if isinstance(request.user,User):
             if len(Action.objects.filter(user=request.user,post=Post,type='Like'))>0:
                 return True
@@ -180,6 +202,9 @@ class PostSerializer(serializers.ModelSerializer):
             if len(Action.objects.filter(user=request.user,post=Post,type='Recycle'))>0:
                 return True
         return False
+
+    def get_NumberOfLikes(self,Post):
+        return len(Action.objects.filter(post=Post,type='Like'))
 
 
 
@@ -272,3 +297,14 @@ class TemplateSerializer(serializers.ModelSerializer):
 
     def get_IMG_url(self,Template):
         return Template.IMG.url
+
+
+
+#AUTH SERIALIZERS OF djoser
+
+
+class UserRegistrationSerializer(BaseUserRegistrationSerializer):
+    class Meta(BaseUserRegistrationSerializer.Meta):
+        model = User
+        fields = ( 'username', 'email', 'password', )
+        extra_kwargs = {'password' : {'write_only': True}}

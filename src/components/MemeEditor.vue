@@ -426,23 +426,26 @@ import { EventBus } from './memeeditor/event-bus.js';
         appearance:1,
         template:'',
         editedTemplate:{},
-        memeTemps:[]
+        memeTemps:[],
+        get_myTemplate:[],
+        get_browserTemplate:[],
+        get_recycledTemplate:[]
       }
       },
-      computed:{ ...mapState({
-      //      IsAuthenticated:'authentication/accessToken'
+      computed:{ ...mapGetters({
+          IsAuthenticated:'authentication/IsAuthenticated',
           user:'authentication/user'
       }),reachedUsers(){
             return 8
 
       },...mapGetters({
-        get_myTemplate:'post/myTemplates',
-        get_browserTemplate:'post/publicTemplates',
-        get_recycledTemplate:'post/recycledTemplates'
+  //      get_myTemplate:'post/myTemplates',
+  //      get_browserTemplate:'post/publicTemplates',
+  //      get_recycledTemplate:'post/recycledTemplates'
 
       }),
       templates(){
-        var my= this.get_myTemplate('')
+        var my= this.get_myTemplate
         var public_t = this.get_browserTemplate
         var recycle = this.get_recycledTemplate
         return {
@@ -599,6 +602,19 @@ import { EventBus } from './memeeditor/event-bus.js';
             EventBus.$off('new_meme');
         }
       })
+        this.$store.subscribe((mutation, state) => {
+          if (mutation.type === 'post/getTemplate') {
+                if(mutation.payload.lentgh < 2){
+                  this.get_myTemplate=mutation.payload.user.username == this.user.username ? mutation.payload : []
+                  this.get_browserTemplate=mutation.payload.IsPublic ? mutation.payload : []
+                  this.get_recycledTemplate=mutation.payload.recycler ? mutation.payload : []
+                }else{
+                  this.get_myTemplate=mutation.payload.filter(post=>post.user.username === this.user.username)
+                  this.get_browserTemplate=mutation.payload.filter(post=>post.IsPublic === true)
+                  this.get_recycledTemplate=mutation.payload.filter(post=>post.recycler !== true)
+                }
+            }
+        });
     }
   }
 

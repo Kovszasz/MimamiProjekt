@@ -46,9 +46,7 @@ import RegisterCore from './RegisterCore.vue'
           email: this.email,
           username: this.username,
           password: this.password,
-          mimeuser:{
-            IsAdvertiser:true
-          }
+          IsAdvertiser:true
         }).then(() => {
           this.$router.push({ name: 'login' })
         })

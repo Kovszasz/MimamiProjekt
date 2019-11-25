@@ -1,6 +1,8 @@
 from .models import *
-from django.contrib.auth.models import User
-
+#from django.contrib.auth.models import User
+#from backend.settings.dev import AUTH_USER_MODEL as User
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 def UpdateProfileScores(user):
     labelpooldict={}

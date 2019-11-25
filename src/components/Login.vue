@@ -27,13 +27,15 @@ import LoginCore from './LoginCore.vue'
       }
     },
     methods:{
-      loginUser () { // call loginUSer action
-        this.$store.dispatch('authentication/loginUser', {
+    async loginUser () { // call loginUSer action
+        await this.$store.dispatch('authentication/loginUser', {
           username: this.username,
           password: this.password
         }).then(() => {
               this.wrongCred = false
-              this.$router.push({ name: 'home' })
+              async (()=>{
+               this.$store.dispatch('post/getTimeLine')
+              }).then(this.$router.push({ name: 'home' }))
             })
           .catch(err => {
             //console.log(err)

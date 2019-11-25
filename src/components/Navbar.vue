@@ -22,15 +22,15 @@
         </v-btn>
       </template>
       <v-list>
-          <v-list-item v-if="IsAuthenticated "><v-list-item-title><router-link :to = "{ name:'memeview',params:{post:'Post1',key:'key'} }" class="dropdown-item">Meme</router-link></v-list-item-title></v-list-item>
-          <v-list-item ><v-list-item-title><router-link :to = "{ name:'messages' }" class="dropdown-item">Message</router-link></v-list-item-title></v-list-item>
           <v-list-item v-if="!IsAuthenticated "><v-list-item-title><router-link :to = "{ name:'register' }" class="dropdown-item">Register</router-link></v-list-item-title></v-list-item>
           <v-list-item v-if="!IsAuthenticated "><v-list-item-title><router-link :to = "{ name:'editor' }" class="dropdown-item">Editor</router-link></v-list-item-title></v-list-item>
-          <v-list-item v-if="IsAuthenticated"><v-list-item-title><router-link :to = "{ name:'advert',params:{user:user.username } }" class="dropdown-item">Advert</router-link></v-list-item-title></v-list-item>
           <v-list-item v-if="!IsAuthenticated "><v-list-item-title><router-link :to = "{ name:'login' }" class="dropdown-item">LogIn</router-link></v-list-item-title></v-list-item>
-          <v-list-item v-if="user.is_staff "><v-list-item-title><router-link :to = "{ name:'moderate' }" class="dropdown-item">Moderating</router-link></v-list-item-title></v-list-item>
-          <v-list-item v-if="user.is_superuser "><v-list-item-title><router-link :to = "{ name:'statistics' }" class="dropdown-item">Statistics</router-link></v-list-item-title></v-list-item>
-          <v-list-item v-if="IsAuthenticated "><v-list-item-title><router-link :to = "{ name:'logout' }" class="dropdown-item">LogOut</router-link></v-list-item-title></v-list-item>
+          <template v-if="IsAuthenticated">
+            <v-list-item v-if="user.is_staff "><v-list-item-title><router-link :to = "{ name:'moderate' }" class="dropdown-item">Moderating</router-link></v-list-item-title></v-list-item>
+            <v-list-item v-if="user.is_superuser "><v-list-item-title><router-link :to = "{ name:'statistics' }" class="dropdown-item">Statistics</router-link></v-list-item-title></v-list-item>
+            <v-list-item v-if="user.is_advertiser"><v-list-item-title><router-link :to = "{ name:'advert',params:{user:user.username } }" class="dropdown-item">Advert</router-link></v-list-item-title></v-list-item>
+            <v-list-item ><v-list-item-title class="dropdown-item" @click="logout" >LogOut</v-list-item-title></v-list-item>
+          </template>
       </v-list>
     </v-menu>
     </v-app-bar>
@@ -136,7 +136,7 @@
 </template>
 <script>
 
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
 import Vue from 'vue';
 import MemeEditor from './MemeEditor';
 import {NavbarPlugin} from 'bootstrap-vue';
@@ -160,7 +160,14 @@ export default {
   },
   components: {
       MemeEditor
-  }, computed:{ ...mapState('authentication',{IsAuthenticated:'login',user:'user',IsAdmin:'is_superuser'})},
+  }, computed:{ ...mapState('authentication',{
+          IsAuthenticated:'login',
+        //  user:'user',
+          IsAdmin:'is_superuser'}),
+          ...mapGetters('authentication',{
+          user:'user'
+      })
+  },
   methods:{
   IMGurl:function(img){
           return require(`../assets${img.avatar}`)
@@ -181,12 +188,16 @@ export default {
               this.loading = false;
               console.log(err);
             })
+    },logout(){
+      this.$store.dispatch('authentication/logoutUser')
+      .then(() => {
+      })
     }
   },
   beforeCreate(){
     //this.$store.dispatch('authentication/updateUser')
 
-  }
+  },
 
 };
 </script>

@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from .models import *
 from rest_framework import parsers
 from .serializers import *
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from django.contrib.auth import authenticate, login, logout
@@ -19,7 +19,8 @@ from random import randint,randrange
 from .algorithms import *
 from collections import OrderedDict
 import json
-
+from django.http import Http404
+User = get_user_model()
 
 # Serve Vue Application
 index_view = never_cache(TemplateView.as_view(template_name='index.html'))
@@ -40,22 +41,44 @@ class FollowViewSet(viewsets.ModelViewSet):
     """
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
+
+    def create(self,request):
+        if isinstance(request.user,User):
+            print(request.data)
+            f=Follow.objects.create(follower=request.user,channel=User.objects.get(username=request.data['user']))
+            f.save()
+            return Response(UserSerializer(request.user).data)
+        else:
+            raise Http404
+
 class PostSearchViewSet(viewsets.ModelViewSet):
     queryset=Post.objects.all()
     serializer_class = PostSerializer
     filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
     search_fields=('user__username','ID',)
 
+
+
+def retrievePost(self, request,user=None,post=None):
+    IsPublic=post.find('_private') == -1
+    post=pk2.replace('_private','')
+    user= User.objects.get(username=user)
+    post= Post.objects.get(ID=post,user=user)
+    serializer=PostSerializer(post, context={'request': request})
+#    if not post.IsPublic and not IsPublic:
+    return Response(serializer.data, status=status.HTTP_200_OK)
+#    else:
+#        raise Http404
+
 class PostViewSet(viewsets.ModelViewSet):
     permission_classes = (AllowAny,)
-    queryset = Post.objects.all()
+    queryset = Post.objects.filter(IsAdult=False)
     serializer_class = PostSerializer
     filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
     search_fields=('user__username',)
     #search_fields = ['Id']
     def list(self,request):
         queryset=Post.objects.filter(IsAdvert=False,IsActive=True,IsPublic=True).order_by('-date')
-        print(isinstance(request.user,User))
         if isinstance(request.user,User):
             postpool=[]
             for post in queryset:
@@ -64,7 +87,6 @@ class PostViewSet(viewsets.ModelViewSet):
                 for label in postlabel:
                     if len(PersonalScoringProfile.objects.filter(user=request.user, label=label.label))>0:
                         score=score+PersonalScoringProfile.objects.get(user=request.user,label=label.label).score
-                print(post.ID,'\t',score)
                 if randrange(0,1)<score:
                     postpool.append(post)
             serializer = PostSerializer(postpool,many=True,context={'request':request})
@@ -74,8 +96,6 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         booldict={'false':False,'true':True}
-        print(booldict[request.data['IsAdvert']])
-        print(request.user)
         if booldict[request.data['IsAdvert']]:
             post = Post.objects.create(user=request.user,
                                             ID=request.data['ID'],
@@ -110,15 +130,11 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer=PostSerializer(post, context={'request': request})
         return Response(serializer.data)
 
-    def retrieve(self, request, pk=None):
-        api_result = Post.objects.get(pk=pk)
-        serializer=PostSerializer(api_result, context={'request': request})
-        return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def get_ad(self,request):
         ads=Post.objects.filter(IsAdvert=True,IsActive=True)
-        setting=AdvertSettings.objects.get(admin=User.objects.get(username="kovszasz"))
+        setting=AdvertSettings.objects.get(admin=User.objects.get(username="admin"))
         AdPool=[]
         #if randrange(0,100)<setting.AdFrequency:
         for i in ads:
@@ -166,14 +182,12 @@ class PostViewSet(viewsets.ModelViewSet):
     def like(self,request, pk=None):
         post=Post.objects.get(pk=pk)
         if len(Action.objects.filter(user=request.user,post=post,type='Like'))==0:
-            post.NumberOfLikes+=1
             post.save()
             serializer=PostSerializer(post, context={'request': request})
             #action=ActionSerializer(post,context={'request': request})
             Action.objects.create(user=request.user,post=post,type='Like')
         else:
             Action.objects.get(user=request.user,post=post,type='Like').delete()
-            post.NumberOfLikes-=1
             post.save()
             serializer=PostSerializer(post, context={'request': request})
         UpdateProfileScores(user=request.user)
@@ -182,7 +196,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def action(self,request):
-        setting=AdvertSettings.objects.get(admin=User.objects.get(username="kovszasz"))
+        setting=AdvertSettings.objects.get(admin=User.objects.get(username="admin"))
         post=Post.objects.get(ID=request.data['post'])
         postOwner=User.objects.get(username=post.user)
         #action=ActionSerializer(post,data={'type':request.data['type']})
@@ -200,8 +214,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 post.IsActive=False
                 post.save()
             else:
-                postOwner.mimeuser.balance=postOwner.mimeuser.balance-setting.MoneyForSeen
-        postOwner.mimeuser.save()
+                postOwner.balance=postOwner.balance-setting.MoneyForSeen
         postOwner.save()
         serializer = PostSerializer(post,context={'request': request} )
         return Response(serializer.data)
@@ -221,7 +234,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     def list(self,request):
         queryset=Comment.objects.all()
         serializer = CommentSerializer(queryset,many=True, context={'request': request})
-        print('AllCommentLoaded')
         return Response(serializer.data)
 
     def create(self, request):
@@ -286,12 +298,26 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
     search_fields=('username',)
-    @action(detail=True, methods=['POST'],serializer_class=ProfilePicSerializer,parser_classes=[parsers.MultiPartParser],)
-    def pic(self, request, pk):
-        user= User.objects.get(username=pk)
-        mimeuser=MimeUser.objects.get(user=user)
-        mimeuser.profile_pic= request.FILES['profile_pic']
-        mimeuser.save()
+    @action(detail=False,methods=['Post'])
+    def complete(self,request):
+        user = User.objects.get(username=request.user.username)
+        user.last_name=request.data['last_name']
+        user.first_name=request.data['first_name']
+        user.save()
+        for i in Label.objects.all():
+            p=PersonalScoringProfile.objects.create(user=user,label=i,score=0)
+            p.save()
+        for lp in request.data['meme']:
+            a=Action.objects.create(user=user,post=Post.objects.get(ID=lp),type="Like")
+            a.save()
+        serialized=UserSerializer(user)
+        return Response(serialized.data)
+
+    @action(detail=False, methods=['POST'],serializer_class=ProfilePicSerializer,parser_classes=[parsers.MultiPartParser],)
+    def pic(self, request):
+        user= User.objects.get(username=request.user.username)
+        user.avatar= request.FILES['profile_pic']
+        user.save()
         serializer = UserSerializer(user)
 #        if serializer.is_valid():
 #            serializer.save()
@@ -359,8 +385,8 @@ class StatisticsViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def users(self,request):
         endpoint={}
-        endpoint['male']=len(MimeUser.objects.filter(sex=True))
-        endpoint['female']=len(MimeUser.objects.filter(sex=False))
+        endpoint['male']=len(User.objects.filter(sex=True))
+        endpoint['female']=len(User.objects.filter(sex=False))
         #qs=User.objects.all().values('date_joined','username').annotate(newuser=Count('date_joined')).order_by('-date_joined')
         #serialized=json.dumps([OrderedDict(('user', x['username']),('date_joined', x['date_joinded'])) for x in qs])
         #serialized=json.dumps([OrderedDict(('Female',x['female']),('male',x['male'])) for x in endpoint])
@@ -407,11 +433,11 @@ class RecycleViewSet(viewsets.ModelViewSet):
     serializer_class=RecycleSerializer
 
     def create(self,request):
-        print(request.data)
         for t in request.data['templates']:
+
             rc=Recycle.objects.create(user=request.user,template=Template.objects.get(ID=t))
             rc.save()
-        serialized=RecycleSerializer(rc,many=True,context={'request':request})
+        serialized=RecycleSerializer(rc,context={'request':request})
         return Response(serialized.data)
 
     def destroy(self,request,pk):

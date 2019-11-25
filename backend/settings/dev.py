@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'djoser',
     'django_filters',
+    #'djangosecure'
 ]
 
 
@@ -80,7 +81,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    #'djangosecure.middleware.SecurityMiddleware'
 ]
+#SECURE_SSL_REDIRECT = True
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -113,7 +116,7 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
+AUTH_USER_MODEL = "api.User"
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -199,13 +202,48 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 
+#DJOSER = {
+#    'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
+#    'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
+#    'ACTIVATION_URL': '#/activate/{uid}/{token}',
+#    'SEND_ACTIVATION_EMAIL': True,
+#    'SERIALIZERS': {},
+#}
 DJOSER = {
-    'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
-    'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
-    'ACTIVATION_URL': '#/activate/{uid}/{token}',
-    'SEND_ACTIVATION_EMAIL': True,
-    'SERIALIZERS': {},
+    "ACTIVATION_URL": "activate/{uid}/{token}/",
+    "PASSWORD_RESET_CONFIRM_URL": "/username/reset/confirm/{uid}/{token}",
+    "EMAIL": {
+            'activation': 'djoser.email.ActivationEmail',
+            'confirmation': 'djoser.email.ConfirmationEmail',
+            'password_reset': 'djoser.email.PasswordResetEmail',
+            'password_changed_confirmation': 'djoser.email.PasswordChangedConfirmationEmail',
+            'username_changed_confirmation': 'djoser.email.UsernameChangedConfirmationEmail',
+            'username_reset': 'djoser.email.UsernameResetEmail',
+    },
+    "PERMISSIONS": {
+        "activation": ["rest_framework.permissions.AllowAny"],
+        "password_reset": ["rest_framework.permissions.AllowAny"],
+        "password_reset_confirm": ["rest_framework.permissions.AllowAny"],
+        "set_password": ["djoser.permissions.CurrentUserOrAdmin"],
+        "set_username": ["rest_framework.permissions.IsAuthenticated"],
+        "user_create": ["rest_framework.permissions.AllowAny"],
+        "user_delete": ["rest_framework.permissions.IsAdminUser"],
+        "user": ["djoser.permissions.CurrentUserOrAdminOrReadOnly"],
+        "user_list": ["crm.permissions.IsAdminOrCoach"],
+        "token_create": ["rest_framework.permissions.AllowAny"],
+        "token_destroy": ["rest_framework.permissions.IsAuthenticated"],
+    },
+    "SEND_ACTIVATION_EMAIL": True,
+    "SET_PASSWORD_RETYPE": True,
+    "SERIALIZERS": {
+#        "current_user": "auth.serializers.CurrentUserSerializer",
+#        "user": "auth.serializers.CurrentUserSerializer",
+        "user_create": "backend.api.serializers.UserRegistrationSerializer",
+    },
 }
+
+
+
 
 
 REST_FRAMEWORK = {

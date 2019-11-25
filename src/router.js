@@ -13,6 +13,7 @@ import ImgEditor from '@/components/ImgEditor'
 import MyAdverts from '@/components/MyAdverts'
 import MemeView from '@/components/MemeView'
 import NProgress from 'nprogress'
+import Activation from '@/components/Activation'
 
 Vue.use(Router)
 const router = new Router({
@@ -92,21 +93,19 @@ const router = new Router({
 
   },
   {
-    path: '/meme/:post/:key',
+    path: '/meme/:iv/:data',
     name: 'memeview',
     component: MemeView,
     props:{
-      post:String,
-      key:{
+      iv:{
+        type:String,
+        default:''
+      },
+      data:{
         type:String,
         default:''
       }
-    },
-    meta: {
-      requiresAuth: true
     }
-
-
 },
   {
     path: '/statistics',
@@ -127,6 +126,21 @@ const router = new Router({
   component: MyAdverts,
   props:{
     user:'AdUser'
+  },
+},
+{
+  path: '/activate/:uid/:token',
+  name: 'activate',
+  component: Activation,
+  props:{
+    uid:{
+      type:String,
+      default:''
+    },
+    token:{
+      type:String,
+      default:''
+    }
   },
 }
   ]

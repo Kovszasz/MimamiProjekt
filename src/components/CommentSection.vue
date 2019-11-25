@@ -41,7 +41,7 @@
                   :key="comment.ID +'_item'"
                 >
                   <v-list-item-avatar>
-                    <v-img :src="IMGurl(comment.user.mimeuser)"></v-img>
+                    <v-img :src="IMGurl(comment.user)"></v-img>
                   </v-list-item-avatar>
 
                   <v-list-item-content>
@@ -78,15 +78,19 @@ Vue.use(mdiShareVariant);
     },methods:{ ...mapActions({
           add:'comments/addComment',
           delete:'comments/deleteComment',
-          sendComment(){
-            this.add({ID:String(Math.round(Math.random()*10000)),content:this.content,post:this.postID})
-            this.content = ''
-          }
     }), IMGurl:function(img){
+          try{
             return require(`../assets${img.avatar}`)
+          }catch{
+            return require('../assets/media/profile/e6.png')
+        }
       },
       clearComment(){
       this.content = ''
+      },
+      async sendComment(){
+        await  this.add({ID:String(Math.round(Math.random()*10000)),content:this.content,post:this.postID})
+        .then(this.content = '')
       }
     },
     computed:{ ...mapState({

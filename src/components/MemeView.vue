@@ -8,7 +8,7 @@
           <template  v-if="IsAuthenticated">
             <v-list-item two-line height="100">
               <v-list-item-avatar size="55" >
-                <img :src="AvatarUrl(post.user.mimeuser)">
+                <img :src="AvatarUrl(post.user)">
               </v-list-item-avatar>
 
               <v-list-item-content>
@@ -80,6 +80,7 @@ import comment_section from './CommentSection.vue';
 import { NavbarPlugin } from 'bootstrap-vue'
 import { mdiShareVariant } from '@mdi/js'
 import Navbar from './Navbar.vue'
+var Crypto = require('crypto')
 Vue.use(NavbarPlugin)
 Vue.use(CarouselPlugin)
 Vue.use(CardPlugin)
@@ -90,24 +91,10 @@ Vue.use(CardPlugin);
 Vue.use(mdiShareVariant);
 
 export default {
-  name:'MemePost',
-    props:{
-      IsRegistration:{
-          type:Boolean,
-          default:false
-      },
-      height:{
-      type:Number,
-      default:480
-      },
-      width:{
-      type:Number,
-      default:1024
-      }
-    },data() {
+  name:'MemeView',
+  data() {
         return {
-          like:this.post.NumberOfLikes,
-          IsLiked:false
+
         }
       },
   components:{
@@ -134,13 +121,22 @@ export default {
         },
         post(){
           return this.$store.state.post.post//timeline.filter(post=>post.ID === this.$route.params.post)
-        }
+        },
+        decodePosttoken(){
+            let iv = Buffer.from(this.$route.params.iv, 'hex');
+            console.log(iv)
+            let encryptedText = Buffer.from(this.$route.params.data, 'hex');
+            let decipher = Crypto.createDecipheriv('aes-256-ctr', Buffer.from('mimamimimamimimamimimamimimamimi'), iv);
+            let decrypted = decipher.update(encryptedText);
+            decrypted = Buffer.concat([decrypted, decipher.final()]);
+            return decrypted.toString();
+}
 
 
 },
 
   methods:{ ...mapActions('post', {
-  addPost:'addPost',
+  getPost:'getPost',
   deletePost:'deletePost',
   LikePost:'LikePost',
 
@@ -173,8 +169,9 @@ updated(){
   //this.IsLiked= this.$store.state.post.timeline.filter(post => post.ID === this.$refs.params.post).IsLiked
 
 },
-beforeCreate() {
-  this.$store.dispatch('post/getPost',this.$refs.params.post)
+created() {
+  console.log(this.decodePosttoken)
+  this.$store.dispatch('post/getPost',this.decodePosttoken.toString())
 }
 };
 

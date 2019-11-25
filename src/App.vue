@@ -1,7 +1,7 @@
 <template>
     <div id="app">
     <v-app>
-      <router-view/>
+      <router-view v-bind:key="$route.fullPath"></router-view>
     </v-app>
     </div>
 </template>
@@ -33,7 +33,7 @@ export default {
     'deletePost'
   ]),
   beforeCreate() {
-    this.$store.dispatch('post/getTimeLine')
+  //  this.$store.dispatch('post/getTimeLine')
 //    this.$store.dispatch('comments/getComment')
 //    this.$store.dispatch('post/getAction')
     this.$store.dispatch('post/getAdvert')

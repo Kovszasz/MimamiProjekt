@@ -1,22 +1,49 @@
 <template>
   <div>
-    <Navbar/>
+    <Navbar v-if="user.complete_account"/>
+    <Navbar v-if="!user.complete_account" :hideNavDrawer="true"/>
     <v-content>
+    <template v-if="!IsAuthenticated">
     <b-col md="6" offset-md="3">
-    <template  v-for="(i,index) in timeline" >
-      <div>
-      <v-lazy v-model="isActive" :options="{ threshold: .5 }" transition="fade-transition">
-        <meme_post
-          v-bind:post="i"
-          v-bind:key="i.ID"
-        ></meme_post>
-        </v-lazy>
-      </div>
-      <v-lazy v-model="isActive" :options="{threshold: .5}" transition="fade-transition" v-if="index%5===0" >
-            <advert v-if="ad!=null" :SingleAd="ad"></advert>
-      </v-lazy>
-    </template>
+      <template v-for="(i,index) in timeline" >
+        <div v-bind:key="index+'random_div_element'">
+        <v-lazy v-bind:key="index+'lazy2'" v-model="isActive" :options="{ threshold: .5 }" transition="fade-transition">
+          <meme_post
+            v-bind:post="i"
+              v-bind:key="i.ID"
+          ></meme_post>
+            </v-lazy>
+            </div>
+            <v-lazy v-bind:key="index+'lazy2ad'"  v-model="isActive" :options="{threshold: .5}" transition="fade-transition" v-if="index%5===0" >
+              <advert v-if="ad!=null" :SingleAd="ad"></advert>
+            </v-lazy>
+          </template>
       </b-col>
+      </template>
+      <template v-if="IsAuthenticated">
+        <div>
+          <template v-if="!user.complete_account">
+          <RegisterCore :core="false" :user="user"/>
+         </template>
+          <template v-if="user.complete_account">
+          <b-col md="6" offset-md="3">
+            <template v-for="(i,index) in timeline" >
+              <div v-bind:key="index+'random_div_element2'">
+              <v-lazy v-bind:key="index+'lazy1'" v-model="isActive" :options="{ threshold: .5 }" transition="fade-transition">
+                <meme_post
+                  v-bind:post="i"
+                    v-bind:key="i.ID"
+                ></meme_post>
+                  </v-lazy>
+                  </div>
+                  <v-lazy v-bind:key="index+'lazy1ad'"  v-model="isActive" :options="{threshold: .5}" transition="fade-transition" v-if="index%5===0" >
+                    <advert v-if="ad!=null" :SingleAd="ad"></advert>
+                  </v-lazy>
+                </template>
+            </b-col>
+            </template>
+        </div>
+      </template>
     </v-content>
   </div>
 </template>
@@ -30,12 +57,14 @@
   import Navbar from './Navbar.vue'
   import { mapState, mapActions, mapGetters } from 'vuex'
   import advert from './Advert.vue';
+  import RegisterCore from './RegisterCore.vue'
   //Vue.use(Navbar)
   export default {
     name: 'Index',
     components:{
      meme_post,
      comment_section,
+     RegisterCore,
      Navbar,
      advert
      },
@@ -50,13 +79,11 @@
         'vue$': 'vue/dist/vue.esm.js'
       }
     },
-    computed:{ ...mapState({
-
-      IsAuthenticated:'authentication/login'
-    }),
-    ...mapGetters({
+    computed:{ ...mapGetters({
+      IsAuthenticated:'authentication/IsAuthenticated',
+      user:'authentication/user',
+      timeline:'post/timeline',
       adpool:'post/advert',
-      timeline:'post/timeline'
     }),
     ad:function(){
       var n=this.randomgenerator(this.adpool.length,1)
@@ -83,15 +110,21 @@
             return Math.round(Math.random()*length)
         }
           return -1
-    }
+    }}
 
+    ,
+    created() {
+       this.$store.dispatch('comments/getComment')
+       this.$store.dispatch('post/getTimeLine')
+  /*    this.$store.subscribe((mutation, state) => {
+        console.log(mutation.type)
+        if (mutation.type === 'authentication/updateUser') {
+            this.$store.dispatch('post/getTimeLine')
+            this.$store.dispatch('post/getAction')
+          }
+      });*/
     },
-    beforeCreate() {
-      this.$store.dispatch('post/getTimeLine')
-      this.$store.dispatch('comments/getComment')
-      this.$store.dispatch('post/getAction')
-    }
-    }
+  }
 </script>
 <style scope>
   .sidemenu{

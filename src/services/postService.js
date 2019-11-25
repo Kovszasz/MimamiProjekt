@@ -3,8 +3,8 @@ import axios from 'axios'
 import ImgUpload from '../store/modules/upload'
 
 export default {
-  fetchPost(postID) {
-    return api.get(`post/${postID}`)
+  fetchPost(post) {
+    return api.get(`post/${post}`)
               .then(response => response.data)
   },
   likePost(postID) {

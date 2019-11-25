@@ -1,7 +1,9 @@
-<!-- https://www.trell.se/blog/file-uploads-json-apis-django-rest-framework/-->
+<!-- https://www.trell.se/blog/file-uploads-json-apis-django-rest-framework/
 <template>
-<div>
-    <v-content v-if="!core">
+  <div>
+  <template>
+    <v-content>
+    <Navbar :hideNavDrawer="true" />
   <v-stepper v-model="e1">
     <v-stepper-header>
       <v-stepper-step :complete="e1 > 1" step="1">Registration</v-stepper-step>
@@ -70,7 +72,42 @@
             data-vv-name="last name"
             outlined
           ></v-text-field>
-
+          <v-text-field
+            v-model="email"
+            label="E-mail"
+            data-vv-name="email"
+            required
+            outlined
+          ></v-text-field>
+          <v-text-field
+            v-model="username"
+            :counter="30"
+            label="Username"
+            data-vv-name="username"
+            outlined
+          ></v-text-field>
+          <v-text-field
+                     v-model="password"
+                     :rules="[rules.required, rules.min]"
+                     :type="show1 ? 'text' : 'password'"
+                     name="input-10-1"
+                     label="Password"
+                     hint="At least 8 characters"
+                     counter
+                     @click:append="show1 = !show1"
+                     outlined
+          ></v-text-field>
+          <v-text-field
+                    v-model="confirm"
+                    :rules="[rules.required, rules.min]"
+                    :type="show1 ? 'text' : 'password'"
+                    name="input-10-1"
+                    label="Password again"
+                    hint="At least 8 characters"
+                    counter
+                    @click:append="show1 = !show1"
+                    outlined
+          ></v-text-field>
           </v-card>
         </v-col>
         </v-row>
@@ -93,7 +130,6 @@
       <h1>{{ choose }} is remained</h1>
     <template v-for ="index in postsize">
     <v-row v-bind:key="index+'_row'">
-
       <v-col
         v-for="i in 4"
         v-bind:key="index*4+i+'_col'"
@@ -130,82 +166,23 @@
         >
           Back
         </v-btn>
-        <v-btn class="mr-4" @click="completeRegistration">Finish</v-btn>
+        <v-btn class="mr-4" @click="registerUser">Register</v-btn>
       </v-stepper-content>
     </v-stepper-items>
   </v-stepper>
   </v-content>
-  <v-content v-if="core">
-  <v-col >
-    <v-card
-      class="pa-2"
-      outlined
-      tile
-    >
-    <v-text-field
-      v-model="username"
-      :counter="30"
-      label="Username"
-      data-vv-name="username"
-      outlined
-    ></v-text-field>
-    <v-text-field
-      v-model="email"
-      label="E-mail"
-      data-vv-name="email"
-      required
-      outlined
-    ></v-text-field>
-    <v-text-field
-               v-model="password"
-               :rules="[rules.required, rules.min]"
-               :type="show1 ? 'text' : 'password'"
-               name="input-10-1"
-               label="Password"
-               hint="At least 8 characters"
-               counter
-               @click:append="show1 = !show1"
-               outlined
-    ></v-text-field>
-    <v-text-field
-              v-model="confirm"
-              :rules="[rules.required, rules.min]"
-              :type="show1 ? 'text' : 'password'"
-              name="input-10-1"
-              label="Password again"
-              hint="At least 8 characters"
-              counter
-              @click:append="show1 = !show1"
-              outlined
-    ></v-text-field>
-  <v-btn class="mr-4" @click="registerUser">Register</v-btn>
-
-    </v-card>
-  </v-col>
-
-  </v-content>
+  </template>
   </div>
-</template>
+</template>-->
 <script>
 import { mapState, mapActions, mapGetters } from 'vuex'
 import PictureInput from 'vue-picture-input'
 import meme_post from './MemePost.vue';
+import Navbar from './Navbar.vue'
+//import api from '../services/api'
+import axios from 'axios'
   export default {
-    name: 'RegisterCore',
-    props:{
-    core:{
-      type:Boolean,
-      default:true
-    },
-    user:{
-    type:Object,
-    default(){
-      return{
-        username:''
-      }
-    }
-    }
-    },
+    name: 'Activation',
     components: {
     meme_post,
     PictureInput
@@ -230,38 +207,32 @@ import meme_post from './MemePost.vue';
       },
       choose:2,
       memes:[],
-      disabled:true
+      disabled:true,
+      identified:false
       }
     },
-    methods: {completeRegistration() {
-        this.$store.dispatch('authentication/completeUserRegistration', {user:{
+    methods: {registerUser() {
+    //https://alligator.io/vuejs/uploading-vue-picture-input/
+        this.$store.dispatch('authentication/registerUser', {user:{
           first_name: this.first_name,
           last_name:this.last_name,
-          is_advertiser:false,
-          meme:this.memes,
-          },
+          email: this.email,
+          username: this.username,
+          password: this.password,
+          is_advertiser:false
+            //profile_pic:'/media/profile/e2.png'
+          },meme:this.memes,
           profile_pic:this.$refs.pictureInput.file
-        }).then(() => {
-        this.$store.dispatch('post/getTimeLine')
-          this.$router.push({ name: 'home' })
-        })
-      },registerUser(){
-        this.$store.dispatch('authentication/registerUser',{
-          username:this.username,
-          email:this.email,
-          password:this.password
         }).then(() => {
           this.$router.push({ name: 'login' })
         })
-      }
-
-      ,
+      },
       chooseMeme(index){
         this.choose-=1
         if(this.choose==0){
             this.disabled=false
         }
-        this.memes.push(this.posts[index].ID)
+        this.memes.push(this.posts[index])
 
       },onChange (image) {
       if (image) {
@@ -286,5 +257,21 @@ import meme_post from './MemePost.vue';
   })
 
   },
+  beforeCreate(){
+    if(this.$route.params.uid != '' && this.$route.params.token != ''){
+        axios.post('http://localhost:8000/account/users/activation/',{uid:this.$route.params.uid, token:this.$route.params.token})
+        .then((response) =>{
+            this.identified=true
+        }).catch((error) =>{
+          this.$router.push({ name: 'login' })
+        })
+        if(!this.identified){
+            this.$router.push({ name: 'login' })
+        }
+    }
+
+
+  },
+
 }
 </script>

@@ -58,9 +58,9 @@ const actions = {
         commit('getTimeLine',timeline)
     })
   },
-  getPost ({ commit },postID) {
+  getPost ({ commit },post) {
     //postID='Post1'
-    postService.fetchPost(postID)
+    postService.fetchPost(post)
     .then(post => {
       commit('setPost', post)
     })

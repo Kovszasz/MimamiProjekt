@@ -8,11 +8,11 @@
           <template  v-if="IsAuthenticated">
             <v-list-item two-line height="100">
               <v-list-item-avatar size="55" >
-                <img :src="AvatarUrl(post.user.mimeuser)">
+                <img :src="AvatarUrl(post.user)">
               </v-list-item-avatar>
 
               <v-list-item-content>
-                <v-list-item-title class="headline"><router-link :to = "{ name:'mypost',params:{user:post.user.username } }" >
+                <v-list-item-title class="headline">
                 <v-badge
                   color="orange"
                   bottom
@@ -28,7 +28,7 @@
                 <v-list-item-subtitle>date</v-list-item-subtitle>
               </v-list-item-content>
             <v-list-item-action align="right">
-              <v-btn rounded v-if="post.user.username !== user.username">
+              <v-btn rounded v-if="post.user.username !== user.username" @click='follow(post.user.username)'>
                   Follow
               </v-btn>
             </v-list-item-action>
@@ -50,6 +50,7 @@
             :hide-delimiters='!MultipleImgs'
           >
             <v-carousel-item
+              @click='goToPost(post)'
               v-for="(subpost,index) in post.imgs"
               :key="KeyGenerator(index)"
               :src="IMGurl(subpost)"
@@ -71,6 +72,41 @@
             </v-col>
             <v-col v-if="!IsRegistration"><comment_section v-if="IsAuthenticated" v-slot:footer :postID="post.ID"></comment_section>
             </v-col>
+                        <v-col>
+            <template>
+              <div class="text-center">
+                <v-menu offset-y>
+                  <template v-slot:activator="{ on }">
+                    <v-btn
+                      color="primary"
+                      dark
+                      v-on="on"
+                    >
+                      SHARE
+                    </v-btn>
+                  </template>
+                  <v-list>
+                    <v-list-item
+                    >
+                <!--    <social-sharing url="https://vuejs.org/"
+                                          title="The Progressive JavaScript Framework"
+                                          description="Intuitive, Fast and Composable MVVM for building interactive interfaces."
+                                          quote="Vue is a progressive framework for building user interfaces."
+                                          hashtags="vuejs,javascript,framework"
+                                          twitter-user="vuejs"
+                                          inline-template>
+                      <div>
+                          <network network="facebook">
+                            <i class="fa fa-facebook"></i> Facebook
+                          </network>
+                        </div>
+                    </social-sharing>-->
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </div>
+            </template>
+            </v-col>
           </v-row>
         </b-card>
       </b-row>
@@ -85,6 +121,7 @@ import Vue from 'vue';
 import advert from './Advert.vue';
 import comment_section from './CommentSection.vue';
 import { NavbarPlugin } from 'bootstrap-vue'
+//var SocialSharing = require('vue-social-sharing');
 import {
   mdiAccount,
   mdiPencil,
@@ -92,6 +129,7 @@ import {
   mdiDelete,
 } from '@mdi/js'
 import api from '../services/api'
+var Crypto = require('crypto')
 Vue.use(NavbarPlugin)
 Vue.use(CarouselPlugin)
 Vue.use(CardPlugin)
@@ -100,7 +138,7 @@ Vue.use(FormTextareaPlugin)
 Vue.use(comment_section)
 Vue.use(CardPlugin);
 Vue.use(mdiShareVariant);
-
+//Vue.user(SocialSharing)
 export default {
   name:'MemePost',
     props:{
@@ -126,6 +164,7 @@ export default {
   components:{
     comment_section,
     advert
+    //SocialSharing
     },
       resolve: {
       alias: {
@@ -143,9 +182,15 @@ export default {
           }else{
               return false
           }
-        },
-
-
+      },generateURL() {
+        var text=this.post.user.username+'/'+this.post.ID+'/'
+//        const iv= 'mimamimimamimima'
+        const iv = Crypto.randomBytes(16);
+        let cipher = Crypto.createCipheriv('aes-256-ctr', Buffer.from('mimamimimamimimamimimamimimamimi'), iv);
+        let encrypted = cipher.update(text);
+        encrypted = Buffer.concat([encrypted, cipher.final()]);
+        return { iv: iv.toString('hex'), encryptedData: encrypted.toString('hex') };
+}
 },
   methods:{ ...mapActions('post', {
   addPost:'addPost',
@@ -192,7 +237,7 @@ AvatarUrl:function(img){
       if (this.post.IsRecycled){
           api.post('recycle/',{user:this.user,templates:templates})
           .then((response) => {
-            console.log('successful recycle')
+            this.$store.dispatch('post/getTemplate')
           })
           .catch((err) => {
             console.log(err);
@@ -206,18 +251,30 @@ AvatarUrl:function(img){
                 console.log(err);
       })
       }
+    },goToPost(post){
 
-
-    }
-
-},
-updated(){
-  //this.IsLiked= this.$store.state.post.timeline.filter(post => post.ID === this.post.ID).IsLiked
-
-},
-mounted() {
-  //this.$store.dispatch('post/getPost',this.post.ID)
-}
+        return this.$router.push({ name: 'memeview', params: { iv: this.generateURL.iv,data:this.generateURL.encryptedData } })
+    },
+    follow(user){
+      //if (this.post.IsRecycled){
+          api.post('follow/',{user:user})
+          .then((response) => {
+            this.$store.commit('authentication/updateUser',response.data)
+          })
+          .catch((err) => {
+            console.log(err);
+          })
+    //  }else{
+    //  api.delete('recycle/',{user:this.user,templates:templates})
+    //        .then((response) => {
+    //            console.log('deleted recycle')
+    //        })
+    //        .catch((err) => {
+    //            console.log(err);
+    //  })
+    //  }
+    },
+  }
 };
 
   </script>

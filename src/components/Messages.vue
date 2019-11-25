@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
 import Navbar from './Navbar'
 
 export default {
@@ -39,15 +39,15 @@ export default {
       msgBody: "",
     };
   },
-  computed: mapState({
-    messages: state => state.messages.messages
+  computed: mapGetters({
+    messages: 'messages/messages'
   }),
   methods: mapActions('messages', [
     'addMessage',
     'deleteMessage'
   ]),
   created() {
-    this.$store.dispatch('messages/getMessages')
+  //  this.$store.dispatch('messages/getMessages')
   },
   components:{
       Navbar

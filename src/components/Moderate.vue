@@ -48,7 +48,7 @@
       'deletePost'
     ]),
     created() {
-      this.$store.dispatch('post/getTimeLine')
+      //this.$store.dispatch('post/getTimeLine')
     }
     }
 </script>
