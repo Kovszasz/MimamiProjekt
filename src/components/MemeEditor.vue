@@ -487,21 +487,18 @@ import { EventBus } from './memeeditor/event-bus.js';
       sendMeme(){
         var id;
         if(!this.advert){
-        id='Post'+String(Math.round(Math.random()*10000))
-        this.addPost({ID:id,IsAdvert:false,description:this.postText,IsPublic:this.IsPublic,
+        this.addPost({IsAdvert:false,description:this.postText,IsPublic:this.IsPublic,
                     labels:this.chips,
                     meme:{imgs:this.imgs,payload:{post:id,size:this.imgs.length}},size:this.imgs.length,templates:this.memeTemps},true)
         this.$store.dispatch('post/getTimeLine')
 
         }else{
-          if(this.IsInlinePost){
-              id='AdPost'+String(Math.round(Math.random()*10000))
-              this.addPost({ID:id,AdURL:this.adURL,IsAdvert:true,IsInlinePost:true,AppearenceFrequency:this.appearance,labels:this.chips
+          if(this.IsInlinePost){id='AdInPost'+String(Math.round(Math.random()*10000))
+              this.addPost({AdURL:this.adURL,IsAdvert:true,IsInlinePost:true,AppearenceFrequency:this.appearance,labels:this.chips
                         ,meme:{imgs:this.imgs,payload:{post:id,size:this.imgs.length}},size:this.imgs.length},true)
           }
           if(this.IsSinglePost){
-              id='AdInPost'+String(Math.round(Math.random()*10000))
-              this.addPost({ID:id,AdURL:this.adURL,IsAdvert:true,IsInlinePost:false,AppearenceFrequency:this.appearance,labels:this.chips
+              this.addPost({AdURL:this.adURL,IsAdvert:true,IsInlinePost:false,AppearenceFrequency:this.appearance,labels:this.chips
                         ,meme:{imgs:this.imgs,payload:{post:id,size:this.imgs.length}},size:this.imgs.length},true)
           }
         }

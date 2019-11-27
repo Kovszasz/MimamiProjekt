@@ -21,6 +21,7 @@
     ></v-text-field>
     <!--<ImageUploader/>-->
     <v-btn class="mr-4" @click="loginUser">Login</v-btn>
+    <v-btn class="mr-4" @click="">Forgot password?</v-btn>
   </form>
   </v-container>
   </v-card>

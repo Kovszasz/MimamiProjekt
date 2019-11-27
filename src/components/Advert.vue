@@ -1,11 +1,6 @@
 <template>
-  <div v-observe-visibility="{
-                  callback:visibilityChanged,
-                  once: true,
-                  throttle: 10000
-                  }" >
-      <p>{{ ViewAdded }}{{ ad.ID }}</p>
-      <template v-if="ad!=null" @click="clicked">
+  <div>
+      <template v-if="ad!=null" @click="clicked"  v-intersect="seen" >
 
       <v-carousel
         height="80%"
@@ -41,7 +36,8 @@ export default {
       default:function(){
         return{
           ID:'',
-          AdURL:''
+          AdURL:'',
+          isIntersecting: false,
           }
       }
     }
@@ -98,19 +94,7 @@ methods:{...mapActions({
                 return Math.round(Math.random()*length)
             }
               return -1
-        }
-        ,
-          visibilityChanged(isVisible){
-          if(isVisible){
-              if(this.IsAuthenticated){
-                  this.$store.dispatch('post/viewAd',{post:this.ad.ID,type:'View'})
-                  this.ViewAdded='Seen'
-                  }
-          }else{
-              this.ViewAdded='NotSeen'
-          }
-        },
-          clicked:function(){
+        },clicked:function(){
             if(this.IsAuthenticated){
                 this.$store.dispatch('post/clickAd',{post:this.ad.ID,type:'Click'})
           }
@@ -121,13 +105,15 @@ methods:{...mapActions({
                   },
         KeyGenerator:function(index){
             return this.ad.ID+String(index)
+        },seen (entries, observer) {
+          console.log(entires)
+          this.$store.dispatch('post/viewAd',{post:this.ad.ID,type:'View'})
         }
-  }
-,
-created() {
+    },
+    created() {
 
-},components:{
-  ObserveVisibility
-}
+    },components:{
+      ObserveVisibility
+  }
 }
 </script>

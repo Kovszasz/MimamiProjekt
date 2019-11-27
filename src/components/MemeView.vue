@@ -1,7 +1,14 @@
 <template>
   <div class="post">
   <Navbar></Navbar>
-  <b-container fluid class="bv-example-row">
+  <v-skeleton-loader
+    v-if="post==null"
+    ref="skeleton"
+    :boilerplate="false"
+    type="article"
+    class="mx-auto"
+    ></v-skeleton-loader>
+  <b-container fluid class="bv-example-row" v-if="post != null">
     <b-row>
 
         <b-card  header-tag="header" footer-tag="footer" >
@@ -74,12 +81,13 @@
 
 <script>
 import { CardPlugin,CarouselPlugin,LayoutPlugin, FormTextareaPlugin  } from 'bootstrap-vue';
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
 import Vue from 'vue';
 import comment_section from './CommentSection.vue';
 import { NavbarPlugin } from 'bootstrap-vue'
 import { mdiShareVariant } from '@mdi/js'
 import Navbar from './Navbar.vue'
+import api from '../services/api'
 var Crypto = require('crypto')
 Vue.use(NavbarPlugin)
 Vue.use(CarouselPlugin)
@@ -94,7 +102,7 @@ export default {
   name:'MemeView',
   data() {
         return {
-
+          post:null
         }
       },
   components:{
@@ -109,18 +117,15 @@ export default {
       computed:{...mapState('authentication',{
         IsAuthenticated:'accessToken',
         refreshToken:'refreshToken',
-        user:'user',
-        post:state=>state.post.timeline.filter(p=>p.ID === this.$refs.params.post)
-}),    MultipleImgs:function(){
+        user:'user'
+    }),...mapGetters(['post/post']),
+    MultipleImgs:function(){
           if (this.post.imgs.length > 1){
               return true
 
           }else{
               return false
           }
-        },
-        post(){
-          return this.$store.state.post.post//timeline.filter(post=>post.ID === this.$route.params.post)
         },
         decodePosttoken(){
             let iv = Buffer.from(this.$route.params.iv, 'hex');
@@ -130,11 +135,8 @@ export default {
             let decrypted = decipher.update(encryptedText);
             decrypted = Buffer.concat([decrypted, decipher.final()]);
             return decrypted.toString();
-}
-
-
-},
-
+      }
+  },
   methods:{ ...mapActions('post', {
   getPost:'getPost',
   deletePost:'deletePost',
@@ -148,7 +150,7 @@ AvatarUrl:function(img){
         return require(`../assets${img.avatar}`)
     },
     KeyGenerator:function(index){
-      return this.$refs.params.post+String(index)
+      return this.post+String(index)
     },
     liking(){
       this.IsLiked=!this.IsLiked
@@ -165,13 +167,12 @@ AvatarUrl:function(img){
     }
 
 },
-updated(){
-  //this.IsLiked= this.$store.state.post.timeline.filter(post => post.ID === this.$refs.params.post).IsLiked
-
-},
 created() {
-  console.log(this.decodePosttoken)
-  this.$store.dispatch('post/getPost',this.decodePosttoken.toString())
+    api.get(`post/retrievePost/${this.decodePosttoken.toString()}/`)
+          .then(response =>{
+              this.post=response.data
+          })
+  //this.$store.dispatch('post/getPost',this.decodePosttoken.toString())
 }
 };
 

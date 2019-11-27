@@ -17,16 +17,16 @@ class ScoreSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
-    profile=serializers.SerializerMethodField()
+    #profile=serializers.SerializerMethodField()
     class Meta:
         model = Follow
-        fields = ['channel','profile']
+        fields = ['channel',]#'profile']
         depth=1
 
-    def get_profile(self,Follow):
-        profile=Follow.channel
-        serialized=UserSerializer(profile)
-        return serialized.data
+    #def get_profile(self,Follow):
+    #    profile=Follow.channel
+    #    serialized=UserSerializer(profile)
+    #    return serialized.data
 
 class ProfilePicSerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,20 +34,6 @@ class ProfilePicSerializer(serializers.ModelSerializer):
         fields = ['avatar']
         #owner = serializers.Field(source='user.username')
 
-#class MimeUserSerializer(serializers.ModelSerializer):
-#    avatar=serializers.SerializerMethodField()
-#    class Meta:
-#        model=MimeUser
-#        exlude=['user']
-#        fields=('is_advertiser','avatar',)
-#        read_only_fields = ['profile_pic']
-#    def get_avatar(self,MimeUser):
-#        request = self.context.get('request')
-#        try:
-#            IMG_url = MimeUser.profile_pic.url
-#        except:
-#            IMG_url='/media/profile/e2.png'
-#        return IMG_url
 
 class UserSerializer(serializers.ModelSerializer):
     score = serializers.RelatedField(many=True, read_only=True)
@@ -62,40 +48,11 @@ class UserSerializer(serializers.ModelSerializer):
     def get_avatar(self,User):
         request = self.context.get('request')
         try:
-            IMG_url = MimeUser.avatar.url
-            print(IMG_url)
+            IMG_url = User.avatar.url
         except:
             IMG_url='/media/profile/e2.png'
         return IMG_url
 
-#    def create(self, validated_data):
-#        print(validated_data)
-#        user = User.objects.update(**validated_data)
-#        labels=Label.objects.all()
-#        for i in labels:
-#            p=PersonalScoringProfile.objects.create(user=user,label=i,score=0)
-#            p.save()
-#        return user
-
-    #def update(self, instance, validated_data):
-    #    mimeuser = validated_data.pop('mimeuser')
-    #    mimeuser = instance.mimeuser
-#
-#        instance.username = validated_data.get('username', instance.username)
-#        instance.email = validated_data.get('email', instance.email)
-#        instance.save()
-
-#        mimeuser.is_advertiser = mimuser_data.get(
-#            'is_advertiser',
-#            mimeuser.is_advertiser
-#        )
-#        mimeuser.company = mimuser_data.get(
-#            'company',
-#            mimeuser.company
-#         )
-#        mimeuser.save()
-
-#        return instance
 
     def get_channel(self,User):
         follows=Follow.objects.filter(follower=User)
@@ -129,10 +86,6 @@ class TemplateSerializer(serializers.ModelSerializer):
         return IMG_url
 
 
-class MessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Message
-        fields = ('url', 'subject', 'body', 'pk')
 
 class MemeContentSerializer(serializers.ModelSerializer):
     IMG_url=serializers.SerializerMethodField()
@@ -161,7 +114,9 @@ class PostSerializer(serializers.ModelSerializer):
     AdURL=serializers.URLField(max_length=250,default="")
     AppearenceFrequency=serializers.IntegerField(default=1)
     NumberOfLikes=serializers.SerializerMethodField()
-
+    PopularityScore=serializers.SerializerMethodField()
+    ReportScore=serializers.SerializerMethodField()
+    NumberOfComments=serializers.SerializerMethodField()
 
     def create(self, validated_data):
         """
@@ -186,11 +141,25 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['user', 'description', 'imgs', 'ID','IsModerated','IsAdvert','IsInlinePost','AdURL','AppearenceFrequency','NumberOfLikes','IsLiked','IsRecycled']
+        fields = ['user',
+                'description',
+                'imgs',
+                'ID',
+                'IsModerated',
+                'IsAdvert',
+                'IsInlinePost',
+                'AdURL',
+                'AppearenceFrequency',
+                'NumberOfLikes',
+                'IsLiked',
+                'IsRecycled',
+                'PopularityScore',
+                'ReportScore',
+                'NumberOfComments'
+                ]
 
     def get_IsLiked(self, Post):
         request=self.context.get('request')
-        print(type(request.user))
         if isinstance(request.user,User):
             if len(Action.objects.filter(user=request.user,post=Post,type='Like'))>0:
                 return True
@@ -206,32 +175,44 @@ class PostSerializer(serializers.ModelSerializer):
     def get_NumberOfLikes(self,Post):
         return len(Action.objects.filter(post=Post,type='Like'))
 
+    def get_PopularityScore(self,Post):
+        if not Post.IsAdvert:
+            actiontypes={}
+            for i in ['Like','Click','Share','Report']:
+                actiontypes[i]=len(Action.objects.filter(post=Post,type=i))
+            return actiontypes['Like']+actiontypes['Click']+2*actiontypes['Share']-10*actiontypes['Report']
+        else:
+            return 0
+
+    def get_ReportScore(self,Post):
+        return len(Action.objects.filter(post=Post,type='Report'))
+
+    def get_NumberOfComments(self,Post):
+        return len(Comment.objects.filter(post=Post))
 
 
 class CommentSerializer(serializers.ModelSerializer):
     ID=serializers.CharField(max_length=20, default="")
     content=serializers.CharField()
-    date=models.DateField(auto_now_add=True)
-    #reply_to = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
-    NumberOfLikes=models.IntegerField(default=0)
-    #user=serializers.SerializerMethodField()
     user=UserSerializer()
+    #replies=serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ('content','date','NumberOfLikes','ID','post','user')
+        fields = ('content','date','ID','post','user','reply_to',)
 
-    #def get_user(self,Comment):
-    #    pass
-
+    #def get_replies(self,Comment):
+    #     replies=Comment.objects.filter(reply_to=Comment)
+    #     if len(replies)>0:
+#             if len(replies)==1:
+#                 return serializer = self.parent.parent.__class__(replies, context=self.context)
+#             else:
+#                 return serializer = self.parent.parent.__class__(replies, many=True ,context=self.context)
+    #        return True
+    #     return False
 class PostLabellingSerializer(serializers.ModelSerializer):
     class Meta:
         model=PostLabelling
-        fields='__all__'
-# output serializer class for  'Mods' model
-class ModSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Mods
         fields='__all__'
 
 class LabelSerializer(serializers.ModelSerializer):

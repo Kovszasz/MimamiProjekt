@@ -18,10 +18,6 @@ Vue.config.productionTip = false
 
 store.subscribe((mutation, state) => {
   console.log(mutation.type)
-  if (mutation.type === 'authentication/updateUser') {
-      store.dispatch('post/getTimeLine')
-      store.dispatch('post/getAction')
-    }
 });
 
 /*router.beforeEach((to, from, next) => {

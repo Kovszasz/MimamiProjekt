@@ -48,8 +48,19 @@
     },
     computed:{ ...mapState({
       IsAuthenticated:'authentication/login'
-    }),timeline:function(){
-        return this.$store.state.post.timeline.filter(post=>post.user.username === this.$route.params.user)
+    }),...mapGetters('post',[
+            'likedMeme',
+            'topMemes'
+    ])
+    ,timeline:function(){
+        if(this.$route.params.type =='liked'){
+          return this.likedMeme
+        }else if(this.$route.params.type == 'top'){
+
+          return this.topMemes
+        }else{
+          return this.$store.state.post.timeline.filter(post=>post.user.username === this.$route.params.type)
+        }
     }
 
     },

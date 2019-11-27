@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Index from '@/components/Index'
-import Messages from '@/components/Messages'
 import MemePost from '@/components/MemePost'
 import Login from '@/components/Login'
 import Register from '@/components/Register'
@@ -14,6 +13,7 @@ import MyAdverts from '@/components/MyAdverts'
 import MemeView from '@/components/MemeView'
 import NProgress from 'nprogress'
 import Activation from '@/components/Activation'
+import Account from '@/components/Account'
 
 Vue.use(Router)
 const router = new Router({
@@ -27,14 +27,6 @@ const router = new Router({
       meta:{
         requiresAuth: true
 
-      }
-    },
-    {
-      path: '/messages',
-      name: 'messages',
-      component: Messages,
-      meta: {
-        requiresLogged: true
       }
     },
     {
@@ -80,11 +72,11 @@ const router = new Router({
         }
     },
     {
-      path: '/my-posts/:user',
+      path: '/my-posts/:type',
       name: 'mypost',
       component: MyPost,
       props:{
-        user:String
+        type:String
       },
       meta: {
         requiresAuth: true
@@ -142,7 +134,13 @@ const router = new Router({
       default:''
     }
   },
-}
+},
+{
+  path: '/account',
+  name: 'account',
+  component: Account,
+
+},
   ]
 })
 

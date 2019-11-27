@@ -1,67 +1,58 @@
 <template>
-  <v-row justify="center">
-    <v-dialog v-model="dialog" width="600px">
-      <template v-slot:activator="{ on }">
-        <v-btn icon v-on="on"><v-icon >mdi-message-text</v-icon></v-btn><p>{{ NumberOfComments }}</p>
-      </template>
-      <v-card>
-        <v-btn icon dark @click="dialog = false">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-        <div>
-          <v-form>
-            <v-container>
-              <v-row>
-                <v-col cols="12">
-                  <v-text-field
-                    v-model="content"
-                    :append-outer-icon="content ? 'mdi-send' : 'mdi-send'"
-                    :prepend-icon="'mdi-emoticon-excited'"
-                    outlined
-                    clear-icon="mdi-close-circle"
-                    clearable
-                    label="Comment..."
-                    type="text"
-                    @click:append-outer="sendComment"
-                  ></v-text-field>
-                </v-col>
-              </v-row>
-            </v-container>
-          </v-form>
-          <v-container>
-          <v-list three-line>
-            <div v-for="comment in comments" v-bind:key="comment.ID">
-              <template>
-                <v-divider
-                  :key="comment.ID +'_divider'"
-                  :inset="true"
-                ></v-divider>
+  <v-card
+  >
+    <v-list >
+      <v-list-group
+      >
+      <v-list-item>
+      <v-form>
+        <v-container>
+              <v-text-field
+                v-model="content"
+                :append-outer-icon="content ? 'mdi-send' : 'mdi-send'"
+                :prepend-icon="'mdi-emoticon-excited'"
+                outlined
+                clear-icon="mdi-close-circle"
+                clearable
+                label="Comment..."
+                type="text"
+                @click:append-outer="sendComment"
+              ></v-text-field>
+        </v-container>
+      </v-form>
+      </v-list-item>
+      <v-divider
+        :inset="true"
+      ></v-divider>
+        <template v-slot:activator>
+          <p>Comments</p>
+        </template>
 
-                <v-list-item
-                  :key="comment.ID +'_item'"
-                >
-                  <v-list-item-avatar>
-                    <v-img :src="IMGurl(comment.user)"></v-img>
-                  </v-list-item-avatar>
-
-                  <v-list-item-content>
-                    <v-list-item-title v-html="comment.user.username"></v-list-item-title>
-                    <v-list-item-subtitle v-html="comment.content"></v-list-item-subtitle>
-                  </v-list-item-content>
-                </v-list-item>
-              </template>
-              </div>
-            </v-list>
-          </v-container>
-          </div>
-      </v-card>
-    </v-dialog>
-  </v-row>
+        <v-list-group
+          v-for="comment in comments"
+          :key="comment.ID+'_l'"
+          sub-group
+        >
+          <template v-slot:activator>
+              <comment :comment="comment" :postID="postID"></comment>
+          </template>
+          <v-divider
+            :inset="true"
+          ></v-divider>
+          <reply :commentID="comment.ID" :postID="postID"></reply>
+        </v-list-group>
+      </v-list-group>
+    </v-list>
+  </v-card>
 </template>
+
+
 <script>
 import Vue from 'vue'
 import { mapState, mapActions, mapGetters } from 'vuex'
 import { mdiShareVariant } from '@mdi/js'
+import comment from './Comment.vue'
+import reply from './Reply.vue'
 Vue.use(mdiShareVariant);
 
   export default {
@@ -71,7 +62,7 @@ Vue.use(mdiShareVariant);
       show: false,
       //comments:[],
       content:'',
-      dialog:false
+      dialog:false,
     }),props:{
       postID:String
 
@@ -89,7 +80,7 @@ Vue.use(mdiShareVariant);
       this.content = ''
       },
       async sendComment(){
-        await  this.add({ID:String(Math.round(Math.random()*10000)),content:this.content,post:this.postID})
+        await  this.add({content:this.content,post:this.postID})
         .then(this.content = '')
       }
     },
@@ -98,19 +89,19 @@ Vue.use(mdiShareVariant);
       //user:'authentication/user'
     }),
     comments(){
-      //this.$store.dispatch('comments/get_comment',this.postID)
-      return this.get_comment(this.postID)
-    },
+      console.log(this.get_comment(this.postID))
 
-      ...mapGetters({
+      return this.get_comment(this.postID)
+    }, ...mapGetters({
           get_comment:'comments/postcomment'
 
-      }),NumberOfComments:function(){
-              return this.get_comment(this.postID).count
-          },
-    },
-    created() {
-  //    this.$store.dispatch('comments/getComment')
+      })
+    },components:{
+        comment,
+        reply
+    },created(){
+        //this.generateContentModels()
     }
+
   }
 </script>

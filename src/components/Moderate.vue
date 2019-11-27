@@ -21,7 +21,7 @@
   import { NavbarPlugin } from 'bootstrap-vue'
   Vue.use(NavbarPlugin)
   import Navbar from './Navbar.vue'
-  import { mapState, mapActions } from 'vuex'
+  import { mapState, mapActions, mapGetters } from 'vuex'
   //Vue.use(Navbar)
   export default {
     name: 'Index',
@@ -39,10 +39,13 @@
         'vue$': 'vue/dist/vue.esm.js'
       }
     },
-    computed: mapState({
+    computed:{ ...mapState({
       timeline: state => state.post.timeline.filter(timeline => timeline.IsModerated == false ),
       IsAuthenticated:'authentication/accessToken'
-    }),
+    }),...mapGetters('post',{
+          timeline:'reportedMemes'
+    })
+    },
     methods: mapActions('post', [
       'addPost',
       'deletePost'

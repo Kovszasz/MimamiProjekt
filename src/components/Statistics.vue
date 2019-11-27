@@ -88,14 +88,10 @@ export default {
     };
   },
   computed: mapState({
-    messages: state => state.messages.messages
+
   }),
-  methods: mapActions('messages', [
-    'addMessage',
-    'deleteMessage'
-  ]),
   created() {
-    this.$store.dispatch('messages/getMessages')
+
   },
   components:{
       Navbar,

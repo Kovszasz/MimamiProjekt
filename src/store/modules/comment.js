@@ -7,10 +7,13 @@ const state = {
 
 const getters = {
   postcomment: state =>(id) => {
-    return state.comments.filter(comment => comment.post === id)
+    return state.comments.filter(comment => comment.post === parseInt(id) && comment.reply_to === null)
   },
   comments:state=>{
     return state.comments
+  },
+  reply:state=>(id)=>{
+    return state.comments.filter(comment=>comment.reply_to === parseInt(id))
   }
 }
 
@@ -30,6 +33,10 @@ const actions = {
   deleteComment( { commit }, cmtId) {
     commentService.deleteComment(cmtId)
     commit('deleteComment', cmtId)
+  },
+  replyComment( { commit }, reply) {
+    commentService.replyComment(reply)
+    commit('replyComment', reply)
   }
 }
 
@@ -43,6 +50,9 @@ const mutations = {
   },
   deleteComment(state, cmtId) {
     state.comments = state.comments.filter(obj => obj.pk !== cmtId)
+  },
+  replyComment(state, reply) {
+    state.comments.push(reply)
   }
 }
 

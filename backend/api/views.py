@@ -25,16 +25,6 @@ User = get_user_model()
 # Serve Vue Application
 index_view = never_cache(TemplateView.as_view(template_name='index.html'))
 
-
-class MessageViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows messages to be viewed or edited.
-    """
-    queryset = Message.objects.all()
-    serializer_class = MessageSerializer
-    filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
-    search_fields=('id',)
-
 class FollowViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows messages to be viewed or edited.
@@ -44,7 +34,6 @@ class FollowViewSet(viewsets.ModelViewSet):
 
     def create(self,request):
         if isinstance(request.user,User):
-            print(request.data)
             f=Follow.objects.create(follower=request.user,channel=User.objects.get(username=request.data['user']))
             f.save()
             return Response(UserSerializer(request.user).data)
@@ -59,14 +48,14 @@ class PostSearchViewSet(viewsets.ModelViewSet):
 
 
 
-def retrievePost(self, request,user=None,post=None):
-    IsPublic=post.find('_private') == -1
-    post=pk2.replace('_private','')
-    user= User.objects.get(username=user)
-    post= Post.objects.get(ID=post,user=user)
-    serializer=PostSerializer(post, context={'request': request})
+#def retrievePost(self, request,user=None,post=None):
+#    IsPublic=post.find('_private') == -1
+#    post=pk2.replace('_private','')
+#    user= User.objects.get(username=user)
+#    post= Post.objects.get(ID=post,user=user)
+#    serializer=PostSerializer(post, context={'request': request})
 #    if not post.IsPublic and not IsPublic:
-    return Response(serializer.data, status=status.HTTP_200_OK)
+#    return Response(serializer.data, status=status.HTTP_200_OK)
 #    else:
 #        raise Http404
 
@@ -76,29 +65,32 @@ class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
     filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
     search_fields=('user__username',)
-    #search_fields = ['Id']
     def list(self,request):
         queryset=Post.objects.filter(IsAdvert=False,IsActive=True,IsPublic=True).order_by('-date')
+        serializer = PostSerializer(queryset,many=True, context={'request': request})
         if isinstance(request.user,User):
-            postpool=[]
-            for post in queryset:
-                postlabel=PostLabelling.objects.filter(post=post)
-                score=0
-                for label in postlabel:
-                    if len(PersonalScoringProfile.objects.filter(user=request.user, label=label.label))>0:
-                        score=score+PersonalScoringProfile.objects.get(user=request.user,label=label.label).score
-                if randrange(0,1)<score:
-                    postpool.append(post)
-            serializer = PostSerializer(postpool,many=True,context={'request':request})
-        else:
-            serializer = PostSerializer(queryset,many=True, context={'request': request})
+            if request.user.is_staff:
+                postquery=Post.objects.filter(IsAdvert=False,IsModerated=False)
+                serializer=PostSerializer(postquery,many=True,context={'request':request})
+            elif len(PersonalScoringProfile.objects.filter(user=request.user))==0:
+                serializer = PostSerializer(queryset,many=True, context={'request': request})
+            else:
+                postpool=[]
+                for post in queryset:
+                    postlabel=PostLabelling.objects.filter(post=post)
+                    score=0
+                    for label in postlabel:
+                        if len(PersonalScoringProfile.objects.filter(user=request.user, label=label.label))>0:
+                            score=score+PersonalScoringProfile.objects.get(user=request.user,label=label.label).score
+                    if randrange(0,1)<score:
+                        postpool.append(post)
+                serializer = PostSerializer(postpool,many=True,context={'request':request})
         return Response(serializer.data)
 
     def create(self, request):
         booldict={'false':False,'true':True}
         if booldict[request.data['IsAdvert']]:
             post = Post.objects.create(user=request.user,
-                                            ID=request.data['ID'],
                                             IsInlinePost=booldict[request.data['IsInlinePost']],
                                             AppearenceFrequency=request.data['AppearenceFrequency'],
                                             #date=request.data['date'],
@@ -106,28 +98,29 @@ class PostViewSet(viewsets.ModelViewSet):
                                             IsAdvert=True,
                                             AdURL=request.data['AdURL']
                                             )
-        else:
-            post = Post.objects.create(user=request.user,ID=request.data['ID'],description=request.data['description'],IsPublic=booldict[request.data['IsPublic']])
-        post.save()
-        for i in request.data['labels']:
-            if len(Label.objects.filter(name=i))==0:
-                l=Label.objects.create(name=i,type='category')
-                l.save()
-            else:
-                l=Label.objects.get(name=i)
-            pl=PostLabelling.objects.create(post=post,label=l)
-            pl.save()
-        for index in range(int(request.data['size'])):
-            if len(request.data['templates'])>0:
-                t=Template.objects.get(ID=request.data['templates'])
-                mc=MemeContent.objects.create(post=post,index=index,IMG=request.FILES['meme'+str(index)],template=t)
-            else:
+            for index in range(int(request.data['size'])):
                 mc=MemeContent.objects.create(post=post,index=index,IMG=request.FILES['meme'+str(index)])
-
-            mc.save()
+                mc.save()
             serializer=PostSerializer(post,context={'request': request})
-
-        serializer=PostSerializer(post, context={'request': request})
+        else:
+            post = Post.objects.create(user=request.user,description=request.data['description'],IsPublic=booldict[request.data['IsPublic']])
+            for i in request.data['labels'].split(','):
+                if len(Label.objects.filter(name=i))==0:
+                    l=Label.objects.create(name=i,type='category')
+                    l.save()
+                else:
+                    l=Label.objects.get(name=i)
+                pl=PostLabelling.objects.create(post=post,label=l)
+                pl.save()
+            for index in range(int(request.data['size'])):
+                if len(request.data['templates'])>0:
+                    t=Template.objects.get(name=request.data['templates'])
+                    mc=MemeContent.objects.create(post=post,index=index,IMG=request.FILES['meme'+str(index)],template=t)
+                else:
+                    mc=MemeContent.objects.create(post=post,index=index,IMG=request.FILES['meme'+str(index)])
+                mc.save()
+            serializer=PostSerializer(post,context={'request': request})
+        post.save()
         return Response(serializer.data)
 
 
@@ -177,6 +170,19 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer=PostSerializer(api, context={'request': request})
         return Response(serializer.data)
 
+    @action(detail=False,
+        methods=['get'],
+        url_path='retrievePost/(?P<user>[^/.]+)/(?P<post>[^/.]+)')
+    def retrievePost(self, request,user,post):
+        #IsPublic=post.find('_private') == -1
+        #post=pk2.replace('_private','')
+        user= User.objects.get(username=user)
+        post= Post.objects.get(ID=post,user=user)
+        serializer=PostSerializer(post, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
 
     @action(detail=True, methods=['get'])
     def like(self,request, pk=None):
@@ -196,30 +202,32 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def action(self,request):
-        setting=AdvertSettings.objects.get(admin=User.objects.get(username="admin"))
-        post=Post.objects.get(ID=request.data['post'])
-        postOwner=User.objects.get(username=post.user)
-        #action=ActionSerializer(post,data={'type':request.data['type']})
-        a=Action.objects.create(post=post,user=request.user,type=request.data["type"])
-        a.save()
-        if request.data["type"]=='Click':
-            if postOwner.balance-setting.MoneyForCick <=0:
-                post.IsActive=False
-                post.save()
+        if isinstance(request.user,User):
+            setting=AdvertSettings.objects.get(admin=User.objects.get(username="admin"))
+            post=Post.objects.get(ID=request.data['post'])
+            postOwner=User.objects.get(username=post.user)
+            #action=ActionSerializer(post,data={'type':request.data['type']})
+            a=Action.objects.create(post=post,user=request.user,type=request.data["type"])
+            a.save()
+            if request.data["type"]=='Click' and post.IsAdvert:
+                if postOwner.balance-setting.MoneyForCick <=0:
+                    post.IsActive=False
+                    post.save()
                 #notify(owner)
-            else:
-                postOwner.balance=postOwner.balance-setting.MoneyForClick
-        elif request.data["type"]=='View':
-            if postOwner.balance-setting.MoneyForSeen <=0:
-                post.IsActive=False
-                post.save()
-            else:
-                postOwner.balance=postOwner.balance-setting.MoneyForSeen
-        postOwner.save()
-        serializer = PostSerializer(post,context={'request': request} )
-        return Response(serializer.data)
-
-
+                else:
+                    postOwner.balance=postOwner.balance-setting.MoneyForClick
+            elif request.data["type"]=='View' and post.IsAdvert:
+                if postOwner.balance-setting.MoneyForSeen <=0:
+                    post.IsActive=False
+                    post.save()
+                else:
+                    postOwner.balance=postOwner.balance-setting.MoneyForSeen
+            postOwner.save()
+            serializer = PostSerializer(post,context={'request': request} )
+            return Response(serializer.data)
+        else:
+            pass
+        return Response({})
 
 
 
@@ -230,7 +238,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
-    search_fields=('id',)
+    search_fields=('ID',)
     def list(self,request):
         queryset=Comment.objects.all()
         serializer = CommentSerializer(queryset,many=True, context={'request': request})
@@ -238,9 +246,18 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         #request.data.update({'user':request.user})
-        api_result = Comment.objects.create(user=request.user, ID=request.data['ID'],content=request.data["content"], post=Post.objects.get(ID=request.data["post"]))
+        api_result = Comment.objects.create(user=request.user, content=request.data["content"], post=Post.objects.get(ID=request.data["post"]))
         api_result.save()
         serializer=CommentSerializer(api_result,context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def reply(self,request):
+        print(request.data)
+        post=Post.objects.get(ID=request.data['post'])
+        comment=Comment.objects.get(ID=request.data['comment'])
+        reply=Comment.objects.create(reply_to=comment,post=post,user=request.user,content=request.data['content'])
+        serializer=CommentSerializer(reply,context={'request':request})
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
@@ -277,23 +294,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 
-class ModsView(generics.RetrieveAPIView):
-    permission_classes = (IsAuthenticated,)  # checks if user is authenticated to view the model objects
-
-    def get_queryset(self):
-        return Mods.objects.all()  # return all model objects
-
-    def get(self, request, *args, **kwargs):  # GET request handler for the model
-        queryset = self.get_queryset()
-        serializer = ModSerializer(queryset, many=True)
-        return Response(serializer.data)
-
 
 class UserViewSet(viewsets.ModelViewSet):
-
-    """
-    API endpoint that allows users to be viewed or edited.
-    """
     queryset = User.objects.exclude(is_superuser=1)
     serializer_class = UserSerializer
     filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
@@ -310,34 +312,26 @@ class UserViewSet(viewsets.ModelViewSet):
         for lp in request.data['meme']:
             a=Action.objects.create(user=user,post=Post.objects.get(ID=lp),type="Like")
             a.save()
+        UpdateProfileScores(user=request.user)
         serialized=UserSerializer(user)
         return Response(serialized.data)
 
     @action(detail=False, methods=['POST'],serializer_class=ProfilePicSerializer,parser_classes=[parsers.MultiPartParser],)
     def pic(self, request):
+
+
         user= User.objects.get(username=request.user.username)
         user.avatar= request.FILES['profile_pic']
         user.save()
         serializer = UserSerializer(user)
-#        if serializer.is_valid():
-#            serializer.save()
         return Response(serializer.data)
-        #return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,methods=['get'])
     def user_login(self, request,pk=None):
-        #if request.method == 'POST':
-        #    username = request.data['username']
-        #    password = request.data['password']
-    #        user = authenticate(username=username, password=password)
-    #        if user:
-    #            if user.is_active:
-    #                login(request,user)
-
-#        return reverse_lazy('/api/token/',request=request)
         u=User.objects.get(username=pk)
         serializer = UserSerializer(u)
         return Response(serializer.data)
+
     @action(detail=True,methods=['POST'])
     def user_logout(self,request,pk=None):
         logout(request)

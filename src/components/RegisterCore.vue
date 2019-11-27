@@ -178,12 +178,27 @@
               @click:append="show1 = !show1"
               outlined
     ></v-text-field>
-  <v-btn class="mr-4" @click="registerUser">Register</v-btn>
+    <v-checkbox v-model="agreed" class="mx-2" label="Agree" ></v-checkbox><a @click="terms = true">Terms & Conditions</a>
+  <v-btn class="mr-4" @click="registerUser" :disabled="!agreed">Register</v-btn>
+  <v-btn class="mr-4" @click="" >Register with Facebook</v-btn>
+  <v-btn class="mr-4" @click="" >Register with Google</v-btn>
 
     </v-card>
   </v-col>
 
   </v-content>
+  <v-dialog v-model="terms" width="600px">
+    <v-card>
+      <v-card-title>
+        <span class="headline">Use Google's location service?</span>
+      </v-card-title>
+      <v-card-text></v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="green darken-1" text @click="agreeTerms">Agree</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
   </div>
 </template>
 <script>
@@ -230,22 +245,29 @@ import meme_post from './MemePost.vue';
       },
       choose:2,
       memes:[],
-      disabled:true
+      disabled:true,
+      agreed:false,
+      terms:false
       }
     },
-    methods: {completeRegistration() {
-        this.$store.dispatch('authentication/completeUserRegistration', {user:{
+    methods: {
+      async completeRegistration () {
+          await this.$store.dispatch('authentication/completeUserRegistration', {user:{
           first_name: this.first_name,
           last_name:this.last_name,
           is_advertiser:false,
           meme:this.memes,
           },
           profile_pic:this.$refs.pictureInput.file
-        }).then(() => {
-        this.$store.dispatch('post/getTimeLine')
-          this.$router.push({ name: 'home' })
-        })
-      },registerUser(){
+          }).then(() => {
+              this.$router.go()
+              })
+            .catch(err => {
+            })
+          //await this.$store.dispatch('post/getTimeLine')
+
+          }
+      ,registerUser(){
         this.$store.dispatch('authentication/registerUser',{
           username:this.username,
           email:this.email,
@@ -268,7 +290,11 @@ import meme_post from './MemePost.vue';
         this.image = image
       } else {
       }
-      },
+      },agreeTerms(){
+        this.terms=false
+        this.agreed=true
+      }
+      ,
       postindex(index){
         if(index<this.posts.length){
                 return this.posts[index]

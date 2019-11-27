@@ -93,8 +93,7 @@ completeUserRegistration (context, data) {
       return new Promise((resolve, reject) => {
       api.post(`/users/complete/`,data.user
       ).then(response => {
-            resolve(response)
-            context.commit('updateUser',response)
+            console.log('hej')
             ImgUpload(`/api/users/pic/`, data.profile_pic,name='profile_pic')
             .then(response=>{
 
@@ -103,7 +102,10 @@ completeUserRegistration (context, data) {
             .catch(err=>{
                 console.error(err);
             });
-
+            context.commit('updateUser',response)
+          //  async (()=>{
+          //     store.dispatch('post/getTimeLine')
+            resolve(response)
           })
           .catch(error => {
             console.log("error")
@@ -115,7 +117,8 @@ completeUserRegistration (context, data) {
     logoutUser (context) {
       if (context.getters.loggedIn) {
         return new Promise((resolve, reject) => {
-          axios.post('/api/token/logout/')
+          //axios.post('/api/token/logout/')
+          axios.get(`/api/users/user_logout/`)
             .then(response => {
               context.commit('updateLocalStorage',{ access:null, refresh:null,login:false })
               context.commit('destroyToken')

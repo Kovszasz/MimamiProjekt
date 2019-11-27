@@ -1,1 +1,49 @@
+<template>
+  <v-card
+  >
+    <v-list >
+      <v-list-group
+        value="true"
+      >
+      <v-list-item>
+      <v-form>
+        <v-container>
+              <v-text-field
+                v-model="content"
+                :append-outer-icon="content ? 'mdi-send' : 'mdi-send'"
+                :prepend-icon="'mdi-emoticon-excited'"
+                outlined
+                clear-icon="mdi-close-circle"
+                clearable
+                label="Comment..."
+                type="text"
+                @click:append-outer="sendComment"
+              ></v-text-field>
+        </v-container>
+      </v-form>
+      </v-list-item>
+      <v-divider
+        :inset="true"
+      ></v-divider>
+        <template v-slot:activator>
+          <list-item-text>Comments</list-item-text>
+        </template>
 
+        <v-list-group
+          v-for="comment in comments"
+          :key="comment.ID+'_l'"
+          sub-group
+          value="true"
+        >
+          <template v-slot:activator>
+              <comment :comment="comment" :postID="postID"></comment>
+          </template>
+          <v-divider
+            :inset="true"
+          ></v-divider>
+
+        </v-list-group>
+      </v-list-group>
+    </v-list>
+  </v-card>
+</template>

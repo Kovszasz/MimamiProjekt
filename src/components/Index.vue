@@ -3,8 +3,11 @@
     <Navbar v-if="user.complete_account"/>
     <Navbar v-if="!user.complete_account" :hideNavDrawer="true"/>
     <v-content>
+    <v-container fluid>
+    <v-row>
+    <v-col cols="10">
     <template v-if="!IsAuthenticated">
-    <b-col md="6" offset-md="3">
+    <v-row justify="center" no-gutters>
       <template v-for="(i,index) in timeline" >
         <div v-bind:key="index+'random_div_element'">
         <v-lazy v-bind:key="index+'lazy2'" v-model="isActive" :options="{ threshold: .5 }" transition="fade-transition">
@@ -18,7 +21,7 @@
               <advert v-if="ad!=null" :SingleAd="ad"></advert>
             </v-lazy>
           </template>
-      </b-col>
+      </v-row>
       </template>
       <template v-if="IsAuthenticated">
         <div>
@@ -26,7 +29,7 @@
           <RegisterCore :core="false" :user="user"/>
          </template>
           <template v-if="user.complete_account">
-          <b-col md="6" offset-md="3">
+          <v-row justify="center" no-gutters>
             <template v-for="(i,index) in timeline" >
               <div v-bind:key="index+'random_div_element2'">
               <v-lazy v-bind:key="index+'lazy1'" v-model="isActive" :options="{ threshold: .5 }" transition="fade-transition">
@@ -40,10 +43,13 @@
                     <advert v-if="ad!=null" :SingleAd="ad"></advert>
                   </v-lazy>
                 </template>
-            </b-col>
+            </v-row>
             </template>
         </div>
       </template>
+      </v-col>
+      </v-row>
+      </v-container>
     </v-content>
   </div>
 </template>
@@ -79,7 +85,8 @@
         'vue$': 'vue/dist/vue.esm.js'
       }
     },
-    computed:{ ...mapGetters({
+    computed:{
+     ...mapGetters({
       IsAuthenticated:'authentication/IsAuthenticated',
       user:'authentication/user',
       timeline:'post/timeline',
@@ -116,6 +123,7 @@
     created() {
        this.$store.dispatch('comments/getComment')
        this.$store.dispatch('post/getTimeLine')
+
   /*    this.$store.subscribe((mutation, state) => {
         console.log(mutation.type)
         if (mutation.type === 'authentication/updateUser') {

@@ -42,13 +42,30 @@ const getters = {
   },
   recycledTemplates:state=>{
     return state.memeTemplate.filter(post=>post.recycler !== true)
+  },
+  topMemes:state=>{
+  const items = [...state.timeline.filter(post=>post.IsLiked !==true)].sort((a,b) => {
+    if(a.PopularityScore > b.PopularityScore){return 1}
+    if(a.PopularityScore < b.PopularityScore){return -1}
+    return 0
+    })
+    items.reverse()
+    console.log(items)
+    return items
+  },
+  likedMeme:state=>{
+    return state.timeline.filter(post=>post.IsLiked === true)
+  },
+  reportedMemes:state=>{
+    const items = [...state.timeline.filter(post=>post.IsModerated !==true)].sort((a,b) => {
+      if(a.ReportScore > b.ReportScore){return 1}
+      if(a.ReportScore < b.ReportScore){return -1}
+      return 0
+      })
+      return items
+
   }
-  /*get_timeline: state =>(id) => {
-    return state.timeline.filter(post => post.user.username === id)
-  }
-  get_timeline:state => {
-    return state.timeline.filter(post => post.user.username === 'User')
-  }*/
+
 }
 
 const actions = {
@@ -58,9 +75,9 @@ const actions = {
         commit('getTimeLine',timeline)
     })
   },
-  getPost ({ commit },post) {
+  getPost ({ commit },posturl) {
     //postID='Post1'
-    postService.fetchPost(post)
+    postService.fetchPost(posturl)
     .then(post => {
       commit('setPost', post)
     })
@@ -87,12 +104,12 @@ const actions = {
   viewAd({ commit },payload) {
     postService.actionAdvert(payload)
     .then(advert => {
-      commit('getAdvert',advert)
+      //commit('getAdvert',advert)
     })},
   clickAd({ commit },payload) {
     postService.actionAdvert(payload)
     .then(advert => {
-      commit('getAdvert',advert)
+      //commit('getAdvert',advert)
     })
   },
   getAction({ commit }) {

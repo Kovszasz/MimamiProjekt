@@ -2,8 +2,8 @@
   <div class="post">
   <b-container fluid class="bv-example-row">
     <b-row>
-
-        <b-card  header-tag="header" footer-tag="footer" >
+    <div v-intersect="seen">
+        <b-card  header-tag="header" footer-tag="footer"  >
           <advert v-slot:header v-if="!IsRegistration"></advert>
           <template  v-if="IsAuthenticated">
             <v-list-item two-line height="100">
@@ -33,9 +33,25 @@
               </v-btn>
             </v-list-item-action>
             <v-list-item-action align="right">
-              <v-btn icon>
-                <v-icon color="grey lighten-1">mdi-information</v-icon>
-              </v-btn>
+
+              <v-menu offset-y>
+                <template v-slot:activator="{ on }">
+                <v-btn  icon v-on="on">
+                  <v-icon>mdi-dots-vertical</v-icon>
+                </v-btn>
+                </template>
+                <v-list>
+                  <v-list-item
+                  >
+                  <v-btn @click='report'>Report</v-btn>
+                  </v-list-item>
+                    <p>other things</p>
+                  <v-list-item
+                  >
+                    click
+                  </v-list-item>
+                </v-list>
+              </v-menu>
             </v-list-item-action>
             </v-list-item>
             <v-divider ></v-divider>
@@ -50,7 +66,7 @@
             :hide-delimiters='!MultipleImgs'
           >
             <v-carousel-item
-              @click='goToPost(post)'
+              @click='goToPost()'
               v-for="(subpost,index) in post.imgs"
               :key="KeyGenerator(index)"
               :src="IMGurl(subpost)"
@@ -69,8 +85,6 @@
           <v-col v-if="post.IsLiked"><v-icon :large="true" class="pa-2" color="#fe5552" @click="liking()">mdi-thumb-up</v-icon><p>{{ like }}</p>
           </v-col>
             <v-col ><p class="pa-2" @click="recycle"><img src="@/assets/recycle.jpg" width="50" height="50" /></p>
-            </v-col>
-            <v-col v-if="!IsRegistration"><comment_section v-if="IsAuthenticated" v-slot:footer :postID="post.ID"></comment_section>
             </v-col>
                         <v-col>
             <template>
@@ -108,9 +122,27 @@
             </template>
             </v-col>
           </v-row>
+          <v-row>
+          <v-col v-if="!IsRegistration"><comment_section v-if="IsAuthenticated" v-slot:footer :postID="post.ID"></comment_section></v-col>
+          </v-row>
         </b-card>
+        </div>
       </b-row>
     </b-container>
+
+
+    <v-alert
+        v-model="successReport"
+        border="left"
+        close-text="Close Alert"
+        color="deep-purple accent-4"
+        dark
+        dismissible
+    >
+      Aenean imperdiet. Quisque id odio. Cras dapibus. Pellentesque ut neque. Cras dapibus.
+
+      Vivamus consectetuer hendrerit lacus. Sed mollis, eros et ultrices tempus, mauris ipsum aliquam libero, non adipiscing dolor urna a orci. Sed mollis, eros et ultrices tempus, mauris ipsum aliquam libero, non adipiscing dolor urna a orci. Curabitur blandit mollis lacus. Curabitur ligula sapien, tincidunt non, euismod vitae, posuere imperdiet, leo.
+    </v-alert>
   </div>
 </template>
 
@@ -122,14 +154,16 @@ import advert from './Advert.vue';
 import comment_section from './CommentSection.vue';
 import { NavbarPlugin } from 'bootstrap-vue'
 //var SocialSharing = require('vue-social-sharing');
+import VueClipboard from 'vue-clipboard2'
 import {
   mdiAccount,
   mdiPencil,
   mdiShareVariant,
-  mdiDelete,
+  mdiDelete
 } from '@mdi/js'
 import api from '../services/api'
 var Crypto = require('crypto')
+Vue.use(VueClipboard)
 Vue.use(NavbarPlugin)
 Vue.use(CarouselPlugin)
 Vue.use(CardPlugin)
@@ -158,7 +192,8 @@ export default {
     },data() {
         return {
           like:this.post.NumberOfLikes,
-          //IsLiked:false
+          successReport:false,
+          isIntersecting:false
         }
       },
   components:{
@@ -252,8 +287,15 @@ AvatarUrl:function(img){
       })
       }
     },goToPost(post){
-
-        return this.$router.push({ name: 'memeview', params: { iv: this.generateURL.iv,data:this.generateURL.encryptedData } })
+    let link=`http://localhost:8080/meme/${this.generateURL.iv}/${this.generateURL.encryptedData}`
+    this.$copyText(link).then(function (e) {
+          alert('Copied')
+          console.log(e)
+      }, function (e) {
+        alert('Can not copy')
+        console.log(e)
+    })
+        //return this.$router.push({ name: 'memeview', params: { iv: this.generateURL.iv,data:this.generateURL.encryptedData } })
     },
     follow(user){
       //if (this.post.IsRecycled){
@@ -274,6 +316,18 @@ AvatarUrl:function(img){
     //  })
     //  }
     },
+    report(){
+      api.post('post/action/',{post:this.post.ID,type:'Report'})
+      .then(()=>{
+        this.successReport=true
+
+      }).catch((err)=>{
+        console.log(err)
+      })
+    },
+    seen(entries, observer) {
+      this.$store.dispatch('post/viewAd',{post:this.post.ID,type:'View'})
+    }
   }
 };
 

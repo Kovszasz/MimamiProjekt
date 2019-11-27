@@ -1,22 +1,4 @@
 import api from '@/services/api'
-/*
-api.interceptors.request.use(
-  (config) => {
-    let token = localStorage.getItem('accessToken');
-
-    if (token) {
-      config.headers['Authorization'] = `JWT ${ token }`;
-    }
-
-    return config;
-  },
-
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-*/
-
 
 export default {
   fetchComment() {
@@ -29,6 +11,10 @@ export default {
   },
   deleteComment(comment) {
     return api.delete(`comment/${comment}`)
+              .then(response => response.data)
+  },
+  replyComment(reply) {
+    return api.post(`comment/reply/`,reply)
               .then(response => response.data)
   }
 }

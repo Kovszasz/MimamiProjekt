@@ -8,11 +8,13 @@ CONTENT_CHOICES=[
             ('Like','Like'),
             ('View','View'),
             ('Click','Click'),
+            ('Share','Share'),
+            ('Report','Report'),
             ('Favourite','Favourite')
 ]
 
 class UserManager(BaseUserManager):
-    def create_user(self,  username, password, alias=None,email=None):
+    def create_user(self, email, username, password, alias=None):
         if not email:
             raise ValueError("ENTER AN EMAIL BUDDY")
         if not username:
@@ -29,7 +31,7 @@ class UserManager(BaseUserManager):
         user.set_password(password)
         user.save()
         return user
-    def create_superuser(self, username, password, alias=None, email=None):
+    def create_superuser(self, username, password, email,alias=None):
         user=self.create_user(email, username, password, alias)
         user.is_staff=True
         user.is_superuser = True
@@ -78,13 +80,8 @@ class User(AbstractBaseUser, PermissionsMixin):
             return False
 
 
-
-class Message(models.Model):
-    subject = models.CharField(max_length=200)
-    body = models.TextField()
-
 class Post(models.Model):
-    ID=models.CharField(max_length=20,primary_key=True)
+    ID=models.AutoField(primary_key=True)
     description=models.TextField()
     IMG=models.ImageField(upload_to='post',blank=True, default='')
     user=models.ForeignKey(User, on_delete=models.CASCADE, default='')
@@ -101,41 +98,12 @@ class Post(models.Model):
 
 class Comment(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE, default="")
-    ID=models.CharField(max_length=20,primary_key=True, default="")
+    ID=models.AutoField(primary_key=True)
     post=models.ForeignKey(Post,on_delete=models.CASCADE,default="")
     content=models.TextField()
     date=models.DateField(auto_now_add=True)
-    #reply_to = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
+    reply_to = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
     NumberOfLikes=models.IntegerField(default=0)
-
-
-class Mods(models.Model):
-    name = models.CharField(max_length=250)
-    version = models.CharField(max_length=70)
-
-    def __str__(self):
-        return self.name + ' ' + self.version
-
-class MimeUser(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    profile_pic = models.ImageField(upload_to='profile',blank=True, default='/media/profile/e2.png')
-    IsOfficial=models.BooleanField(default=False)
-    IsAdvertiser=models.BooleanField(default=False)
-    company=models.CharField(max_length=100,default='')
-    balance=models.FloatField(default=0)
-    sex=models.BooleanField(default=True)
-    age=models.DateField(default=datetime.now, blank=True)
-    IsOfficial=models.BooleanField(default=False)#official: icon -> ID card
-
-
-    def __str__(self):
-        return self.user.username
-
-    def get_profile_picture(self):
-        if self.profile_pic:
-            return profile_pic_url
-        else:
-            return 'your_default_img_url_path'
 
 
 class TimeLine(models.Model):
@@ -167,7 +135,7 @@ class PostLabelling(models.Model):
 
 class Template(models.Model):
     IMG=models.ImageField(upload_to='template',blank=True)
-    ID=models.CharField(primary_key=True, default='', max_length=100)
+    name=models.CharField(unique=True,max_length=100,default='meme')
     user=models.ForeignKey(User,on_delete=models.CASCADE, default="")
     IsPublic=models.BooleanField(default=False)
     type=models.CharField(max_length=100,default='portrait')
@@ -176,8 +144,8 @@ class MemeContent(models.Model):
     IMG=models.ImageField(upload_to='post',blank=True)
     index=models.IntegerField(default=0)
     post=models.ForeignKey(Post,on_delete=models.CASCADE, default="", related_name='imgs')
-    template=models.ForeignKey(Template, on_delete=models.CASCADE, default="")
-    #id=models.AutoField(primary_key=True, default="")
+    template=models.ForeignKey(Template, on_delete=models.SET_NULL, blank=True,null=True)
+    ID=models.AutoField(primary_key=True)
 
 class PersonalScoringProfile(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE,default='',related_name='score')

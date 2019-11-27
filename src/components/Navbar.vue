@@ -1,7 +1,7 @@
 <template>
   <div>
   <v-app-bar app>
-    <v-toolbar-title><router-link :to = "{ name:'home' }" class="title">mimami</router-link></v-toolbar-title>
+    <v-toolbar-title><p @click="goHome" class="title">mimami</p></v-toolbar-title>
     <!--<v-switch v-model="switch1" inset ></v-switch>-->
     <v-spacer></v-spacer>
     <v-text-field
@@ -29,6 +29,7 @@
             <v-list-item v-if="user.is_staff "><v-list-item-title><router-link :to = "{ name:'moderate' }" class="dropdown-item">Moderating</router-link></v-list-item-title></v-list-item>
             <v-list-item v-if="user.is_superuser "><v-list-item-title><router-link :to = "{ name:'statistics' }" class="dropdown-item">Statistics</router-link></v-list-item-title></v-list-item>
             <v-list-item v-if="user.is_advertiser"><v-list-item-title><router-link :to = "{ name:'advert',params:{user:user.username } }" class="dropdown-item">Advert</router-link></v-list-item-title></v-list-item>
+            <v-list-item ><v-list-item-title><router-link :to = "{ name:'account'}" class="dropdown-item">Account</router-link></v-list-item-title></v-list-item>
             <v-list-item ><v-list-item-title class="dropdown-item" @click="logout" >LogOut</v-list-item-title></v-list-item>
           </template>
       </v-list>
@@ -66,7 +67,10 @@
                 <v-img src="@/assets/top.png"></v-img>
               </v-list-item-avatar>
               <v-list-item-content>
-                <v-list-item-title >Top memes</v-list-item-title>
+                <v-list-item-title ><v-btn text :to = "{ name:'mypost', params:{type:'top' } }">
+
+                Top memes
+                </v-btn></v-list-item-title>
               </v-list-item-content>
             </v-list-item>
             <v-list-item v-if="IsAuthenticated ">
@@ -74,7 +78,7 @@
                 <v-img src="@/assets/mymeme.png"></v-img>
               </v-list-item-avatar>
               <v-list-item-content  >
-            <v-list-item-title> <v-btn text :to = "{ name:'mypost', params:{user:user.username } }">
+            <v-list-item-title> <v-btn text :to = "{ name:'mypost', params:{type:user.username } }">
                   MyMemes
               </v-btn></v-list-item-title>
               </v-list-item-content>
@@ -84,7 +88,7 @@
               <v-icon color="#fe5552" >mdi-thumb-up</v-icon>
               </v-list-item-avatar>
               <v-list-item-content  >
-            <v-list-item-title> <v-btn text :to = "{ name:'mypost', params:{user:user.username } }">
+            <v-list-item-title> <v-btn text :to = "{ name:'mypost', params:{type:'liked' } }">
                   Liked
               </v-btn></v-list-item-title>
               </v-list-item-content>
@@ -105,10 +109,10 @@
               :key="i"
             >
               <v-list-item-avatar >
-               <v-img :src="IMGurl(c.profile)"></v-img>
+               <v-img :src="IMGurl(c.channel)"></v-img>
               </v-list-item-avatar>
               <v-list-item-content>
-                <v-list-item-title ><v-btn :to = "{ name:'mypost', params:{user:c.channel.username } }">{{ c.channel.username }}</v-btn></v-list-item-title>
+                <v-list-item-title ><v-btn :to = "{ name:'mypost', params:{type:c.channel.username } }">{{ c.channel.username }}</v-btn></v-list-item-title>
               </v-list-item-content>
             </v-list-item>
           </v-list-item-group>
@@ -152,7 +156,6 @@ export default {
   },
   data(){
     return{
-    User:'User',
     search_field:'',
     search_result:[],
     dialog:false
@@ -162,7 +165,6 @@ export default {
       MemeEditor
   }, computed:{ ...mapState('authentication',{
           IsAuthenticated:'login',
-        //  user:'user',
           IsAdmin:'is_superuser'}),
           ...mapGetters('authentication',{
           user:'user'
@@ -191,7 +193,19 @@ export default {
     },logout(){
       this.$store.dispatch('authentication/logoutUser')
       .then(() => {
+        async (()=>{
+          this.$store.dispatch('post/getTimeLine')
+        }).then(this.$route.go())
+
       })
+    },
+    async goHome(){
+    try{
+        await this.$store.dispatch('post/getTimeLine')
+        .then(this.$router.push({ name: 'home' }))
+    }catch{
+
+    }
     }
   },
   beforeCreate(){
