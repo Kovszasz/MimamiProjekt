@@ -7,6 +7,7 @@ from rest_framework.validators import UniqueValidator
 import jwt
 from rest_framework_jwt.utils import jwt_payload_handler
 from djoser.serializers import UserCreateSerializer as BaseUserRegistrationSerializer
+from numpy import polyfit
 User = get_user_model()
 
 class ScoreSerializer(serializers.ModelSerializer):
@@ -33,8 +34,6 @@ class ProfilePicSerializer(serializers.ModelSerializer):
         model = User
         fields = ['avatar']
         #owner = serializers.Field(source='user.username')
-
-
 class UserSerializer(serializers.ModelSerializer):
     score = serializers.RelatedField(many=True, read_only=True)
     avatar=serializers.SerializerMethodField()
@@ -65,6 +64,8 @@ class UserSerializer(serializers.ModelSerializer):
         else:
             return True
 
+    #def get_
+
 
 class ActionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -72,19 +73,23 @@ class ActionSerializer(serializers.ModelSerializer):
         fields=('post','user','date','type',)
 
 class TemplateSerializer(serializers.ModelSerializer):
-    IMG_url=serializers.SerializerMethodField()
+    recycler = serializers.SerializerMethodField()
+    IMG_url = serializers.SerializerMethodField()
     class Meta:
-        model=Template
-        fields=['IMG_url','ID','user','IsPublic','type',]
+        model = Template
+        fields =['IMG_url','user','id','name','IsPublic','recycler','type']
 
-    def get_IMG_url(self, Template):
-        request = self.context.get('request')
-        try:
-            IMG_url = MemeContent.IMG.url
-        except:
-            IMG_url= ''
-        return IMG_url
+    def get_recycler(self,Template):
+        request=self.context.get('request')
+        template = Recycle.objects.filter(user=request.user,template=Template)
+        if len(template)==0:
+            return False
+        else:
+            serialized=RecycleSerializer(template)
+            return serialized.data
 
+    def get_IMG_url(self,Template):
+        return Template.IMG.url
 
 
 class MemeContentSerializer(serializers.ModelSerializer):
@@ -259,26 +264,6 @@ class RecycleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recycle
         fields = '__all__'
-
-class TemplateSerializer(serializers.ModelSerializer):
-    recycler = serializers.SerializerMethodField()
-    IMG_url = serializers.SerializerMethodField()
-    class Meta:
-        model = Template
-        fields =['IMG_url','user','ID','IsPublic','recycler','type']
-
-    def get_recycler(self,Template):
-        request=self.context.get('request')
-        template = Recycle.objects.filter(user=request.user,template=Template)
-        if len(template)==0:
-            return False
-        else:
-            serialized=RecycleSerializer(template)
-            return serialized.data
-
-    def get_IMG_url(self,Template):
-        return Template.IMG.url
-
 
 
 #AUTH SERIALIZERS OF djoser

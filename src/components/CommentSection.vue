@@ -6,6 +6,31 @@
       >
       <v-list-item>
       <v-form>
+<emoji-picker @emoji="insert" :search="search">
+    <div class="emoji-invoker" slot="emoji-invoker" slot-scope="{ events }" v-on="events">
+        <button type="button">open</button>
+    </div>
+    <div slot="emoji-picker" slot-scope="{ emojis, insert, display }">
+        <div>
+            <div>
+                <input type="text" v-model="search">
+            </div>
+            <div>
+                <div v-for="(emojiGroup, category) in emojis" :key="category">
+                    <h5>{{ category }}</h5>
+                    <div>
+                        <span
+                            v-for="(emoji, emojiName) in emojiGroup"
+                            :key="emojiName"
+                            @click="insert(emoji)"
+                            :title="emojiName"
+                        >{{ emoji }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</emoji-picker>
         <v-container>
               <v-text-field
                 v-model="content"
@@ -53,6 +78,9 @@ import { mapState, mapActions, mapGetters } from 'vuex'
 import { mdiShareVariant } from '@mdi/js'
 import comment from './Comment.vue'
 import reply from './Reply.vue'
+import { EmojiPickerPlugin } from 'vue-emoji-picker'
+
+Vue.use(EmojiPickerPlugin)
 Vue.use(mdiShareVariant);
 
   export default {
@@ -63,6 +91,7 @@ Vue.use(mdiShareVariant);
       //comments:[],
       content:'',
       dialog:false,
+      search: ''
     }),props:{
       postID:String
 
@@ -77,20 +106,21 @@ Vue.use(mdiShareVariant);
         }
       },
       clearComment(){
-      this.content = ''
+        this.content = ''
       },
       async sendComment(){
         await  this.add({content:this.content,post:this.postID})
         .then(this.content = '')
-      }
+      },
+      insert(emoji) {
+            this.content += emoji
+        },
     },
     computed:{ ...mapState({
 
       //user:'authentication/user'
     }),
     comments(){
-      console.log(this.get_comment(this.postID))
-
       return this.get_comment(this.postID)
     }, ...mapGetters({
           get_comment:'comments/postcomment'
@@ -98,7 +128,8 @@ Vue.use(mdiShareVariant);
       })
     },components:{
         comment,
-        reply
+        reply,
+        EmojiPickerPlugin
     },created(){
         //this.generateContentModels()
     }

@@ -1,17 +1,9 @@
 import axios from 'axios';
-import * as nsfwjs from 'nsfwjs'
 
-
-async function predict(image){
-  const model = await nsfwjs.load()
-  const predictions = await model.classify(image, 5)
-  return predictions
-}
 export default function (url, file,payload={}, multiple=true,name = 'img') {
   if (typeof url !== 'string') {
     throw new TypeError(`Expected a string, got ${typeof url}`);
   }
-      predict(file.imageObject)
 
 
 let token = localStorage.getItem('access_token');

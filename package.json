@@ -28,6 +28,7 @@
     "vue-chartkick": "^0.5.3",
     "vue-clipboard2": "^0.3.1",
     "vue-draggable-resizable": "^2.0.1",
+    "vue-emoji-picker": "^1.0.1",
     "vue-google-charts": "^0.3.2",
     "vue-jwt-decode": "^0.1.0",
     "vue-meme-generator": "^0.1.0",

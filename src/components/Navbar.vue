@@ -125,7 +125,12 @@
         <v-card-title>
           <span class="headline">Results</span>
         </v-card-title>
-          <p>{{ search_result }}</p>
+          <template v-for='res in search_result'>
+          <meme_post
+            v-bind:post="res"
+              v-bind:key="res.ID"
+          ></meme_post>
+          </template>
       </v-card>
       <v-skeleton-loader
   ref="skeleton"
@@ -144,6 +149,7 @@ import { mapState, mapActions, mapGetters } from 'vuex'
 import Vue from 'vue';
 import MemeEditor from './MemeEditor';
 import {NavbarPlugin} from 'bootstrap-vue';
+import meme_post from './MemePost.vue';
 Vue.use(NavbarPlugin);
 import api from '../services/api'
 export default {
@@ -162,7 +168,8 @@ export default {
     }
   },
   components: {
-      MemeEditor
+      MemeEditor,
+      meme_post
   }, computed:{ ...mapState('authentication',{
           IsAuthenticated:'login',
           IsAdmin:'is_superuser'}),
@@ -174,17 +181,18 @@ export default {
   IMGurl:function(img){
           return require(`../assets${img.avatar}`)
           },
-    search(){
+    async search(){
         this.dialog=true
         let api_url = '/spotlight/';
+        this.loading = true;
         if(this.search_field!==''||this.search_term!==null) {
           api_url = `/spotlight/?search=${this.search_field}`
         }
-        this.loading = true;
-        api.get(api_url)
+        await api.get(api_url)
             .then((response) => {
               this.search_result = response.data;
               this.loading = false;
+              api.post('/spotlight/',{term:this.search_field,result:response.data})
             })
             .catch((err) => {
               this.loading = false;

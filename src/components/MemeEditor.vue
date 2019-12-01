@@ -17,11 +17,12 @@
             <v-btn v-if="!advert" text @click="advert = !advert">Create advert</v-btn>
             <v-btn v-if="advert" text @click="advert = !advert">Create meme</v-btn>
             <v-btn  text @click="dialog = false">Save</v-btn>
-            <v-btn v-if="!advert" text @click="sendMeme">Post</v-btn>
-            <v-btn v-if="advert" text @click="sendMeme">Publish</v-btn>
+            <v-btn v-if="!advert" text @click="sendMeme" v-bind:disabled="porncontent">Post</v-btn>
+            <v-btn v-if="advert" text @click="sendMeme" v-bind:disabled="porncontent">Publish</v-btn>
           </v-toolbar-items>
         </v-toolbar>
-        <b-container fluid class="bv-example-row">
+        <h1>{{ porncontents }}|{{ porncontent }}</h1>
+        <b-container fluid class="bv-example-row" >
           <b-row>
           <b-col cols="8">
               <b-card  header-tag="header" footer-tag="footer" >
@@ -73,7 +74,7 @@
                     <picture-input
 
                       ref="pictureInput"
-                      @change="onChange"
+                      @change="onChange(index)"
                       :prefill="imgSrc"
                       :crop="false"
                       width="600"
@@ -85,7 +86,8 @@
                       :zIndex="0"
                       :customStrings="{
                         upload: '<h1>Bummer!</h1>',
-                        drag: 'Upload meme'
+                        drag: 'Upload meme',
+                        remove: 'Remove Photo',
                       }">
                     </picture-input>
                     <p v-if="upload.isimg">{{ upload.img.width }}|{{ upload.img.height }}</p>
@@ -125,7 +127,7 @@
                   <v-carousel-item interval="0" v-for="(upload,index) in subIMGs" v-bind:key="index+'caruseladline'">
                     <picture-input
                       ref="pictureInput"
-                      @change="onChange"
+                      @change="onChange(index)"
                       :crop="false"
                       width="1024"
                       height="600"
@@ -136,7 +138,8 @@
                       :zIndex="0"
                       :customStrings="{
                         upload: '<h1>Bummer!</h1>',
-                        drag: 'Upload ad'
+                        drag: 'Upload ad',
+                        remove: 'Remove Photo',
                       }">
                     </picture-input>
 
@@ -153,7 +156,7 @@
                   <v-carousel-item interval="0" v-for="(upload,index) in subIMGs" v-bind:key="index+'carousel_ad'">
                     <picture-input
                       ref="pictureInputInLine"
-                      @change="onChangeInLine"
+                      @change="onChangeInLine(index)"
                       :crop="false"
                       width="1024"
                       height="100"
@@ -164,7 +167,8 @@
                       :zIndex="0"
                       :customStrings="{
                         upload: '<h1>Bummer!</h1>',
-                        drag: 'Upload ad'
+                        drag: 'Upload ad',
+                        remove: 'Remove Photo',
                       }">
                     </picture-input>
 
@@ -213,6 +217,27 @@
                    <v-tab-item
                    >
                    <v-container fluid>
+                   <v-col
+                    cols="12"
+                    md="4">
+                   <picture-input
+                     ref="templateInput"
+                     @change="templateUploading = true"
+                     :crop="false"
+                     width="400"
+                     height="400"
+                     margin="16"
+                     accept="image/jpeg,image/png,image/gif"
+                     size="10"
+                     buttonClass="btn"
+                     :zIndex="0"
+                     :customStrings="{
+                       upload: '<h1>Bummer!</h1>',
+                       drag: 'Upload template',
+                       remove: 'Remove Photo',
+                     }">
+                   </picture-input>
+                   </v-col>
                        <template v-if="templates!=={}" v-for ="index in templates.my.size">
                              <v-row v-bind:key="index+'_row'">
                            <v-col
@@ -335,7 +360,7 @@
                           ref="picker"
                           opens="left"
                           :autoApply="true"
-                          v-model="dateRange"
+                          v-model="estimation.dateRange"
                           @update="updateValues"
                           @toggle="checkOpen"
                         >
@@ -348,10 +373,12 @@
                       <header>Budget for the advert period</header>
 
                     <v-select
+                      v-model="budget"
                       :items="dailyBudget"
                       label="please select a range"
                       dense
                       outlined
+                      v-on:change="estimateUsers"
                         ></v-select>
                         </v-col>
                     <v-col cols="12">
@@ -363,7 +390,7 @@
 
                           ></v-text-field>
                     </v-col>
-                    <h1>Reached users {{ reachedUsers }}</h1>
+                    <h1>Reached users {{ estimation.reachedUsers }}</h1>
                    </v-row>
                 </v-container>
                </v-card>
@@ -371,9 +398,50 @@
             </b-row>
           </b-container>
       </v-card>
+      <div class="text-center">
+      <v-overlay :value="checking">
+        <v-progress-circular indeterminate size="64"></v-progress-circular>
+      </v-overlay>
+    </div>
     </v-dialog>
     <v-row justify="center">
-  </v-row>
+   <v-dialog v-model="templateUploading" persistent max-width="600px">
+     <v-card>
+       <v-card-title>
+         <span class="headline">User Profile</span>
+       </v-card-title>
+       <v-card-text>
+         <v-container>
+         <h2>Template properties</h2>
+           <v-row>
+             <v-col cols="12">
+               <v-text-field label="Name" type="text" v-model="templatePayload.name" required></v-text-field>
+             </v-col>
+             <v-col cols="12" sm="6">
+               <v-select
+                 :items="templatePayload.type"
+                 label="Template type"
+                 required
+               ></v-select>
+             </v-col>
+             <v-col cols="12" sm="6">
+             <v-checkbox
+              label="Public"
+              :value="templatePayload.IsPublic"
+              ></v-checkbox>
+              </v-col>
+           </v-row>
+         </v-container>
+         <small>*indicates required field</small>
+       </v-card-text>
+       <v-card-actions>
+         <v-spacer></v-spacer>
+         <v-btn color="blue darken-1" text @click="templateUploading = false">Close</v-btn>
+         <v-btn color="blue darken-1" text @click="uploadTemplate">Save</v-btn>
+       </v-card-actions>
+     </v-card>
+   </v-dialog>
+ </v-row>
   </v-row>
 </template>
 
@@ -389,6 +457,9 @@ import 'vue2-daterange-picker/dist/vue2-daterange-picker.css'
 import axios from 'axios'
 import ImgEditor from './ImgEditor.vue'
 import { EventBus } from './memeeditor/event-bus.js';
+import ImgUpload from '../store/modules/upload'
+import * as nsfwjs from 'nsfwjs'
+import api from '../services/api'
 
   export default {
     data () {
@@ -429,16 +500,28 @@ import { EventBus } from './memeeditor/event-bus.js';
         memeTemps:[],
         get_myTemplate:[],
         get_browserTemplate:[],
-        get_recycledTemplate:[]
+        get_recycledTemplate:[],
+        checking:false,
+        porncontents:[],
+        templateUploading:false,
+        estimationInProgress:false,
+        estimation:{
+          budget:null,
+          reachedUsers:null,
+          daterange:null}
+
+        ,templatePayload:{
+          IsPublic:true,
+          name:'',
+          type:['portrait','landscape','normal']
+
+        }
       }
       },
       computed:{ ...mapGetters({
           IsAuthenticated:'authentication/IsAuthenticated',
           user:'authentication/user'
-      }),reachedUsers(){
-            return 8
-
-      },...mapGetters({
+      }),...mapGetters({
   //      get_myTemplate:'post/myTemplates',
   //      get_browserTemplate:'post/publicTemplates',
   //      get_recycledTemplate:'post/recycledTemplates'
@@ -454,8 +537,17 @@ import { EventBus } from './memeeditor/event-bus.js';
             recycle:{temp:recycle,size:recycle.length},
 
         }
+      },porncontent(){
+          var contains=false
+          for(var i=0;i<this.porncontents.length;i++){
+            if(this.porncontents[i]){
+                contains=true
+            }
+          }
+          return contains
       }
-      },
+      }
+      ,
       components:{
           RegisterCore,
           LoginCore,
@@ -469,11 +561,46 @@ import { EventBus } from './memeeditor/event-bus.js';
         addMeme:'post/addMeme'
 
       }),
-        onChange(){
-          this.MultipleImgs=true
-          this.imgs.push(this.$refs.pictureInput[this.imgindex])
-          this.imgindex+=1
-          this.subIMGs.push({isimg:false,index:this.imgindex})
+      checkImage:async function(image){
+        console.log(this.checking)
+        const model = await nsfwjs.load()
+        console.log(model)
+        const predictions= await model.classify(image, 1)
+        console.log(predictions)
+        if(predictions[0].className=="Porn"){
+          return true
+          }else{
+            return false
+          }
+      },onChange: async function(index){
+      this.checking=true
+      const uploadAllowed = await this.checkImage(this.$refs.pictureInput[index].$refs.previewCanvas)
+      console.log(index)
+        if(!uploadAllowed){
+          console.log('here')
+            this.checking=false
+            this.MultipleImgs=true
+            if(index==this.imgs.length){
+
+
+            this.imgs.push(this.$refs.pictureInput[index])
+            this.subIMGs.push({isimg:false,index:this.imgindex})
+            this.porncontents.push(false)
+            }else{
+            console.log('or here')
+              this.imgs[index]=this.$refs.pictureInput[index]
+              this.porncontents[index]=false
+            }
+
+          }else{
+            if(index==this.imgs.length){
+                this.porncontents.push(true)
+              }else{
+                this.porncontents[index]=true
+              }
+            this.checking=false
+            alert('No porn Buddy')
+          }
         },onChangeInLine(){
           this.MultipleImgsInLine=true
           this.imgs.push(this.$refs.pictureInputInLine[this.inlineindex])
@@ -577,8 +704,31 @@ import { EventBus } from './memeeditor/event-bus.js';
                     height:1200*0.5
                 }
             }
-        }
+        },async uploadTemplate(){
+            this.templateUploading=false
+            this.checking=true
 
+            const uploadAllowed = await this.checkImage(this.$refs.templateInput.$refs.previewCanvas)
+            if(uploadAllowed){
+              this.checking=false
+              alert('Please buddy, shame on you!')
+            }else{
+              console.log(this.$refs.templateInput.file)
+              await  ImgUpload(`/api/template/upload/`, this.$refs.templateInput.file,this.templatePayload,false,name='img')
+                .then(response=>{
+                  this.$store.commit('post/getTemplate',response.data)
+                  this.checking=false
+                })
+            }
+        },
+        async estimate(){
+                this.estimationInProgress=true
+                await api.post('/statistics/estimate/',{startDate:this.estimation.dateRange.startDate,endDate:this.estimation.dateRange.endDate,budget:this.estimation.budget,function:'estimateUsers'})
+                .then((response)=>{
+                this.estimationInProgress=false
+                this.estimation=response.data
+                })
+        }
       },
       watch:{
         uploadMeme:function(){

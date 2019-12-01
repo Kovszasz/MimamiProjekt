@@ -34,3 +34,13 @@ def UpdateProfileScores(user):
                 else:
                     score.score=labelpooldict[s]/labelpool
                 score.save()
+
+
+def estimateUsers(dataset,x0,x1,area):
+    return 8
+
+def estimateBudget(dataset,areaObj,areaHave):
+    return 10000
+
+def estimateDateRange(dataset,x0,x1,area):
+    return 50

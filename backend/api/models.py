@@ -161,3 +161,9 @@ class Recycle(models.Model):
     template=models.ForeignKey(Template, on_delete=models.CASCADE,default='')
     date = models.DateField( auto_now_add=True)
     #IsRemoved=models.BooleanField(default=False)
+
+class SearchResult(models.Model):
+    term=models.CharField(max_length=1000,default='')
+    date = models.DateTimeField(default=timezone.now)
+    user = models.ForeignKey(User,on_delete=models.SET_NULL,blank=True,null=True)
+    result = models.ForeignKey(Post,on_delete=models.CASCADE,default='')

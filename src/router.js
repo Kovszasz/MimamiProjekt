@@ -14,6 +14,8 @@ import MemeView from '@/components/MemeView'
 import NProgress from 'nprogress'
 import Activation from '@/components/Activation'
 import Account from '@/components/Account'
+import Lab from '@/components/laboratory'
+import ResetPassword from '@/components/ResetPassword'
 
 Vue.use(Router)
 const router = new Router({
@@ -136,9 +138,31 @@ const router = new Router({
   },
 },
 {
+  path: '/username/reset/confirm/:uid/:token',
+  name: 'reset-password',
+  component: ResetPassword,
+  props:{
+    uid:{
+      type:String,
+      default:''
+    },
+    token:{
+      type:String,
+      default:''
+    }
+  },
+}
+,
+{
   path: '/account',
   name: 'account',
   component: Account,
+
+},
+{
+  path: '/lab',
+  name: 'lab',
+  component: Lab,
 
 },
   ]

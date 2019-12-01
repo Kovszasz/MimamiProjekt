@@ -193,7 +193,8 @@ export default {
         return {
           like:this.post.NumberOfLikes,
           successReport:false,
-          isIntersecting:false
+          isIntersecting:false,
+          viewed:false
         }
       },
   components:{
@@ -326,7 +327,10 @@ AvatarUrl:function(img){
       })
     },
     seen(entries, observer) {
+      if(!this.viewed){
       this.$store.dispatch('post/viewAd',{post:this.post.ID,type:'View'})
+      this.viewed=!this.viewed
+      }
     }
   }
 };

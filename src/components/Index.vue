@@ -5,7 +5,7 @@
     <v-content>
     <v-container fluid>
     <v-row>
-    <v-col cols="10">
+    <v-col  cols="9" >
     <template v-if="!IsAuthenticated">
     <v-row justify="center" no-gutters>
       <template v-for="(i,index) in timeline" >

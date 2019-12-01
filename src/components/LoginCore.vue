@@ -19,18 +19,38 @@
                label="Password"
                outlined
     ></v-text-field>
-    <!--<ImageUploader/>-->
     <v-btn class="mr-4" @click="loginUser">Login</v-btn>
-    <v-btn class="mr-4" @click="">Forgot password?</v-btn>
+    <v-btn class="mr-4" @click="reset= true ">Forgot password?</v-btn>
   </form>
   </v-container>
   </v-card>
+  <v-row justify="center">
+   <v-dialog v-model="reset" persistent max-width="600px">
+     <v-card>
+       <v-card-title>
+         <span class="headline">Reset password</span>
+       </v-card-title>
+         <v-container>
+           <v-row>
+             <v-col cols="12">
+               <v-text-field label="Email*" required v-model="reset_passwordEmail"></v-text-field>
+             </v-col>
+          </v-row>
+          </v-container>
+       <v-card-actions>
+         <v-spacer></v-spacer>
+         <v-btn color="blue darken-1" text @click="resetPassword">Save</v-btn>
+       </v-card-actions>
+     </v-card>
+   </v-dialog>
+ </v-row>
   </v-content>
 </div>
 </template>
 
 <script>
 //import { mapState, mapActions } from 'vuex'
+import axios from 'axios'
   export default {
     name: 'LoginCore',
     components: {
@@ -42,8 +62,10 @@
       return {
         username: '',
         password: '',
+        reset:false,
   //      IsEmbed:true,
-        wrongCred: false // activates appropriate message if set to true
+        wrongCred: false, // activates appropriate message if set to true,
+        reset_passwordEmail:''
       }
     },
     methods:{
@@ -58,6 +80,13 @@
           .catch(err => {
             //console.log(err)
             this.wrongCred = true // if the credentials were wrong set wrongCred to true
+          })
+        },
+        async resetPassword(){
+          this.reset=false
+        await  axios.post('http://localhost:8000/account/users/reset_password/',{email:this.reset_passwordEmail})
+          .then(response=>{
+              alert('check email')
           })
         }
       }

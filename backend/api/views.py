@@ -20,6 +20,9 @@ from .algorithms import *
 from collections import OrderedDict
 import json
 from django.http import Http404
+from numpy import polyfit
+from django.db.models import Count
+from django.db.models.functions import TruncDay
 User = get_user_model()
 
 # Serve Vue Application
@@ -44,8 +47,17 @@ class PostSearchViewSet(viewsets.ModelViewSet):
     queryset=Post.objects.all()
     serializer_class = PostSerializer
     filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
-    search_fields=('user__username','ID',)
+    search_fields=('user__username','description','postlabelling__label__name','comment__content','imgs__template__name')
 
+    def create(self,request):
+        term=request.data['term']
+        for i in request.data['result']:
+            p=Post.objects.get(ID=i['ID'])
+            if isinstance(request.user,User):
+                sr=SearchResult.objects.create(user=request.user,result=p,term=term)
+            else:
+                sr=SearchResult.objects.create(result=p,term=term)
+        return Response({})
 
 
 #def retrievePost(self, request,user=None,post=None):
@@ -347,13 +359,6 @@ class ActionViewSet(viewsets.ModelViewSet):
     serializer_class = ActionSerializer
 
 
-class TemplateViewSet(viewsets.ModelViewSet):
-
-    """
-    API endpoint that allows users to be viewed or edited.
-    """
-    queryset = Template.objects.all()
-    serializer_class = TemplateSerializer
 #OUT OF SERVICE#################################################################################
 class MemeContentViewSet(viewsets.ModelViewSet):
 
@@ -391,6 +396,17 @@ class StatisticsViewSet(viewsets.ModelViewSet):
 #      .annotate(total_tickets=Count('show'), last_booking=Max('booked_at'))
 #      .order_by('-last_booking')
 #      )
+    @action(detail=False,methods=['post'])
+    def estimate(self,request):
+        xy=User.objects.annotate(day=TruncDay('date_joined')).values('day').annotate(c=Count('id')).values('day', 'c')
+        if request.data['function']=='estimateUsers':
+            response=estimateUsers(xy,request.data['startDate'],request.data['endDate'],request.data['budget'])
+        elif request.data['function']=='estimateDateRange':
+            response=estimateDateRange(xy,request.data['reachedUsers'],request.data['budget'])
+        else:
+            response=estimateBudget(xy,request.data['startDate'],request.data['endDate'],request.data['reachedUsers'])
+
+        return Response(response)
 
 
 class TemplateViewSet(viewsets.ModelViewSet):
@@ -422,19 +438,49 @@ class TemplateViewSet(viewsets.ModelViewSet):
             return Response(serialized.data)
         else:
             return Response({})
+
+
+    @action(detail=False, methods=['POST'])#,parser_classes=[parsers.MultiPartParser],)
+    def upload(self, request):
+        booldict={'false':False,'true':True}
+        t=Template.objects.create(user=request.user,IsPublic=booldict[request.data['IsPublic']],name=request.data['name'],type='portrait')
+        print(request.FILES)
+        t.IMG= request.FILES['img']
+        t.save()
+        templates=Template.objects.all()
+        serializer = TemplateSerializer(templates,many=True,context={'request':request})
+        return Response(serializer.data)
+
 class RecycleViewSet(viewsets.ModelViewSet):
     queryset=Recycle.objects.all()
     serializer_class=RecycleSerializer
 
     def create(self,request):
-        for t in request.data['templates']:
+        for t in request.data['templates']:#(??)
 
-            rc=Recycle.objects.create(user=request.user,template=Template.objects.get(ID=t))
+            rc=Recycle.objects.create(user=request.user,template=Template.objects.get(id=t))
             rc.save()
         serialized=RecycleSerializer(rc,context={'request':request})
         return Response(serialized.data)
 
     def destroy(self,request,pk):
         for temp in request.data['templates']:
-            Recycle.objects.get(user=request.user,template=Template.objects.get(ID=temp)).delete()
+            Recycle.objects.get(user=request.user,template=Template.objects.get(id=temp)).delete()
         return Response({})
+
+#class PostLabellingViewSet(viewsets.ModelViewSet):
+#    queryset=PostLabelling.objects.all()
+#    serialiezer = PostLabellingSerializer
+#class SearchResultViewSet(veiwsets.ModelViewSet):
+#    queryset=SearchResult.objects.all()
+#    serializer=SearchResultSerializer
+
+#    def create(self,request):
+#        term=request.data['term']
+#        for i in request.data['result']:
+#            p=Post.objects.get(ID=i.ID)
+#            if isinstance(request.user,User):
+#                sr=SearchResult.objects.create(user=request.user,post=p,term=term)
+#            else:
+#                sr=SearchResult.objects.create(user=request.user,term=term)
+#        return Response({})
