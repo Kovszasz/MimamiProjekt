@@ -105,6 +105,11 @@ class Comment(models.Model):
     reply_to = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
     NumberOfLikes=models.IntegerField(default=0)
 
+class CommentLike(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE)
+    comment=models.ForeignKey(Comment,on_delete=models.CASCADE)
+    date = models.DateField( auto_now_add=True)
+
 
 class TimeLine(models.Model):
     date=models.DateField(auto_now_add=True)

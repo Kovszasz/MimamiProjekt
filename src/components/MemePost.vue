@@ -28,31 +28,35 @@
                 <v-list-item-subtitle>date</v-list-item-subtitle>
               </v-list-item-content>
             <v-list-item-action align="right">
-              <v-btn rounded v-if="post.user.username !== user.username" @click='follow(post.user.username)'>
+            <template v-if="post.user.username !== user.username" >
+              <v-btn rounded v-if="post.user.IsFollowed" @click='follow(post.user.username)'>
+                  Unfollow
+              </v-btn>
+              <v-btn rounded v-else @click='follow(post.user.username)'>
                   Follow
               </v-btn>
+            </template>
             </v-list-item-action>
             <v-list-item-action align="right">
 
-              <v-menu offset-y>
-                <template v-slot:activator="{ on }">
-                <v-btn  icon v-on="on">
-                  <v-icon>mdi-dots-vertical</v-icon>
-                </v-btn>
-                </template>
-                <v-list>
-                  <v-list-item
-                  >
-                  <v-btn @click='report'>Report</v-btn>
-                  </v-list-item>
-                    <p>other things</p>
-                  <v-list-item
-                  >
-                    click
-                  </v-list-item>
-                </v-list>
-              </v-menu>
+            <v-menu offset-y>
+              <template v-slot:activator="{ on }">
+              <v-btn  icon v-on="on">
+                <v-icon>mdi-dots-vertical</v-icon>
+              </v-btn>
+              </template>
+              <v-list>
+                <v-list-item
+                >
+                <v-btn @click='report'>Report</v-btn>
+                </v-list-item>
+                <v-list-item v-if="post.user.username == user.username" >
+                  <EditPost  :post="post" :MultipleImgs="MultipleImgs"/>
+                </v-list-item>
+              </v-list>
+            </v-menu>
             </v-list-item-action>
+            <EditPost :post="post" :MultipleImgs="MultipleImgs"/>
             </v-list-item>
             <v-divider ></v-divider>
           </template>
@@ -74,6 +78,9 @@
             >
             </v-carousel-item>
           </v-carousel>
+          <v-card-text class="text--primary">
+            <div>{{ post.description }}</div>
+          </v-card-text>
           <v-divider></v-divider>
           <v-row
           v-if="!IsRegistration"
@@ -153,6 +160,7 @@ import Vue from 'vue';
 import advert from './Advert.vue';
 import comment_section from './CommentSection.vue';
 import { NavbarPlugin } from 'bootstrap-vue'
+import EditPost from './EditPost.vue'
 //var SocialSharing = require('vue-social-sharing');
 import VueClipboard from 'vue-clipboard2'
 import {
@@ -194,12 +202,13 @@ export default {
           like:this.post.NumberOfLikes,
           successReport:false,
           isIntersecting:false,
-          viewed:false
+          viewed:false,
         }
       },
   components:{
     comment_section,
-    advert
+    advert,
+    EditPost
     //SocialSharing
     },
       resolve: {
@@ -298,24 +307,16 @@ AvatarUrl:function(img){
     })
         //return this.$router.push({ name: 'memeview', params: { iv: this.generateURL.iv,data:this.generateURL.encryptedData } })
     },
-    follow(user){
-      //if (this.post.IsRecycled){
-          api.post('follow/',{user:user})
+    async follow(user){
+          await api.post('follow/',{user:user})
           .then((response) => {
+            console.log('hejjj')
+            this.$store.commit('post/followPostUser',user)
             this.$store.commit('authentication/updateUser',response.data)
           })
           .catch((err) => {
             console.log(err);
           })
-    //  }else{
-    //  api.delete('recycle/',{user:this.user,templates:templates})
-    //        .then((response) => {
-    //            console.log('deleted recycle')
-    //        })
-    //        .catch((err) => {
-    //            console.log(err);
-    //  })
-    //  }
     },
     report(){
       api.post('post/action/',{post:this.post.ID,type:'Report'})

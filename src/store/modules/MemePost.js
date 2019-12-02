@@ -62,7 +62,7 @@ const getters = {
       if(a.ReportScore < b.ReportScore){return -1}
       return 0
       })
-      return items
+      return items.reverse()
 
   }
 
@@ -128,7 +128,24 @@ const actions = {
         .then(template =>{
           commit('getTemplate',template)
         })
-      }
+      },
+  moderatePost({commit},payload){
+    postService.modPost(payload)
+    .then(()=>{
+
+        if(payload.decision){
+          commit('moderatePost', payload.postID)
+        }
+
+    })
+
+  },
+  editPost({commit},post){
+    postService.updatePost(post)
+    .then(response=>{
+      commit('editPost',response)
+    })
+  }
 }
 const mutations = {
   setPost(state, post) {
@@ -156,8 +173,36 @@ const mutations = {
   },
   getTemplate(state,template){
     state.memeTemplate=template
+  },
+  followPostUser(state,username){
+      const timeline = state.timeline.filter(function(item) {
+            if(item.user.username == username){
+              item.user.IsFollowed=!item.user.IsFollowed
+            }
+            return item
+      })
+      state.timeline=timeline
+    },
+  moderatePost(state,postID){
+      state.timeline.filter(function(item){
+        if(item.ID == postID){
+          item.IsModerated=true
+        }
+        return item
+      })
+      state.timeline=state.timeline
+    },
+  editPost(state,post){
+    state.timeline.filter(function(item){
+      if(item.ID == post.ID){
+          item = post
+      }
+      return item
+    })
+    state.timeline=state.timeline
   }
-}
+
+  }
 
 export default {
   namespaced: true,

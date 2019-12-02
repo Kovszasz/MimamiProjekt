@@ -16,5 +16,9 @@ export default {
   replyComment(reply) {
     return api.post(`comment/reply/`,reply)
               .then(response => response.data)
-  }
+  },
+  likeComment(commentID) {
+    return api.get(`comment/${commentID}/like/`)
+              .then(response => response.data)
+  },
 }

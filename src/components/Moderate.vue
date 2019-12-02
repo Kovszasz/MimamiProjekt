@@ -4,11 +4,15 @@
     <v-content>
     <div  v-for="i in timeline" v-bind:key="i.id" >
       <div>
+      <v-card>
+          <v-btn color="red" @click="moderatePost({postID:i.ID,decision:decision})">Delete post</v-btn>
+          <v-btn color="green" @click="moderatePost({postID:i.ID,decision:!decision})">Accept post</v-btn>
         <meme_post
           v-bind:post="i"
           v-bind:like="i.NumberOfLikes"
           v-bind:IsLiked="i.IsLiked"
         ></meme_post>
+      </v-card>
       </div>
     </div>
     </v-content>
@@ -32,6 +36,7 @@
      },
     data: function(){
         return{
+        decision:true
         }
     },
     resolve: {
@@ -46,10 +51,12 @@
           timeline:'reportedMemes'
     })
     },
-    methods: mapActions('post', [
+    methods:{ ...mapActions('post', [
       'addPost',
-      'deletePost'
-    ]),
+      'deletePost',
+      'moderatePost'
+    ])
+    },
     created() {
       //this.$store.dispatch('post/getTimeLine')
     }

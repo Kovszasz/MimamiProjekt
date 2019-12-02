@@ -12,6 +12,12 @@
           <p>{{ comment.content }}</p>
         </v-list-item-content>
       </v-list-item>
+      <v-list-item-action>
+          <v-btn icon @click="liking">
+              <v-icon v-if="comment.IsLiked" color="orange lighten-1" >mdi-information</v-icon>
+              <v-icon v-if="!comment.IsLiked" color="grey lighten-1">mdi-information</v-icon>
+          </v-btn>
+</v-list-item-action>
   </v-list>
 </template>
 <script>
@@ -53,6 +59,7 @@ export default {
   methods:{ ...mapActions({
         add:'comments/addComment',
         delete:'comments/deleteComment',
+        LikeComment:'comments/LikeComment'
   }), IMGurl:function(img){
         try{
           return require(`../assets${img.avatar}`)
@@ -66,7 +73,11 @@ export default {
     async sendComment(){
       await  this.add({content:this.content,post:this.postID})
       .then(this.content = '')
-    }
-  },
+    },
+    liking(){
+      this.comment.IsLiked=!this.comment.IsLiked
+      this.LikeComment(this.comment.ID)
+      },
+  }
 };
 </script>

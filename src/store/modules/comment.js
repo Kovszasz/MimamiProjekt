@@ -36,8 +36,14 @@ const actions = {
   },
   replyComment( { commit }, reply) {
     commentService.replyComment(reply)
-    commit('replyComment', reply)
-  }
+    .then((reply)=>{
+        commit('replyComment', reply)
+    })
+  },
+  LikeComment({ commit }, comID) {
+    commentService.likeComment(comID)
+    .then(() => {
+    })},
 }
 
 const mutations = {

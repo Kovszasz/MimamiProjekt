@@ -2,7 +2,15 @@
   <div>
     <Navbar v-if="user.complete_account"/>
     <Navbar v-if="!user.complete_account" :hideNavDrawer="true"/>
-    <v-content>
+    <v-content v-if="pageloading">
+    <v-skeleton-loader
+      ref="skeleton"
+      :boilerplate="false"
+      type="article"
+      class="mx-auto"
+      ></v-skeleton-loader>
+    </v-content>
+    <v-content v-else>
     <v-container fluid>
     <v-row>
     <v-col  cols="9" >
@@ -77,7 +85,8 @@
     data: function(){
         return{
           isActive: false,
-          text:''
+          text:'',
+          pageloading:true
         }
     },
     resolve: {
@@ -117,12 +126,19 @@
             return Math.round(Math.random()*length)
         }
           return -1
-    }}
+    },
+    async loadPage(){
+      this.pageloading=true
+    await this.$store.dispatch('comments/getComment')
+    await this.$store.dispatch('post/getTimeLine')
+    .then(this.pageloading=false)
+
+    }
+    }
 
     ,
     created() {
-       this.$store.dispatch('comments/getComment')
-       this.$store.dispatch('post/getTimeLine')
+      this.loadPage()
 
   /*    this.$store.subscribe((mutation, state) => {
         console.log(mutation.type)

@@ -42,5 +42,12 @@ export default {
   memeIMGflip(){
     return api.get('template/')
     .then(response => response.data)
+  },
+  modPost(payload){
+    return api.post(`post/${payload.postID}/moderate/`,payload)
+      .then(response=>response.data)
+  },
+  updatePost(payload){
+    return api.post('post/',payload)
   }
 }

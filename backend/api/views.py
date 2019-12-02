@@ -23,6 +23,10 @@ from django.http import Http404
 from numpy import polyfit
 from django.db.models import Count
 from django.db.models.functions import TruncDay
+from social_django.utils import load_strategy, load_backend
+from social_core.backends.oauth import BaseOAuth2
+from social_core.exceptions import MissingBackend, AuthTokenError, AuthForbidden
+from requests.exceptions import HTTPError
 User = get_user_model()
 
 # Serve Vue Application
@@ -37,8 +41,11 @@ class FollowViewSet(viewsets.ModelViewSet):
 
     def create(self,request):
         if isinstance(request.user,User):
-            f=Follow.objects.create(follower=request.user,channel=User.objects.get(username=request.data['user']))
-            f.save()
+            if len(Follow.objects.filter(follower=request.user,channel=User.objects.get(username=request.data['user'])))==0:
+                f=Follow.objects.create(follower=request.user,channel=User.objects.get(username=request.data['user']))
+                f.save()
+            else:
+                Follow.objects.get(follower=request.user,channel=User.objects.get(username=request.data['user'])).delete()
             return Response(UserSerializer(request.user).data)
         else:
             raise Http404
@@ -135,6 +142,8 @@ class PostViewSet(viewsets.ModelViewSet):
         post.save()
         return Response(serializer.data)
 
+    def update(self,request):
+        pass
 
     @action(detail=False, methods=['get'])
     def get_ad(self,request):
@@ -173,8 +182,23 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer=PostSerializer(api_result, context={'request': request})
         return Response(serializer.data)
 
-    def partial_update(self, request, pk=None):
-        pass
+
+    @action(detail=True, methods=['post'])
+    def moderate(self,request, pk=None):
+        if request.user.is_staff:
+            post=Post.objects.get(pk=pk)
+            print(request.data)
+            if request.data['decision']:
+                post.delete()
+                return Response(True)
+            else:
+                post.IsModerated=True
+                post.save()
+                Action.objects.filter(post=post,type='Report').delete()
+                return Response(False)
+
+        raise Http404
+
 
     def destroy(self, request, pk=None):
         api_result = Post.objects.get(pk=pk)
@@ -243,9 +267,6 @@ class PostViewSet(viewsets.ModelViewSet):
 
 
 
-
-
-
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -297,15 +318,14 @@ class CommentViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def like(self,request, pk=None):
         com=Comment.objects.get(pk=pk)
-            #if it has already been liked.....then minus
-        com.NumberOfLikes+=1
-        com.save()
-        serializer=PostSerializer(com, context={'request': request})
+        if len(CommentLike.objects.filter(user=request.user,comment=com))==0:
+            serializer=CommentSerializer(com, context={'request': request})
+            #action=ActionSerializer(post,context={'request': request})
+            CommentLike.objects.create(user=request.user,comment=com)
+        else:
+            CommentLike.objects.get(user=request.user,comment=com).delete()
+            serializer=CommentSerializer(com, context={'request': request})
         return Response(serializer.data)
-
-
-
-
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.exclude(is_superuser=1)
@@ -468,19 +488,78 @@ class RecycleViewSet(viewsets.ModelViewSet):
             Recycle.objects.get(user=request.user,template=Template.objects.get(id=temp)).delete()
         return Response({})
 
-#class PostLabellingViewSet(viewsets.ModelViewSet):
-#    queryset=PostLabelling.objects.all()
-#    serialiezer = PostLabellingSerializer
-#class SearchResultViewSet(veiwsets.ModelViewSet):
-#    queryset=SearchResult.objects.all()
-#    serializer=SearchResultSerializer
+class SocialLoginView(generics.GenericAPIView):
+    """Log in using facebook"""
+    serializer_class = SocialSerializer
+    permission_classes = [AllowAny]
 
-#    def create(self,request):
-#        term=request.data['term']
-#        for i in request.data['result']:
-#            p=Post.objects.get(ID=i.ID)
-#            if isinstance(request.user,User):
-#                sr=SearchResult.objects.create(user=request.user,post=p,term=term)
-#            else:
-#                sr=SearchResult.objects.create(user=request.user,term=term)
-#        return Response({})
+    def post(self, request):
+        """Authenticate user through the provider and access_token"""
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        provider = serializer.data.get('provider', None)
+        strategy = load_strategy(request)
+
+        try:
+            backend = load_backend(strategy=strategy, name=provider,
+            redirect_uri=None)
+
+        except MissingBackend:
+            return Response({'error': 'Please provide a valid provider'},
+            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if isinstance(backend, BaseOAuth2):
+                access_token = serializer.data.get('access_token')
+                password = serializer.data.get('password')
+                print('here')
+            user = backend.do_auth(access_token)
+        except HTTPError as error:
+            print('here2')
+            return Response({
+                "error": {
+                    "access_token": "Invalid token",
+                    "details": str(error)
+                }
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except AuthTokenError as error:
+            print('here3')
+            return Response({
+                "error": "Invalid credentials",
+                "details": str(error)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            print('here3')
+            authenticated_user = backend.do_auth(access_token, user=user)
+            print('here4')
+        except HTTPError as error:
+            print('here5')
+            return Response({
+                "error":"invalid token",
+                "details": str(error)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except AuthForbidden as error:
+            return Response({
+                "error":"invalid token",
+                "details": str(error)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if authenticated_user and authenticated_user.is_active:
+			#generate JWT token
+            print('here6')
+            print(authenticated_user.email)
+            print(authenticated_user.username)
+            login(request, authenticated_user)
+            print('here7')
+            data={
+                "token": jwt_encode_handler(
+                    jwt_payload_handler(user)
+                )}
+			#customize the response to your needs
+            response = {
+                "email": authenticated_user.email,
+                "username": authenticated_user.username,
+                "token": data.get('token')
+            }
+            return Response(status=status.HTTP_200_OK, data=response)
