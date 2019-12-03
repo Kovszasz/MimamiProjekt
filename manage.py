@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import os
 import sys
-import env_file
+import env_file as env
 
 if __name__ == '__main__':
-    env_file.load(path='/Users/Kovszasz/variables.env')
+    env.load(path='/Users/Kovszasz/variables.env')
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings.dev')
     try:
         from django.core.management import execute_from_command_line
