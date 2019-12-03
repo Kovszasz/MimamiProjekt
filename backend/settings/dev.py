@@ -23,7 +23,7 @@ MEDIA_DIR = os.path.join(BASE_DIR,'src/assets/media')
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '&k!csjz^+od*$3jllk4mv#vmsva)h=lcph(ca%q!3ak$(+%!@%'
+SECRET_KEY = env.str('SECRE_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -36,8 +36,8 @@ EMAIL_PORT = 80
 #Are you trying to use a gmail account? Maybe try this then:
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'kovszasz@gmail.com'
-EMAIL_HOST_PASSWORD = 'nederlandshaga'
+EMAIL_HOST_USER = env.str('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
@@ -97,8 +97,8 @@ AUTHENTICATION_BACKENDS = (
 )
 
 
-SOCIAL_AUTH_FACEBOOK_KEY = 557410681489785
-SOCIAL_AUTH_FACEBOOK_SECRET = '335d04bcd9db5e655ff44c18e53694e4'
+SOCIAL_AUTH_FACEBOOK_KEY = env.int('FACEBOOK_APP_ID')
+SOCIAL_AUTH_FACEBOOK_SECRET = env.str('FACEBOOK_SECRET_KEY')
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/'
 
 SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
@@ -110,8 +110,8 @@ SOCIAL_AUTH_USERNAME_IS_FULL_EMAIL = True
 
 
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '1012380128036-o90dbehao1ff34lm547li3a9v0s2ku52.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'Qbg91HdxpGOr53C5HCi7TRmz'
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env.str('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = env.str('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile',
