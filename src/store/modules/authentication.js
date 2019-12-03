@@ -170,9 +170,36 @@ completeUserRegistration (context, data) {
             reject(err)
           })
       })
+    },
+    socialLogin(context,FBaccessToken){
+
+      return new Promise((resolve, reject) => {
+          var username
+          axios.post('/api/auth/oauth/login/',{
+            provider:'facebook',
+            access_token:FBaccessToken
+          }).then(response=>{
+            username=response.data.username
+            context.commit('updateLocalStorage',{access:response.data.token,refresh:response.data.token,login:true})
+
+          })
+          axios.get(`/api/users/${credentials.username}/user_login/`)
+            .then(response =>{
+              context.commit('updateUser', response.data)
+            /*  async (()=>{
+                context.commit('updateUser', response.data)
+                resolve()
+              }).then(post.dispatch('getTimeLine'))*/
+              //post.dispatch('getTimeLine')
+            })
+            .catch(err => {
+              reject(err)
+            })
+
+      })
     }
-    //getUser(context)
   }
+    //getUser(context)
 //  if (state.token) {
     //axios.defaults.headers.common['Authorization'] =JWT ${token};
 //  }

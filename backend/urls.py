@@ -46,6 +46,8 @@ urlpatterns = [
     path('account/', include('djoser.urls'),name='auth'),
     path('auth/', include('djoser.urls.jwt'),name='auth-jwt'),
     path('api/auth/oauth/login/', SocialLoginView.as_view()),
-    path('api/auth/oauth/', include('rest_framework_social_oauth2.urls'))
+    path('api/auth/oauth/', include('rest_framework_social_oauth2.urls')),
+    #url(r'^rest-auth/', include('rest_auth.urls')),
+    #url(r'^rest-auth/registration/', include('rest_auth.registration.urls'))
     #url(r'^api/auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]

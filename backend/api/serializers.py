@@ -300,7 +300,9 @@ class UserRegistrationSerializer(BaseUserRegistrationSerializer):
         fields = ( 'username', 'email', 'password', )
         extra_kwargs = {'password' : {'write_only': True}}
 
+
+#change staff: https://github.com/python-social-auth/social-app-django/issues/15
 class SocialSerializer(serializers.Serializer):
     provider = serializers.CharField(max_length=255, required=True)
     access_token = serializers.CharField(max_length=4096, required=True, trim_whitespace=True)
-    password=serializers.CharField(max_length=1000,required=True)
+    #password=serializers.CharField(max_length=1000,required=True)

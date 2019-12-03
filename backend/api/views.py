@@ -27,6 +27,7 @@ from social_django.utils import load_strategy, load_backend
 from social_core.backends.oauth import BaseOAuth2
 from social_core.exceptions import MissingBackend, AuthTokenError, AuthForbidden
 from requests.exceptions import HTTPError
+from rest_framework_jwt.utils import jwt_encode_handler,jwt_payload_handler
 User = get_user_model()
 
 # Serve Vue Application
@@ -510,9 +511,11 @@ class SocialLoginView(generics.GenericAPIView):
         try:
             if isinstance(backend, BaseOAuth2):
                 access_token = serializer.data.get('access_token')
-                password = serializer.data.get('password')
+                #password = serializer.data.get('password')
                 print('here')
-            user = backend.do_auth(access_token)
+                print(type(backend))
+            user = backend.do_auth(access_token)#,password)
+            print(user)
         except HTTPError as error:
             print('here2')
             return Response({
@@ -530,6 +533,7 @@ class SocialLoginView(generics.GenericAPIView):
 
         try:
             print('here3')
+            print(user)
             authenticated_user = backend.do_auth(access_token, user=user)
             print('here4')
         except HTTPError as error:

@@ -14,13 +14,11 @@ CONTENT_CHOICES=[
 ]
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, username, password, alias=None):
-        if not email:
-            raise ValueError("ENTER AN EMAIL BUDDY")
+    def create_user(self, email, username, password=None, alias=None):
+            #raise ValueError("ENTER AN EMAIL BUDDY")
         if not username:
             raise ValueError("I KNOW YOU HAVE A NAME")
-        if not password:
-            raise ValueError("PASSWORD?!?!?!? HELLO??")
+            #raise ValueError("PASSWORD?!?!?!? HELLO??")
         if not alias:
             alias = username
         print(self.model)
@@ -28,7 +26,8 @@ class UserManager(BaseUserManager):
              email = self.normalize_email(email),
              username = username,
              alias = alias)
-        user.set_password(password)
+        if password:
+            user.set_password(password)
         user.save()
         return user
     def create_superuser(self, username, password, email,alias=None):

@@ -6,6 +6,7 @@
    max-width="500"
    raised
  >
+ <h1>{{ fb }}</h1>
  <v-container>
   <form @submit.prevent="loginUser">
     <v-text-field
@@ -20,6 +21,9 @@
                outlined
     ></v-text-field>
     <v-btn class="mr-4" @click="loginUser">Login</v-btn>
+    <!--<v-btn class="mr-4" @click="">Login via Facebook</v-btn>-->
+    <v-facebook-login app-id="557410681489785" @login="loginFacebook"></v-facebook-login>
+    <!--<GoogleLogin :params="params" :renderParams="renderParams" ></GoogleLogin>-->
     <v-btn class="mr-4" @click="reset= true ">Forgot password?</v-btn>
   </form>
   </v-container>
@@ -50,10 +54,15 @@
 
 <script>
 //import { mapState, mapActions } from 'vuex'
+import VFacebookLogin from 'vue-facebook-login-component'
+import GoogleLogin from 'vue-google-login';
+
 import axios from 'axios'
   export default {
     name: 'LoginCore',
     components: {
+     VFacebookLogin,
+      GoogleLogin
     },
     props:{
       IsEmbed:Boolean
@@ -65,7 +74,16 @@ import axios from 'axios'
         reset:false,
   //      IsEmbed:true,
         wrongCred: false, // activates appropriate message if set to true,
-        reset_passwordEmail:''
+        reset_passwordEmail:'',
+        params: {
+          client_id: "1012380128036-o90dbehao1ff34lm547li3a9v0s2ku52.apps.googleusercontent.com"
+        },
+        renderParams: {
+          width: 250,
+          height: 50,
+          longtitle: true
+          },
+          fb:''
       }
     },
     methods:{
@@ -88,6 +106,11 @@ import axios from 'axios'
           .then(response=>{
               alert('check email')
           })
+        },
+        async loginFacebook(response){
+          await this.$store.dispatch('authentication/socialLogin',response.authResponse.accessToken)
+            .then(this.$router.push({ name: 'home' }))
+
         }
       }
   }
