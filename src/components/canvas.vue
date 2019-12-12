@@ -43,11 +43,12 @@ export default {
     }
   },methods:{
     printAt( context , text, x, y, lineHeight, fitWidth,textStyle){
-        context.fillStyle = textStyle.fillStyle
-        context.font = `${textStyle.size}px Impact`//textStyle.fontFamily
-        context.strokeStyle= textStyle.storeStyle
+        console.log(textStyle)
+        context.fillStyle = textStyle.color
+        context.font = `${textStyle.size}pt ${textStyle.fontFamily}`
+        context.strokeStyle= textStyle.strokeStyle
         context.lineWidth=2
-        context.textAlign = textStyle.texalign
+        context.textAlign = textStyle.align
         context.isOutline= true //textStyle.isOutline
         context.isShadow=false //textStyle.isShadow
         context.shadowColor=textStyle.shadowColor
@@ -58,6 +59,11 @@ export default {
         if (fitWidth <= 0){
           context.fillText( text, x, y );
           return;
+        }
+        if(textStyle.align == "center"){
+          x=(x+fitWidth)/2
+        }else if(textStyle.align == "right"){
+          x=fitWidth-3
         }
         for (var idx = 1; idx <= text.length; idx++){
             var str = text.substr(0, idx);
@@ -79,6 +85,18 @@ export default {
         var file = new File([blob],name,{type:'image/png'})
           return {file:file,is_file:true,img:{src:image,width:width,height:height}}
       },
+      addWatermark(ctx,canvas){
+      var img = new Image()
+      img.width = 30
+      img.height= 30
+      img.id='Watermark'
+
+      img.onload=function(){
+          ctx.drawImage(img,0,canvas.height-img.height,img.width,img.height)
+      }
+      img.src = require(`../assets/logo.png`)
+      }
+      ,
       drawMeme(ctx,canvas,imgobj){
       if(!this.save){
           ctx.clearRect(0,0,canvas.width,canvas.height)
@@ -102,9 +120,9 @@ export default {
           }
       }
       img.src=imgobj.src
-
+      this.addWatermark(ctx,canvas)
       for(var i=0;i<this.texts.length;i++){
-          this.printAt(ctx, this.texts[i].content, this.texts[i].x,this.texts[i].y+35, 10, this.texts[i].width,this.texts[i].textStyle)
+          this.printAt(ctx, this.texts[i].content, this.texts[i].x,this.texts[i].y+50, this.texts[i].size+5, this.texts[i].width,this.texts[i].textStyle)
 
       }
       }
@@ -126,7 +144,9 @@ export default {
     this.drawMeme(ctx,canvas,imgobj)
       if(this.save){
       this.drawMeme(ctx,canvas,imgobj)
-      EventBus.$emit('new_meme', this.saveMeme(canvas,'meme.png',imgobj.width,imgobj.height*imgobj.increment));
+      console.log('I got this')
+      console.log('this.texts')
+      EventBus.$emit('new_meme', {text:this.texts,meme:this.saveMeme(canvas,'meme.png',imgobj.width,imgobj.height*imgobj.increment)});
      }
   }
 }

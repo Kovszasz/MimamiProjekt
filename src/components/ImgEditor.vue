@@ -1,6 +1,6 @@
 <template>
 <v-container class="grey lighten-5">
-<h1>{{ x }}|{{ y }}</h1>
+<h1>{{ x }}|{{ y }}|{{ color }}</h1>
 <v-row>
   <v-col
 
@@ -29,10 +29,11 @@
         <v-fade-transition>
           <v-overlay
             absolute
+            opacity="1"
           >
-          <div id="memecanvas" v-bind:style="`height: ${temp.height*temp.increment}px; width: ${temp.width}px;background-color:${background}; border: 1px solid red; position: relative;`">
+          <div id="memecanvas" v-bind:style="`height: ${temp.height*temp.increment}px; width: ${temp.width}px;background-color:${background}; border: 1px solid black; position: relative;`">
             <img class="meme_bottom" :src="temp.src" :width="temp.width" :height="temp.height" align="middle">
-            <TextBox v-for="(t,index) in texts" v-bind:key="index+'_box'" v-bind:text="t.content" v-bind:fontSize="t.textStyle.size" v-bind:Index="index" v-bind:dark="dark"></TextBox>
+            <TextBox v-for="(t,index) in texts" v-bind:key="index+'_box'" v-bind:text="t.content" v-bind:align="t.textStyle.align"  v-bind:fonsFamily="t.textStyle.fontFamily" v-bind:fontSize="t.textStyle.size" v-bind:color ="t.textStyle.color" v-bind:Index="index" v-bind:dark="dark"></TextBox>
           </div>
           </v-overlay>
         </v-fade-transition>
@@ -52,14 +53,72 @@
     >
     <template v-for="(t,index) in texts">
         <div v-bind:key="index">
-        <label>#{{ index }}</label><input type="text" v-model="t.content" />
-        <v-btn @click="t.textStyle.size++">+</v-btn><input style="text" v-model="t.textStyle.size" :placeholder="t.textStyle.size">
-        <v-btn @click="t.textStyle.size--">-</v-btn>
-        <v-switch v-model="dark" label="Dark"></v-switch>
+          <v-row>
+            <v-toolbar dense>
+            <v-col>
+            <v-text-field width="60" height="50" type="text" v-model="t.content" ></v-text-field>
+            </v-col>
+            <v-col>
+            <v-text-field width="30"  type="number" v-model.number="t.textStyle.size" ></v-text-field>
+            </v-col>
+                 <v-btn-toggle
+                   color="primary"
+                   dense
+                   group
+                   multiple
+                 >
+                 </v-btn-toggle>
+                 </v-toolbar>
+                 </v-row>
+                 <v-row justify="center">
+                   <v-toolbar dense>
+                   <v-dialog v-model="colorpicker" persistent max-width="290">
+                       <template v-slot:activator="{ on }">
+                         <v-btn v-bind:color="t.textStyle.color" dark v-on="on"></v-btn>
+                       </template>
+                       <v-card>
+                       <div class="d-flex justify-center">
+                             <v-color-picker v-model="t.textStyle.color"></v-color-picker>
+                         </div>
+                         <v-spacer></v-spacer>
+                         <v-card-actions>
+                           <v-spacer></v-spacer>
+                           <v-btn color="green darken-1" text @click="colorpicker = false">OK</v-btn>
+                         </v-card-actions>
+                       </v-card>
+                     </v-dialog>
+                 </v-btn-toggle>
+                 <div class="mx-4"></div>
+                 <v-btn-toggle
+                   color="primary"
+                   dense
+                   group
+                 >
+                   <v-btn @click="t.textStyle.align='left'" text>
+                     <v-icon>mdi-format-align-left</v-icon>
+                   </v-btn>
+
+                   <v-btn @click="t.textStyle.align='center'" text>
+                     <v-icon>mdi-format-align-center</v-icon>
+                   </v-btn>
+
+                   <v-btn @click="t.textStyle.align='right'" text>
+                     <v-icon>mdi-format-align-right</v-icon>
+                   </v-btn>
+                   <v-overflow-btn
+                     :items="dropdown_font"
+                     v-model="t.textStyle.fontFamily"
+                     label="Select font"
+                     hide-details
+                     class="pa-0"
+                   ></v-overflow-btn>
+                 </v-btn-toggle>
+             </v-toolbar>
+            </v-row>
         </div>
     </template>
     <v-btn  @click="addtext">Add text</v-btn>
-    <v-btn@click="renderMeme">Save</v-btn>
+    <v-btn @click="renderMeme">Save</v-btn>
     </v-card>
   </v-col>
 </v-row>
@@ -96,6 +155,15 @@ export default {
   },
   data () {
     return {
+    colorpicker:false,
+    color:'#ffffff',
+    dropdown_font:[
+      'Arial',
+      'Times New Roman',
+      'Comic Sans',
+      'Impact'
+    ],
+    dialog:false,
       texts:[
         {
         content:'funny text',
@@ -103,7 +171,7 @@ export default {
         y:10,
         textStyle:{
               size: 40,
-              align: 'left',
+              align: 'center',
               color: '#000000', // in color picker, if choosing color from platte notice it stays "solid".
               fontFamily: 'Impact',
               isOutline: true,
@@ -155,7 +223,7 @@ export default {
                   content: line,
                   textStyle:{
                   size: 80,
-                  align: 'left',
+                  align: 'center',
                   color: '#000000', // in color picker, if choosing color from platte notice it stays "solid".
                   fontFamily: 'Impact',
                   isOutline: true,
@@ -174,6 +242,7 @@ export default {
         }
     },renderMeme(){
       this.IsRender=true
+      //this.IsRender = false
 
     }
   },
@@ -186,7 +255,12 @@ export default {
       this.texts[data.index].width = data.width;
       this.texts[data.index].height = data.height;
 })
-
+EventBus.$on('new_meme', (data) => {
+    if(data.meme.is_file){
+        this.IsRender=false
+        //EventBus.$off('new_meme');
+    }
+  })
   }
 }
 </script>

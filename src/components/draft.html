@@ -1,58 +1,241 @@
-<v-menu offset-y>
-  <template v-slot:activator="{ on }">
-  <v-btn  icon v-on="on">
-    <v-icon>mdi-dots-vertical</v-icon>
-  </v-btn>
-  </template>
-  <v-list>
-    <v-list-item
-    >
-    <v-btn @click='report'>Report</v-btn>
-    </v-list-item>
-    <v-list-item v-if="post.user.username == user.username">
-    <EditPost :post="post" :MultipleImgs="MultipleImgs"/>
-    </v-list-item>
-  </v-list>
-</v-menu>
-<template>
-  <div>
-  <template>
-    <v-content>
-    <Navbar :hideNavDrawer="true" />
-    <v-content>
-      v-content v-if="core">
+<v-stepper v-model="e1">
+  <v-stepper-header>
+    <v-stepper-step :complete="e1 > 1" step="1">Registration</v-stepper-step>
+
+    <v-divider></v-divider>
+
+    <v-stepper-step :complete="e1 > 2" step="2">Customization</v-stepper-step>
+
+    <v-divider></v-divider>
+
+    <v-stepper-step step="3">Validation</v-stepper-step>
+  </v-stepper-header>
+
+  <v-stepper-items>
+    <v-stepper-content step="1">
+      <v-card
+         class="mx-auto"
+         raised
+       >
+       <v-container>
+        <form @submit.prevent="registerUser">
+        <v-container class="grey lighten-5">
+  <v-row no-gutters>
       <v-col >
         <v-card
           class="pa-2"
           outlined
           tile
         >
+        <picture-input
+          ref="pictureInput"
+          @change="onChange"
+          max-width="800"
+          max-height="800"
+          margin="16"
+          accept="image/jpeg,image/png,image/gif"
+          size="10"
+          buttonClass="btn"
+          :zIndex="0"
+          radius="50"
+          :customStrings="{
+            upload: '<h1>Bummer!</h1>',
+            drag: 'Upload profile picture'
+          }">
+        </picture-input>
 
+        </v-card>
+      </v-col>
+      <v-col >
+        <v-card
+          class="pa-2"
+          outlined
+          tile
+        >
         <v-text-field
-                   v-model="password"
-                   :rules="[rules.required, rules.min]"
-                   :type="show1 ? 'text' : 'password'"
-                   name="input-10-1"
-                   label="Password"
-                   hint="At least 8 characters"
-                   counter
-                   @click:append="show1 = !show1"
-                   outlined
+          v-model="first_name"
+          :counter="30"
+          label="First name"
+          data-vv-name="first_name"
+          outlined
         ></v-text-field>
         <v-text-field
-                  v-model="confirm"
-                  :rules="[rules.required, rules.min]"
-                  :type="show1 ? 'text' : 'password'"
-                  name="input-10-1"
-                  label="Password again"
-                  hint="At least 8 characters"
-                  counter
-                  @click:append="show1 = !show1"
-                  outlined
+          v-model="last_name"
+          :counter="30"
+          label="Last name"
+          data-vv-name="last name"
+          outlined
         ></v-text-field>
-      <v-btn class="mr-4" @click="confimPassword" :disabled="!agreed">Reset password</v-btn>
-      </v-card>
-  </v-content>
-  </template>
-  </div>
-</template>
+
+        </v-card>
+      </v-col>
+      </v-row>
+        </v-container>
+      </form>
+    </v-container>
+  </v-card>
+
+      <v-btn
+        color="primary"
+        @click="e1 = 2"
+      >
+        Continue
+      </v-btn>
+
+    </v-stepper-content>
+
+    <v-stepper-content step="2">
+    <b-container class="bv-example-row overflow-auto">
+    <h1>{{ choose }} is remained</h1>
+  <template v-for ="index in postsize">
+  <v-row v-bind:key="index+'_row'">
+
+    <v-col
+      v-for="i in 4"
+      v-bind:key="index*4+i+'_col'"
+      cols="12"
+      md="3"
+    >
+      <meme_post v-if="postindex((index-1)*4+(i-1))" @click.native="chooseMeme((index-1)*4+(i-1))" :post="postindex((index-1)*4+(i-1))" :IsRegistration="true" :width="200" :height="250" />
+    </v-col>
+    </v-row>
+    </template>
+  </b-container>
+
+      <v-btn
+        color="primary"
+        @click="e1 = 3"
+        :disabled='disabled'
+      >
+        Continue
+      </v-btn>
+
+      <v-btn   @click="e1 = 1">Back </v-btn>
+    </v-stepper-content>
+
+    <v-stepper-content step="3">
+      <v-card
+        class="mb-12"
+        color="grey lighten-1"
+        height="200px"
+      ></v-card>
+
+      <v-btn
+        color="primary"
+        @click="e1 = 2"
+      >
+        Back
+      </v-btn>
+      <v-btn class="mr-4" @click="completeRegistration">Finish</v-btn>
+    </v-stepper-content>
+  </v-stepper-items>
+</v-stepper>
+
+
+
+
+    <v-col>
+      <v-window
+        v-model="window"
+        class="elevation-1"
+        vertical
+      >
+        <v-window-item>
+          <v-card flat>
+          <template v-for ="index in postsize">
+          <v-row v-bind:key="index+'_row'">
+            <v-col
+              v-for="i in 4"
+              v-bind:key="index*4+i+'_col'"
+              cols="12"
+              md="3"
+            >
+            <template v-slot:default="{ hover }">
+              <v-hover>
+              <meme_post v-if="postindex((index-1)*4+(i-1))" @click.native="chooseMeme((index-1)*4+(i-1))" :post="postindex((index-1)*4+(i-1))" :IsRegistration="true" :width="200" :height="250" />
+              <v-fade-transition>
+                      <v-overlay
+                        v-if="hover"
+                          absolute
+                          color="#036358"
+                            >
+                        <v-btn>See more info</v-btn>
+                          </v-overlay>
+                        </v-fade-transition>
+              </v-hover>
+              </template>
+              </v-col>
+            </v-row>
+            </template>
+          </v-card>
+        </v-window-item>
+      </v-window>
+    </v-col>
+
+
+
+
+
+    <v-toolbar dense>
+       <v-overflow-btn
+         :items="dropdown_font"
+         label="Select font"
+         hide-details
+         class="pa-0"
+       ></v-overflow-btn>
+
+       <template v-if="$vuetify.breakpoint.mdAndUp">
+         <label>#{{ index }}</label><input type="text" v-model="t.content" />
+         <v-divider vertical></v-divider>
+         <input style="text" type="number" v-model.number="t.textStyle.size" :placeholder="t.textStyle.size">
+         <v-spacer></v-spacer>
+
+         <v-btn-toggle
+           v-model="toggle_multiple"
+           color="primary"
+           dense
+           group
+           multiple
+         >
+         <v-row justify="center">
+           <v-dialog v-model="colorpicker" persistent max-width="290">
+               <template v-slot:activator="{ on }">
+                 <v-btn v-bind:color="t.textStyle.color" dark v-on="on"></v-btn>
+               </template>
+               <v-card>
+               <div class="d-flex justify-center">
+                     <v-color-picker v-model="t.textStyle.color"></v-color-picker>
+                 </div>
+                 <v-spacer></v-spacer>
+                 <v-card-actions>
+                   <v-spacer></v-spacer>
+                   <v-btn color="green darken-1" text @click="colorpicker = false">OK</v-btn>
+                 </v-card-actions>
+               </v-card>
+             </v-dialog>
+           </v-row>
+         </v-btn-toggle>
+
+         <div class="mx-4"></div>
+
+         <v-btn-toggle
+           v-model="toggle_exclusive"
+           color="primary"
+           dense
+           group
+         >
+           <v-btn v-model="t.textStyle.align" value="left" text>
+             <v-icon>mdi-format-align-left</v-icon>
+           </v-btn>
+
+           <v-btn v-model="t.textStyle.align" value="center" text>
+             <v-icon>mdi-format-align-center</v-icon>
+           </v-btn>
+
+           <v-btn v-model="t.textStyle.align" value="right" text>
+             <v-icon>mdi-format-align-right</v-icon>
+           </v-btn>
+
+         </v-btn-toggle>
+       </template>
+     </v-toolbar>

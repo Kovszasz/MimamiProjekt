@@ -69,10 +69,10 @@ const getters = {
 }
 
 const actions = {
-  getTimeLine({ commit}){
-    postService.fetchTimeLine()
+  getTimeLine({ commit},page){
+    postService.fetchTimeLine(page)
     .then(timeline => {
-        commit('getTimeLine',timeline)
+        commit('getTimeLine',timeline.results)
     })
   },
   getPost ({ commit },posturl) {
@@ -159,7 +159,12 @@ const mutations = {
     state.post = state.post.filter(obj => obj.pk !== postId)
   },
   getTimeLine(state, timeline) {
-    state.timeline = timeline
+      for(var i=0;i<timeline.length;i++){
+        if(Math.random()<timeline[i].PersonalFit){
+            state.timeline.push(timeline[i])
+        }
+
+      }
   },
   likePost(state, post,change) {
     post.NumberOfLikes=post.NumberOfLikes+change
@@ -200,6 +205,21 @@ const mutations = {
       return item
     })
     state.timeline=state.timeline
+  },
+  updateAd(state,post){
+    state.advert.filter(function(item){
+      if(item.ID == post.ID){
+          item = post
+      }
+      return item
+    })
+    state.advert=state.advert
+
+  },
+  emptyPostStorage(state){
+    for(var i in state.keys){
+      state[i]=[]
+    }
   }
 
   }

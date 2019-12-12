@@ -3,10 +3,17 @@
     <Navbar/>
     <v-content>
     <b-col md="6" offset-md="3">
-    <div  v-for="i in timeline" v-bind:key="i.id" >
+    <div  v-for="(i,index) in timeline" v-bind:key="index+'_specialview'" >
       <div>
       <v-lazy v-model="isActive" :options="{ threshold: .5 }" transition="fade-transition">
         <meme_post
+          v-if="liked"
+          v-bind:post="i.post"
+          v-bind:like="i.post.NumberOfLikes"
+          v-bind:IsLiked="i.post.IsLiked"
+        ></meme_post>
+        <meme_post
+          v-else
           v-bind:post="i"
           v-bind:like="i.NumberOfLikes"
           v-bind:IsLiked="i.IsLiked"
@@ -24,6 +31,7 @@
   import { NavbarPlugin } from 'bootstrap-vue'
   Vue.use(NavbarPlugin)
   import Navbar from './Navbar.vue'
+  import api from '../services/api'
   import { mapState, mapActions, mapGetters } from 'vuex'
   //Vue.use(Navbar)
   export default {
@@ -39,6 +47,8 @@
     data: function(){
         return{
           isActive: false,
+          timeline:[],
+          page:1
         }
     },
     resolve: {
@@ -51,16 +61,12 @@
     }),...mapGetters('post',[
             'likedMeme',
             'topMemes'
-    ])
-    ,timeline:function(){
-        if(this.$route.params.type =='liked'){
-          return this.likedMeme
-        }else if(this.$route.params.type == 'top'){
-
-          return this.topMemes
-        }else{
-          return this.$store.state.post.timeline.filter(post=>post.user.username === this.$route.params.type)
-        }
+    ]),liked(){
+      if(this.$route.params.type=='liked'){
+        return true
+      }else{
+        return false
+      }
     }
 
     },
@@ -70,13 +76,36 @@
     ]),
       ...mapGetters({
 
-      })
-
+      }),async get_posts(){
+          var url=`timeline/?page=${this.page}`
+            if(this.$route.params.type =='liked'){
+                url=url+`&like=true&user=${this.$route.params.user}`
+            }else if(this.$route.params.type == 'top'){
+                url=url+`&top=true`
+            }else{
+                url=url+`&user=${this.$route.params.type}`
+            }
+            await api.get(url)
+                  .then((response)=>{
+                  console.log(response)
+                      this.timeline.push(...response.data.results)
+                    this.page++
+                  })
+          },
+          scroll(){
+          window.onscroll = () => {
+            let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
+            if (bottomOfWindow) {
+                this.get_posts()
+            }
+           }
+          }
     },
-    created() {
-      //this.$store.dispatch('post/getTimeLine')
-      //this.$store.dispatch('comments/getComment')
-      //this.$store.dispatch('post/getAction')
+    mounted() {
+        this.scroll();
+    },
+    created(){
+        this.get_posts()
     }
     }
 </script>

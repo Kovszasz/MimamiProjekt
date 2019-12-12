@@ -1,7 +1,8 @@
 <template>
 <div>
     <Navbar :hideNavDrawer="true" />
-      <RegisterCore/>
+      <RegisterCore v-if="core"/>
+      <RegisterCore :core="core" :user="user" v-else/>
   </div>
 </template>
 <script>
@@ -13,10 +14,6 @@ import RegisterCore from './RegisterCore.vue'
     components: {
         Navbar,
         RegisterCore
-    },
-    props:{
-      IsEmbed:Boolean
-
     },
     data () {
       return {
@@ -30,7 +27,6 @@ import RegisterCore from './RegisterCore.vue'
         show2: true,
         show3: false,
         show4: false,
-      //  IsEmbed:true,
        rules: {
          required: value => !!value || 'Required.',
          min: v => v.length >= 8 || 'Min 8 characters',
@@ -50,6 +46,13 @@ import RegisterCore from './RegisterCore.vue'
         }).then(() => {
           this.$router.push({ name: 'login' })
         })
+      }
+    },computed:{
+      core(){
+        return this.$route.params.core
+      },
+      user(){
+        return this.$route.params.user
       }
     }
   }

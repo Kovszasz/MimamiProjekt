@@ -80,13 +80,14 @@
      comment_section,
      RegisterCore,
      Navbar,
-     advert
+     advert,
      },
     data: function(){
         return{
           isActive: false,
           text:'',
-          pageloading:true
+          pageloading:true,
+          page:2
         }
     },
     resolve: {
@@ -111,7 +112,6 @@
                 ID:'',
                 AdURL:'',
                 imgs:[]
-
             }
         }
     }
@@ -130,14 +130,26 @@
     async loadPage(){
       this.pageloading=true
     await this.$store.dispatch('comments/getComment')
-    await this.$store.dispatch('post/getTimeLine')
+    await this.$store.dispatch('post/getTimeLine',1)
     .then(this.pageloading=false)
 
-    }
-    }
+    },
+  async scroll () {
+      window.onscroll = () => {
+        let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
+        if (bottomOfWindow) {
+         this.$store.dispatch('post/getTimeLine',this.page)
+            .then(()=>{
+                this.page++
+            })
+        }
+       }
+      }
+    },mounted(){
 
-    ,
-    created() {
+      this.scroll();
+
+    },created() {
       this.loadPage()
 
   /*    this.$store.subscribe((mutation, state) => {

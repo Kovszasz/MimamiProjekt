@@ -19,8 +19,8 @@ export default {
     return api.delete(`post/${postID}`)
               .then(response => response.data)
   },
-  fetchTimeLine(){
-    return api.get('post/')
+  fetchTimeLine(page){
+    return api.get(`timeline/?page=${page}`)
             .then(response => response.data)
   },
   actionAdvert(payload){

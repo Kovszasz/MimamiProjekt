@@ -1,13 +1,13 @@
 <template>
     <div id="app">
-    <v-app>
+    <v-app :dark="true">
       <router-view v-bind:key="$route.fullPath"></router-view>
     </v-app>
     </div>
 </template>
 <script>
 
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
 //import Vue from 'vue';
 //import MemeEditor from './components/MemeEditor';
 import Navbar from './components/Navbar';
@@ -24,10 +24,14 @@ export default {
     //  Index,
       Navbar
   },
-  computed: mapState({
+  computed:{ ...mapState({
     timeline: state => state.post.timeline,
     IsAuthenticated:'authentication/login'
-  }),
+  }),...mapGetters('authentication',{
+        themebool:'style'
+  })
+
+  },
   methods: mapActions('post', [
     'addPost',
     'deletePost'
@@ -38,6 +42,11 @@ export default {
 //    this.$store.dispatch('post/getAction')
     this.$store.dispatch('post/getAdvert')
     this.$store.dispatch('post/getTemplate')
+  },
+  created(){
+    //EventBus.$on('theme', (data) => {
+        //this.$vuetify.theme.dark = this.themebool
+    //})
   }
 };
 </script>

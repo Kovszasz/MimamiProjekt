@@ -6,6 +6,7 @@
         >
         <comment :comment="reply" :postID="postID" ></comment>
       </v-list-item>
+      <v-btn @click="get_replies">More replies pls...</v-btn>
       <v-list-item>
         <v-form>
           <v-container>
@@ -34,6 +35,7 @@ import Vue from 'vue'
 import { mapState, mapActions, mapGetters } from 'vuex'
 import { mdiShareVariant } from '@mdi/js'
 import comment from './Comment.vue'
+import api from '../services/api'
 Vue.use(mdiShareVariant);
 
   export default {
@@ -42,8 +44,9 @@ Vue.use(mdiShareVariant);
       password: 'Password',
       marker: true,
       show: false,
-      //comments:[],
+      replies:[],
       content:'',
+      replypage:1,
       dialog:false,
     }),props:{
       commentID:String,
@@ -64,20 +67,22 @@ Vue.use(mdiShareVariant);
       this.content = ''
       },
       async replyComment(){
-        await  this.reply({content:this.content,comment:this.commentID,post:this.postID})
-        .then(this.content = '')
-      }
+        await api.post(`comment/reply/`,{content:this.content,comment:this.commentID,post:this.postID})
+                .then((response) =>{
+                this.content = ''
+                this.replies.push(response.data)
+            })
+      },
+      async get_replies(){
+        await api.get(`comments/?post=${this.postID}&reply=${this.commendID}&page=${this.replypage}`)
+          .then((response)=>{
+          console.log(response)
+              this.replies.push(...response.data.results)
+            this.replypage++
+          })
+        }
     },
-    computed:{
-    replies(){
-      console.log(this.get_reply(this.postID))
-
-      return this.get_reply(this.commentID)
-    }, ...mapGetters({
-          get_reply:'comments/reply'
-
-      })
-    },components:{
+    components:{
         comment
     }
   }

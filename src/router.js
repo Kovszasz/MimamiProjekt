@@ -53,6 +53,12 @@ const router = new Router({
       path: '/register',
       name: 'register',
       component: Register,
+      props:{
+        core:{
+          type:Boolean,
+          default:false
+        },user:Object
+      },
       meta: {
         requiresLogged: true
       }
@@ -78,7 +84,8 @@ const router = new Router({
       name: 'mypost',
       component: MyPost,
       props:{
-        type:String
+        type:String,
+        user:String
       },
       meta: {
         requiresAuth: true
@@ -118,9 +125,6 @@ const router = new Router({
   path: '/advert',
   name: 'advert',
   component: MyAdverts,
-  props:{
-    user:'AdUser'
-  },
 },
 {
   path: '/activate/:uid/:token',

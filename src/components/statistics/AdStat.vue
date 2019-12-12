@@ -1,8 +1,7 @@
 <template>
   <div class="post">
   <v-container class="" >
-  <b-card no-body header-tag="header" class="" max-height="700">
-  <b-row no-gutters>
+  <b-row no-gutters justify="center">
     <b-col md="6">
     <b-card
         header-tag="header"
@@ -24,7 +23,7 @@
         </v-carousel>
           </template>
 
-          <b-card-img src="https://picsum.photos/400/400/?image=20" class="rounded-0" v-if="!post.IsInlinePost"></b-card-img>
+          <b-card-img src="https://picsum.photos/400/400/?image=20" class="rounded-0" v-if="post.IsInlinePost"></b-card-img>
           <v-carousel
             v-if="post.IsInlinePost"
             v-bind:height="height"
@@ -63,40 +62,111 @@
 
           <v-tabs-items v-model="tab">
             <v-tab-item>
-              <v-col class="px-0">
-                <v-card
-                    class="md-6"
-                  >
-                    <v-card-subtitle class="pb-0">Number 10</v-card-subtitle>
-                        <area-chart :data="{'2017-01-01 00:00:00 -0800': 2, '2017-01-01 00:01:00 -0800': 5}"></area-chart>
-                  </v-card>
+            <v-container>
+            <v-row align="center">
+              <v-col>
+                <v-window
+                  v-model="window"
+                  class="elevation-1"
+                  vertical
+                >
+                  <v-window-item>
+                  <v-col class="px-0">
+                    <v-card
+                        class="md-6"
+                      >
+                        <v-card-subtitle class="pb-0">Number 10</v-card-subtitle>
+                            <area-chart :data="{'2017-01-01 00:00:00 -0800': 2, '2017-01-01 00:01:00 -0800': 5}"></area-chart>
+                      </v-card>
+                      </v-col>
+                  </v-window-item>
+                  <v-window-item>
+                    <v-col class="px-0">
+                      <v-card
+                          class="md-6"
+                        >
 
-                  <v-card
-                      class="md-6"
-                    >
-                  <v-card-subtitle class="pb-0">Number 10</v-card-subtitle>
-                      <column-chart :data="[['Sun', 32], ['Mon', 46], ['Tue', 28]]"></column-chart>
-                  </v-card>
-                  <v-card
-                      class="md-6"
-                    >
-                  <v-card-subtitle class="pb-0">Number 10</v-card-subtitle>
-                      <pie-chart data="`/post/gender_stat/${post.ID}/`"></pie-chart>
-                  </v-card>
+                      <v-card-subtitle class="pb-0">Number 10</v-card-subtitle>
+                          <column-chart :data="[['Sun', 32], ['Mon', 46], ['Tue', 28]]"></column-chart>
+                      </v-card>
+                      </v-col>
+                  </v-window-item>
+                  <v-window-item>
+                    <v-col class="px-0">
+                      <v-card
+                          class="md-6"
+                        >
+                      <v-card-subtitle class="pb-0">Number 10</v-card-subtitle>
+                          <pie-chart data="`/post/gender_stat/${post.ID}/`"></pie-chart>
+                      </v-card>
+                    </v-col>
+
+                  </v-window-item>
+                </v-window>
                 </v-col>
+                <v-item-group
+                  v-model="window"
+                  class="shrink mr-6"
+                  mandatory
+                  tag="v-flex"
+                >
+                  <v-item
+                    v-for="n in 3"
+                    :key="n"
+                    v-slot:default="{ active, toggle }"
+                  >
+                    <div>
+                      <v-btn
+                        :input-value="active"
+                        icon
+                        @click="toggle"
+                      >
+                        <v-icon>mdi-record</v-icon>
+                      </v-btn>
+                    </div>
+                  </v-item>
+                </v-item-group>
+            </v-row>
+            </v-container>
             </v-tab-item>
-            <v-tab-item
-            >
+            <v-tab-item>
+            <v-container>
             <div>
                <v-row justify="space-around">
+                  <v-row justify="space-around">
+                    <v-col cols="12">
+                    <v-container>
+                      <header>Advertising time frame</header>
+                      <date-range-picker
+                          ref="picker"
+                          :locale-data="{ firstDay: 1, format: 'YYYY-MM-DD' }"
+                          opens="left"
+                          :autoApply="true"
+                          v-model="dateRange"
+                        >
+                        <div slot="input" slot-scope="picker" style="min-width: 350px;">
+                              {{ dateRanges.startDate  }} - {{ dateRanges.endDate }}
+                        </div>
+                      </date-range-picker>
+                      </v-container>
+                    </v-col>
+                    <v-col cols="12">
+                    <v-container>
+                      <v-btn :loading="changeActivityOn" v-if="post.IsActive" @click="changeActivity">Stop campaign</v-btn>
+                      <v-btn :loading="changeActivityOn" v-else @click="changeActivity">Continue campaign</v-btn>
+                    </v-container>
+                    <v-divider></v-divider>
+                    <v-btn :loading="updatingOn" @click="updateAdvert">Save changes</v-btn>
+                    </v-col>
+                   </v-row>
                 </v-row>
              </div>
+             </v-container>
             </v-tab-item>
           </v-tabs-items>
         </v-card>
             </b-col>
           </b-row>
-        </b-card>
       </v-container>
   </div>
 </template>
@@ -109,7 +179,9 @@ import { NavbarPlugin } from 'bootstrap-vue'
 import { mdiShareVariant } from '@mdi/js'
 import Chartkick from 'vue-chartkick'
 import Chart from 'chart.js'
-
+import DateRangePicker from 'vue2-daterange-picker'
+import api from '../../services/api'
+import moment from 'moment'
 Vue.use(Chartkick.use(Chart))
 Vue.use(NavbarPlugin)
 Vue.use(CarouselPlugin)
@@ -137,13 +209,22 @@ export default {
       }
     },data() {
         return {
-          like:this.post.NumberOfLikes,
           IsLiked:false,
           tab: null,
-          success:true
+          success:true,
+          length: 3,
+          window: 0,
+          appearance:1,
+          dateRange:{
+            startDate:this.post.CampaignTimestart,
+            endDate:this.post.CampaignTimeend
+          },
+          changeActivityOn:false,
+          updatingOn:false
         }
       },
   components:{
+      DateRangePicker,
     },
       resolve: {
       alias: {
@@ -161,6 +242,14 @@ export default {
           }else{
               return false
           }
+        },
+        dateRanges(){
+        var s=new Date()
+        var e=new Date(this.dateRange.endDate)
+        return{
+          startDate:moment(this.dateRange.startDate).format('YYYY-MM-DD'),
+          endDate:moment(this.dateRange.endDate).format('YYYY-MM-DD')
+        }
         }
 
 },
@@ -175,27 +264,29 @@ export default {
     KeyGenerator:function(index){
       return this.post.ID+String(index)
     },
-    liking(){
-      this.IsLiked=!this.IsLiked
-        if (this.IsLiked){
-          //  this.LikePost(this.post.ID,1)
-            //this.like=this.post.NumberOfLikes++
-            this.like+=1
-        }else{
-          //  this.LikePost(this.post.ID,-1)
-            //this.like=this.post.NumberOfLikes--
-            this.like-=1
-        }
+    async changeActivity(){
+      this.post.IsActive=!this.post.IsActive
+      this.changeActivityOn=true
+      await api.post('post/updateAd/',{ID:this.post.ID,IsAdvert:true,IsActive:this.post.IsActive, CampaignTimestart:this.dateRange.startDate, CampaignTimeend:this.dateRange.endDate})
+        .then((response)=>{
+          this.$store.commit('post/updateAd',response)
+          this.changeActivityOn=false
+        })
+
+    },
+    async updateAdvert(){
+      this.updatingOn=true
+      console.log(this.post)
+      this.post.IsActive=this.post.IsActive
+      await api.post('post/updateAd/',{ID:this.post.ID,IsAdvert:true,IsActive:this.post.IsActive, CampaignTimestart:this.dateRange.startDate, CampaignTimeend:this.dateRange.endDate})
+        .then((response)=>{
+          this.$store.commit('post/updateAd',response)
+        this.updatingOn=false
+      })
+
+    },
 
     }
-
-},
-updated(){
-  //this.IsLiked= this.$store.state.post.timeline.filter(post => post.ID === this.post.ID).IsLiked
-
-},
-mounted() {
-}
 };
 
   </script>

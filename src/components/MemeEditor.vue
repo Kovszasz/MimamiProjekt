@@ -44,11 +44,9 @@
                               </template>
                               <v-container>
                               <v-card>
-                                  <ImgEditor v-bind:temp="editedTemplate"></ImgEditor>
+                                  <ImgEditor  v-bind:temp="editedTemplate"></ImgEditor>
                                 <v-card-actions>
-                                  <v-spacer></v-spacer>
-                                  <v-btn color="green darken-1" text @click="editor_dialog = false">Disagree</v-btn>
-                                  <v-btn color="green darken-1" text @click="editor_dialog = false">Agree</v-btn>
+                                  <v-btn color="green darken-1" text @click="editor_dialog = false">Cancel</v-btn>
                                 </v-card-actions>
                                 </v-card>
                                 </v-container>
@@ -200,21 +198,45 @@
                     </v-chip>
                   </template>
                 </v-combobox>
+                <v-combobox
+                  v-model="memetext"
+                  chips
+                  clearable
+                  label="Meme text content"
+                  multiple
+                  solo
+                >
+                  <template v-slot:selection="{ attrs, item, select, selected }">
+                    <v-chip
+                      v-bind="attrs"
+                      :input-value="selected"
+                      close
+                      @click="select"
+                      @click:close="remove(item)"
+                    >
+                      <strong>{{ item }}</strong>&nbsp;
+                    </v-chip>
+                  </template>
+                </v-combobox>
+
                 </template>
               </b-card>
               </b-col>
               <b-col cols="4">
               <v-card v-if="!advert">
                  <v-tabs
+                  v-model="templatetabs"
                    background-color="white"
                    color="deep-purple accent-4"
                    right
                  >
-                   <v-tab>MyTemplates</v-tab>
-                   <v-tab>Recycle</v-tab>
-                   <v-tab>Browse</v-tab>
+                   <v-tab :href="`#my`">MyTemplates</v-tab>
+                   <v-tab :href="`#recycle`">Recycle</v-tab>
+                   <v-tab :href="`#public`">Browse</v-tab>
+                   <v-tab :href="`#search`">Search</v-tab>
 
                    <v-tab-item
+                      value="my"
                    >
                    <v-container fluid>
                    <v-col
@@ -239,6 +261,7 @@
                    </picture-input>
                    </v-col>
                        <template v-if="templates!=={}" v-for ="index in templates.my.size">
+
                              <v-row v-bind:key="index+'_row'">
                            <v-col
                              v-for="i in 3"
@@ -273,6 +296,7 @@
 
                    </v-tab-item>
                    <v-tab-item
+                      value="recycle"
                    >
                    <v-container fluid>
                        <template v-if="templates!=={}" v-for ="index in templates.recycle.size">
@@ -309,6 +333,7 @@
                    </v-container>
                    </v-tab-item>
                    <v-tab-item
+                      value="public"
                    >
                    <v-container fluid>
                        <template v-if="templates!=={}" v-for ="index in templates.public.size">
@@ -344,6 +369,52 @@
                      </template>
                    </v-container>
                    </v-tab-item>
+                   <v-tab-item
+                      value="search"
+                   >
+                   <v-container fluid>
+                   <v-text-field
+                      class="mx-4"
+                      v-model="templateSearch"
+                        flat
+                        hide-details
+                        label="Search"
+                        solo-inverted
+                        v-on:keyup="searchTemplate"
+                        ></v-text-field>
+                       <template v-if="templates!=={}" v-for ="index in templates.search.size">
+                             <v-row v-bind:key="index+'_row'">
+                           <v-col
+                             v-for="i in 3"
+                             v-bind:key="index*3+i+'_col'"
+                             cols="12"
+                             md="4"
+                           >
+                           <v-hover>
+                               <template v-slot:default="{ hover }">
+                               <div>
+                                 <v-img
+                                     v-if="IMGurl((index-1)*3+(i-1),'search')"
+                                     :src="IMGurl((index-1)*3+(i-1),'search')"
+                                     :lazy-src="IMGurl((index-1)*3+(i-1),'search')"
+                                     ></v-img>
+                                   <v-fade-transition>
+                                     <v-overlay
+                                       v-if="hover"
+                                       absolute
+                                       color="#036358"
+                                     >
+                                       <v-btn @click="getSrc(IMGurl((index-1)*3+(i-1),'search'),index-1,'search')">Choose</v-btn>
+                                     </v-overlay>
+                                   </v-fade-transition>
+                                   </div>
+                               </template>
+                             </v-hover>
+                         </v-col>
+                       </v-row>
+                     </template>
+                   </v-container>
+                   </v-tab-item>
                  </v-tabs>
                </v-card>
                <v-card v-if="advert">
@@ -358,28 +429,24 @@
                       <header>Advertising time frame</header>
                       <date-range-picker
                           ref="picker"
+                          :locale-data="{ firstDay: 1, format: 'YYYY-MM-DD' }"
                           opens="left"
                           :autoApply="true"
                           v-model="estimation.dateRange"
-                          @update="updateValues"
-                          @toggle="checkOpen"
                         >
                         <div slot="input" slot-scope="picker" style="min-width: 350px;">
-                              {{ picker.startDate  }} - {{ picker.endDate }}
+                              {{ dateRanges.startDate  }} - {{ dateRanges.endDate }}
                         </div>
                       </date-range-picker>
                     </v-col>
                     <v-col cols="12">
                       <header>Budget for the advert period</header>
 
-                    <v-select
-                      v-model="budget"
-                      :items="dailyBudget"
-                      label="please select a range"
-                      dense
-                      outlined
-                      v-on:change="estimateUsers"
-                        ></v-select>
+                    <v-text-field
+                      v-model="estimation.budget"
+                      label="Planned budget"
+                      v-on:key.enter="estimateUsers"
+                        ></v-text-field>
                         </v-col>
                     <v-col cols="12">
                       <header>Website {{ adURL }}</header>
@@ -460,7 +527,7 @@ import { EventBus } from './memeeditor/event-bus.js';
 import ImgUpload from '../store/modules/upload'
 import * as nsfwjs from 'nsfwjs'
 import api from '../services/api'
-
+import moment from 'moment'
   export default {
     data () {
       return {
@@ -491,16 +558,38 @@ import api from '../services/api'
         adURL:'',
         tab: null,
         inlineindex:0,
+        templatetabs:'my',
         imgsInLine:[],
         MultipleImgsInLine:false,
         IsSinglePost:true,
         appearance:1,
         template:'',
         editedTemplate:{},
+        memetext:[],
         memeTemps:[],
-        get_myTemplate:[],
-        get_browserTemplate:[],
-        get_recycledTemplate:[],
+        templateSearch:'',
+        templates:{
+          my:{
+          size:0,
+          page:1,
+          content:[]
+          },
+          public:{
+          size:0,
+          page:1,
+          content:[]
+          },
+          recycle:{
+          size:0,
+          page:1,
+          content:[]
+          },
+          search:{
+          size:0,
+          page:1,
+          content:[]
+          },
+        },
         checking:false,
         porncontents:[],
         templateUploading:false,
@@ -513,7 +602,7 @@ import api from '../services/api'
         ,templatePayload:{
           IsPublic:true,
           name:'',
-          type:['portrait','landscape','normal']
+          type:['portrait','landscape','normal'],
 
         }
       }
@@ -526,18 +615,7 @@ import api from '../services/api'
   //      get_browserTemplate:'post/publicTemplates',
   //      get_recycledTemplate:'post/recycledTemplates'
 
-      }),
-      templates(){
-        var my= this.get_myTemplate
-        var public_t = this.get_browserTemplate
-        var recycle = this.get_recycledTemplate
-        return {
-            public:{temp:public_t,size:public_t.length},
-            my:{temp:my,size:my.length},
-            recycle:{temp:recycle,size:recycle.length},
-
-        }
-      },porncontent(){
+      }),porncontent(){
           var contains=false
           for(var i=0;i<this.porncontents.length;i++){
             if(this.porncontents[i]){
@@ -545,6 +623,12 @@ import api from '../services/api'
             }
           }
           return contains
+      },
+      dateRanges(){
+      return{
+        startDate:moment(this.estimation.dateRange.startDate).format('YYYY-MM-DD'),
+        endDate:moment(this.estimation.dateRange.endDate).format('YYYY-MM-DD')
+        }
       }
       }
       ,
@@ -562,11 +646,8 @@ import api from '../services/api'
 
       }),
       checkImage:async function(image){
-        console.log(this.checking)
         const model = await nsfwjs.load()
-        console.log(model)
         const predictions= await model.classify(image, 1)
-        console.log(predictions)
         if(predictions[0].className=="Porn"){
           return true
           }else{
@@ -575,9 +656,7 @@ import api from '../services/api'
       },onChange: async function(index){
       this.checking=true
       const uploadAllowed = await this.checkImage(this.$refs.pictureInput[index].$refs.previewCanvas)
-      console.log(index)
         if(!uploadAllowed){
-          console.log('here')
             this.checking=false
             this.MultipleImgs=true
             if(index==this.imgs.length){
@@ -587,7 +666,6 @@ import api from '../services/api'
             this.subIMGs.push({isimg:false,index:this.imgindex})
             this.porncontents.push(false)
             }else{
-            console.log('or here')
               this.imgs[index]=this.$refs.pictureInput[index]
               this.porncontents[index]=false
             }
@@ -611,21 +689,21 @@ import api from '../services/api'
         this.chips.splice(this.chips.indexOf(item), 1)
         this.chips = [...this.chips]
       },
-      sendMeme(){
+      async sendMeme(){
         var id;
         if(!this.advert){
-        this.addPost({IsAdvert:false,description:this.postText,IsPublic:this.IsPublic,
+        await  this.addPost({IsAdvert:false,description:this.postText,IsPublic:this.IsPublic,
                     labels:this.chips,
-                    meme:{imgs:this.imgs,payload:{post:id,size:this.imgs.length}},size:this.imgs.length,templates:this.memeTemps},true)
-        this.$store.dispatch('post/getTimeLine')
+                    meme:{text:this.memetext,imgs:this.imgs,payload:{post:id,size:this.imgs.length}},size:this.imgs.length,templates:this.memeTemps},true)
+                    .then(this.$store.dispatch('post/getTimeLine',1))
 
         }else{
           if(this.IsInlinePost){id='AdInPost'+String(Math.round(Math.random()*10000))
-              this.addPost({AdURL:this.adURL,IsAdvert:true,IsInlinePost:true,AppearenceFrequency:this.appearance,labels:this.chips
+              await this.addPost({AdURL:this.adURL,CampaignTimestart:this.dateRanges.startDate,CampaignTimeend:this.dateRanges.endDate,IsAdvert:true,IsInlinePost:true,AppearenceFrequency:this.appearance,labels:this.chips
                         ,meme:{imgs:this.imgs,payload:{post:id,size:this.imgs.length}},size:this.imgs.length},true)
           }
           if(this.IsSinglePost){
-              this.addPost({AdURL:this.adURL,IsAdvert:true,IsInlinePost:false,AppearenceFrequency:this.appearance,labels:this.chips
+              await  this.addPost({AdURL:this.adURL,CampaignTimestart:this.dateRanges.startDate,CampaignTimeend:this.dateRanges.endDate,IsAdvert:true,IsInlinePost:false,AppearenceFrequency:this.appearance,labels:this.chips
                         ,meme:{imgs:this.imgs,payload:{post:id,size:this.imgs.length}},size:this.imgs.length},true)
           }
         }
@@ -635,14 +713,17 @@ import api from '../services/api'
       getSrc(src,index,type){
       var size;
       if(type == 'public'){
-          this.memeTemps.push(this.templates.public.temp[index].ID)
-          size=this.getSize(this.templates.public.temp[index].type)
+          this.memeTemps.push(this.templates.public.content[index].ID)
+          size=this.getSize(this.templates.public.content[index].type)
       }else if (type == 'my'){
-          this.memeTemps.push(this.templates.my.temp[index].ID)
-          size=this.getSize(this.templates.my.temp[index].type)
+          this.memeTemps.push(this.templates.my.content[index].ID)
+          size=this.getSize(this.templates.my.content[index].type)
+      }else if (type == 'search'){
+          this.memeTemps.push(this.templates.search.content[index].ID)
+          size=this.getSize(this.templates.search.content[index].type)
       }else{
-          this.memeTemps.push(this.templates.recycle.temp[index].ID)
-          size=this.getSize(this.templates.recycle.temp[index].type)
+          this.memeTemps.push(this.templates.recycle.content[index].ID)
+          size=this.getSize(this.templates.recycle.content[index].type)
       }
         this.editedTemplate={
               id:'try',
@@ -654,39 +735,37 @@ import api from '../services/api'
         },
         this.editor_dialog=true
       },
-      updateValues(){
-
-
-      },checkOpen(){
-
-
-      },
       temp(index,type){
 
 
         },IMGurl:function(index,type){
             if(type == 'public'){
               if(this.templates.public.size>index){
-                return require(`../assets${this.templates.public.temp[index].IMG_url}`)
+                return require(`../assets${this.templates.public.content[index].IMG_url}`)
               }else{
                 return false
               }
             }else if (type == 'my'){
             if(this.templates.my.size>index){
-              return require(`../assets${this.templates.my.temp[index].IMG_url}`)
+              return require(`../assets${this.templates.my.content[index].IMG_url}`)
               }else{
                 return false
               }
+            }else if(type=='search'){
+              if(this.templates.search.size>index){
+                  return require(`../assets${this.templates.search.content[index].IMG_url}`)
+              }else{
+                  return false
+              }
             }else{
             if(this.templates.recycle.size>index){
-              return require(`../assets${this.templates.recycle.temp[index].IMG_url}`)
+              return require(`../assets${this.templates.recycle.content[index].IMG_url}`)
             }else{
                 return false
               }
           }
         },
         getSize(type){
-            console.log(type)
             if(type=='portrait'){
 
                 return {
@@ -713,7 +792,6 @@ import api from '../services/api'
               this.checking=false
               alert('Please buddy, shame on you!')
             }else{
-              console.log(this.$refs.templateInput.file)
               await  ImgUpload(`/api/template/upload/`, this.$refs.templateInput.file,this.templatePayload,false,name='img')
                 .then(response=>{
                   this.$store.commit('post/getTemplate',response.data)
@@ -728,6 +806,68 @@ import api from '../services/api'
                 this.estimationInProgress=false
                 this.estimation=response.data
                 })
+        },
+        async get_templates(){
+            var url=`template/?page=`
+              if(this.templatetabs == 'my'){
+                  url=url+`${this.templates[this.templatetabs].page}&my=true&user=${this.user.username}`
+              }else if(this.templatetabs == 'recycle'){
+                  url=url+`${this.templates[this.templatetabs].page}&recycle=true&user=${this.user.username}`
+              }else if(this.templatetabs == 'public'){
+                  url=url+`${this.templates[this.templatetabs].page}`
+              }else if(this.templatetabs == 'search'){
+                if(this.templateSearch != ''){
+                  url=url+`${this.templates[this.templatetabs].page}&search=${this.templateSearch}`
+                }else{
+
+                }
+              }
+              await api.get(url).then((response)=>{
+                    if(this.templatetabs == 'recycle'){
+                          if(this.templates[templatetabs].content.length==0){
+                                this.templates[this.templatetabs].content.push(...response.data.results.filter(function(item){
+                                    return item.template
+                                    }))
+                          }else{
+                          this.templates[this.templatetabs].content.concat(response.data.results.filter(function(item){
+                                  return item.template
+                                  }))
+                          }
+                          }else if(this.templatetabs!='search'){
+                              if(this.templates[this.templatetabs].content.length==0){
+                                  this.templates[this.templatetabs].content.push(...response.data.results)
+                              }else{
+                                  this.templates[this.templatetabs].content.concat(response.data.results)
+                              }
+                            this.templates[this.templatetabs].page++
+                          }
+                      this.templates[this.templatetabs].size=this.templates[this.templatetabs].content.length
+                    })
+            },
+            async searchTemplate(){
+              if(this.templateSearch!=''){
+                var url=`template/?page=${this.templates.search.page}&search=${this.templateSearch}`
+                  await api.get(url).then((response)=>{
+                if(this.templates.search.content.length==0){
+                      this.templates.search.content.push(...response.data.results)
+                }else{
+                      this.templates.search.content.concat(response.data.results)
+                    }
+              })
+              this.templates.search.size=this.templates.search.content.length
+
+              }else{
+                  this.templates.search={content:[],page:1,size:0}
+              }
+
+            }
+        ,scroll () {
+            window.onscroll = () => {
+              let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
+              if (bottomOfWindow) {
+                this.get_templates()
+             }
+          }
         }
       },
       watch:{
@@ -738,30 +878,27 @@ import api from '../services/api'
     beforeCreate(){
       this.$store.dispatch('post/getTemplate')
     },
-    created(){
+    mounted(){
+      this.scroll()
+    },watch:{
+      templatetabs:function(){
+        this.get_templates()
+      }
+
+    },created(){
     EventBus.$on('new_meme', (data) => {
-        if(data.is_file){
+        if(data.meme.is_file){
             this.MultipleImgs=true
             this.imgs.unshift(data)
             this.imgindex+=1
-            this.subIMGs.push({isimg:true,index:this.imgindex, img:data.img})
+            this.subIMGs.push({isimg:true,index:this.imgindex, img:data.meme.img})
             this.editor_dialog=false
-            EventBus.$off('new_meme');
+            this.renderMeme=false
+            this.memetext=data.text.content
+            //EventBus.$off('new_meme');
         }
       })
-        this.$store.subscribe((mutation, state) => {
-          if (mutation.type === 'post/getTemplate') {
-                if(mutation.payload.lentgh < 2){
-                  this.get_myTemplate=mutation.payload.user.username == this.user.username ? mutation.payload : []
-                  this.get_browserTemplate=mutation.payload.IsPublic ? mutation.payload : []
-                  this.get_recycledTemplate=mutation.payload.recycler ? mutation.payload : []
-                }else{
-                  this.get_myTemplate=mutation.payload.filter(post=>post.user.username === this.user.username)
-                  this.get_browserTemplate=mutation.payload.filter(post=>post.IsPublic === true)
-                  this.get_recycledTemplate=mutation.payload.filter(post=>post.recycler !== true)
-                }
-            }
-        });
+      this.get_templates()
     }
   }
 

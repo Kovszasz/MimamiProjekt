@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import *
 #from backend.settings.dev import AUTH_USER_MODEL as User
+from .algorithms import Personalization
 from django.contrib.auth import get_user_model
 import backend.settings.dev as settings
 from rest_framework.validators import UniqueValidator
@@ -43,7 +44,20 @@ class UserSerializer(serializers.ModelSerializer):
     IsFollowed=serializers.SerializerMethodField()
     class Meta:
         model = User
-        fields = ['username','is_staff','is_superuser','is_authenticated','is_advertiser','score','channel','avatar','complete_account','IsFollowed']
+        fields = ['username',
+                'is_staff',
+                'is_superuser',
+                'is_authenticated',
+                'is_advertiser',
+                'score',
+                'channel',
+                'avatar',
+                'complete_account',
+                'IsFollowed',
+                'balance',
+                'color',
+                'DarkMode',
+                ]
 
     def get_avatar(self,User):
         request = self.context.get('request')
@@ -61,9 +75,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_complete_account(self,User):
         if len(PersonalScoringProfile.objects.filter(user=User))==0:
-            return False
+            User.complete_account=False
+            User.save()
+            return User.complete_account
         else:
-            return True
+            User.complete_account=True
+            User.save()
+            return User.complete_account
 
     def get_IsFollowed(self,User):
         request=self.context.get('request')
@@ -79,26 +97,22 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 
-class ActionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Action
-        fields=('post','user','date','type',)
 
 class TemplateSerializer(serializers.ModelSerializer):
-    recycler = serializers.SerializerMethodField()
+    #recycler = serializers.SerializerMethodField()
     IMG_url = serializers.SerializerMethodField()
     class Meta:
         model = Template
-        fields =['IMG_url','user','id','name','IsPublic','recycler','type']
+        fields =['IMG_url','id','name','type']
 
-    def get_recycler(self,Template):
-        request=self.context.get('request')
-        template = Recycle.objects.filter(user=request.user,template=Template)
-        if len(template)==0:
-            return False
-        else:
-            serialized=RecycleSerializer(template)
-            return serialized.data
+    #def get_recycler(self,Template):
+    #    request=self.context.get('request')
+    #    template = Recycle.objects.filter(user=request.user,template=Template)
+    #    if len(template)==0:
+    #        return False
+    #    else:
+    #        serialized=RecycleSerializer(template)
+    #        return serialized.data
 
     def get_IMG_url(self,Template):
         return Template.IMG.url
@@ -135,10 +149,12 @@ class PostSerializer(serializers.ModelSerializer):
     AdURL=serializers.URLField(max_length=250,default="")
     AppearenceFrequency=serializers.IntegerField(default=1)
     NumberOfLikes=serializers.SerializerMethodField()
-    PopularityScore=serializers.SerializerMethodField()
+    #PopularityScore=serializers.SerializerMethodField()
     ReportScore=serializers.SerializerMethodField()
     NumberOfComments=serializers.SerializerMethodField()
     labels=serializers.SerializerMethodField()
+    date=serializers.DateTimeField()
+    PersonalFit=serializers.SerializerMethodField()
 
     def create(self, validated_data):
         """
@@ -179,6 +195,10 @@ class PostSerializer(serializers.ModelSerializer):
                 'ReportScore',
                 'NumberOfComments',
                 'labels',
+                'CampaignTimestart',
+                'CampaignTimeend',
+                'date',
+                'PersonalFit'
                 ]
 
     def get_IsLiked(self, Post):
@@ -198,14 +218,14 @@ class PostSerializer(serializers.ModelSerializer):
     def get_NumberOfLikes(self,Post):
         return len(Action.objects.filter(post=Post,type='Like'))
 
-    def get_PopularityScore(self,Post):
-        if not Post.IsAdvert:
-            actiontypes={}
-            for i in ['Like','Click','Share','Report']:
-                actiontypes[i]=len(Action.objects.filter(post=Post,type=i))
-            return actiontypes['Like']+actiontypes['Click']+2*actiontypes['Share']-10*actiontypes['Report']
-        else:
-            return 0
+#    def get_popularityscore(self,Post):
+#        if not Post.IsAdvert:
+#            actiontypes={}
+#            for i in ['Like','Click','Share','Report']:
+#                actiontypes[i]=len(Action.objects.filter(post=Post,type=i))
+#            return actiontypes['Like']+actiontypes['Click']+2*actiontypes['Share']-10*actiontypes['Report']
+#        else:
+#            return 0
 
     def get_ReportScore(self,Post):
         return len(Action.objects.filter(post=Post,type='Report'))
@@ -221,6 +241,22 @@ class PostSerializer(serializers.ModelSerializer):
         for i in labels:
             data.append(i.label.name)
         return data
+
+    def get_PersonalFit(self,Post):
+        request=self.context.get('request')
+        if isinstance(request.user,User):
+            if request.user.complete_account:
+                return 1
+            else:
+                return Personalization(request.user,Post)
+        else:
+            return 1
+class ActionSerializer(serializers.ModelSerializer):
+    post=PostSerializer()
+    class Meta:
+        model=Action
+        fields=('post','user','date','type',)
+
 
 class CommentSerializer(serializers.ModelSerializer):
     ID=serializers.CharField(max_length=20, default="")
@@ -288,7 +324,7 @@ class StatisticsSerializer(serializers.ModelSerializer):
 class RecycleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recycle
-        fields = '__all__'
+        fields = ['template',]
 
 
 #AUTH SERIALIZERS OF djoser

@@ -68,6 +68,7 @@
         </v-list-group>
       </v-list-group>
     </v-list>
+    <v-btn @click="get_comments">More comments pls...</v-btn>
   </v-card>
 </template>
 
@@ -79,6 +80,7 @@ import { mdiShareVariant } from '@mdi/js'
 import comment from './Comment.vue'
 import reply from './Reply.vue'
 import { EmojiPickerPlugin } from 'vue-emoji-picker'
+import api from '../services/api'
 
 Vue.use(EmojiPickerPlugin)
 Vue.use(mdiShareVariant);
@@ -88,10 +90,12 @@ Vue.use(mdiShareVariant);
       password: 'Password',
       marker: true,
       show: false,
-      //comments:[],
+      comments:[],
       content:'',
       dialog:false,
-      search: ''
+      search: '',
+      commentpage:1,
+      more_comments:true,
     }),props:{
       postID:String
 
@@ -109,23 +113,31 @@ Vue.use(mdiShareVariant);
         this.content = ''
       },
       async sendComment(){
-        await  this.add({content:this.content,post:this.postID})
-        .then(this.content = '')
+        await api.post(`comment/`, {content:this.content,post:this.postID})
+                  .then((response) =>{
+                      this.content = ''
+                      this.comments.push(response.data)
+            })
       },
       insert(emoji) {
             this.content += emoji
         },
+        async get_comments(){
+          await api.get(`comments/?post=${this.postID}&page=${this.commentpage}`)
+            .then((response)=>{
+              //for(var i=0;i<response.data.results.length;i++){
+                this.comments.push(...response.data.results)
+              //}
+              this.commentpage++
+            })
+          }
     },
     computed:{ ...mapState({
 
       //user:'authentication/user'
-    }),
-    comments(){
-      return this.get_comment(this.postID)
-    }, ...mapGetters({
-          get_comment:'comments/postcomment'
-
-      })
+    })
+    },mounted(){
+      this.get_comments()
     },components:{
         comment,
         reply,

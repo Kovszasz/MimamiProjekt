@@ -2,6 +2,7 @@
   <div>
     <Navbar :hideNavDrawer="true"/>
     <v-content>
+    <h1>{{ user.balance }} Ft </h1>
     <div  v-for="i in timeline" v-bind:key="i.id"  class="justify-center pt-3">
       <div>
       <!--<v-lazy v-model="isActive" :options="{ threshold: .5 }" transition="fade-transition">-->
@@ -26,7 +27,6 @@
   export default {
     name: 'MyAdverts',
     props:{
-        user:String,
     },
     components:{
      Navbar,
@@ -44,19 +44,19 @@
     },
     computed:{ ...mapState({
       IsAuthenticated:'authentication/login',
-      //user:'authentication/user'
     }),timeline:function(){
         return this.$store.state.post.advert//.filter(ad=>ad.user.username === this.user)
-    }
+    },
+    ...mapGetters({
+    user:'authentication/user'
+
+    })
 
     },
     methods:{ ...mapActions('post', [
       'addPost',
       'deletePost'
-    ]),
-      ...mapGetters({
-
-      })
+    ])
 
     },
     created() {

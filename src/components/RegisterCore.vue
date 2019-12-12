@@ -1,28 +1,40 @@
 <!-- https://www.trell.se/blog/file-uploads-json-apis-django-rest-framework/-->
 <template>
 <div>
-    <v-content v-if="!core">
-  <v-stepper v-model="e1">
-    <v-stepper-header>
-      <v-stepper-step :complete="e1 > 1" step="1">Registration</v-stepper-step>
 
-      <v-divider></v-divider>
+  <v-content v-if="!core">
+  <h1>{{ choose }} is remained</h1>
+  <v-row align="center">
+    <v-item-group
+      v-model="window"
+      class="shrink mr-6"
+      mandatory
+      tag="v-flex"
+    >
+      <v-item
+        v-for="n in length"
+        :key="n"
+        v-slot:default="{ active, toggle }"
+      >
+        <div>
+          <v-btn
+            :input-value="active"
+            icon
+            @click="toggle"
+          >
+            <v-icon>mdi-record</v-icon>
+          </v-btn>
+        </div>
+      </v-item>
+    </v-item-group>
 
-      <v-stepper-step :complete="e1 > 2" step="2">Customization</v-stepper-step>
-
-      <v-divider></v-divider>
-
-      <v-stepper-step step="3">Validation</v-stepper-step>
-    </v-stepper-header>
-
-    <v-stepper-items>
-      <v-stepper-content step="1">
-        <v-card
-           class="mx-auto"
-           raised
-         >
-         <v-container>
-          <form @submit.prevent="registerUser">
+        <v-col>
+          <v-window
+            v-model="window"
+            class="elevation-1"
+            vertical
+          >
+          <v-window-item>
           <v-container class="grey lighten-5">
     <v-row no-gutters>
         <v-col >
@@ -33,6 +45,7 @@
           >
           <picture-input
             ref="pictureInput"
+            :prefill="prefill"
             @change="onChange"
             max-width="800"
             max-height="800"
@@ -70,70 +83,68 @@
             data-vv-name="last name"
             outlined
           ></v-text-field>
-
+          <v-container>
+            <header>Birthday</header>
+            <datepicker v-model="birthday.date" :bootstrap-styling="true">
+              <div slot="beforeCalendarHeader" class="calender-header">
+                Birthday
+              </div>
+            </datepicker>
+            </v-container>
           </v-card>
         </v-col>
+
         </v-row>
           </v-container>
-        </form>
-      </v-container>
-    </v-card>
-
-        <v-btn
-          color="primary"
-          @click="e1 = 2"
-        >
-          Continue
-        </v-btn>
-
-      </v-stepper-content>
-
-      <v-stepper-content step="2">
-      <b-container class="bv-example-row overflow-auto">
-      <h1>{{ choose }} is remained</h1>
-    <template v-for ="index in postsize">
-    <v-row v-bind:key="index+'_row'">
-
-      <v-col
-        v-for="i in 4"
-        v-bind:key="index*4+i+'_col'"
-        cols="12"
-        md="3"
-      >
-        <meme_post v-if="postindex((index-1)*4+(i-1))" @click.native="chooseMeme((index-1)*4+(i-1))" :post="postindex((index-1)*4+(i-1))" :IsRegistration="true" :width="200" :height="250" />
-      </v-col>
-      </v-row>
-      </template>
-    </b-container>
-
-        <v-btn
-          color="primary"
-          @click="e1 = 3"
-          :disabled='disabled'
-        >
-          Continue
-        </v-btn>
-
-        <v-btn   @click="e1 = 1">Back </v-btn>
-      </v-stepper-content>
-
-      <v-stepper-content step="3">
-        <v-card
-          class="mb-12"
-          color="grey lighten-1"
-          height="200px"
-        ></v-card>
-
-        <v-btn
-          color="primary"
-          @click="e1 = 2"
-        >
-          Back
-        </v-btn>
-        <v-btn class="mr-4" @click="completeRegistration">Finish</v-btn>
-      </v-stepper-content>
-    </v-stepper-items>
-  </v-stepper>
+          </v-window-item>
+            <v-window-item>
+              <v-card flat>
+              <template v-for ="index in postsize">
+              <v-row v-bind:key="index+'_row'">
+                <v-col
+                  v-for="i in 4"
+                  v-bind:key="index*4+i+'_col'"
+                  cols="12"
+                  md="3"
+                >
+                <v-hover>
+                  <template v-slot:default="{ hover }">
+                  <div>
+                  <meme_post v-if="postindex((index-1)*4+(i-1))" :post="postindex((index-1)*4+(i-1))" :IsRegistration="true" :width="200" :height="250" />
+                  <v-fade-transition>
+                      <v-overlay
+                          v-if="hover"
+                          absolute
+                          color="#036358"
+                          >
+                            <v-btn @click.native="chooseMeme((index-1)*4+(i-1))">Like</v-btn>
+                        </v-overlay>
+                  </v-fade-transition>
+                  </div>
+                  </template>
+                  </v-hover>
+                  </v-col>
+                </v-row>
+                </template>
+              </v-card>
+            </v-window-item>
+          </v-window>
+        </v-col>
+  </v-row>
+  <div class="text-center">
+   <v-bottom-sheet v-model="disabled">
+     <v-sheet class="text-center" height="100px">
+       <v-btn
+         class="mt-6"
+         flat
+         color="green"
+          @click="completeRegistration">
+       Finish
+       </v-btn>
+       <div>The registration is completed enjoy Mimami</div>
+     </v-sheet>
+   </v-bottom-sheet>
+ </div>
   </v-content>
   <v-content v-if="core">
   <v-col >
@@ -205,7 +216,9 @@
 import { mapState, mapActions, mapGetters } from 'vuex'
 import PictureInput from 'vue-picture-input'
 import meme_post from './MemePost.vue';
-  export default {
+import Datepicker from 'vuejs-datepicker';
+import moment from 'moment'
+export default {
     name: 'RegisterCore',
     props:{
     core:{
@@ -223,7 +236,8 @@ import meme_post from './MemePost.vue';
     },
     components: {
     meme_post,
-    PictureInput
+    PictureInput,
+     Datepicker
     },
     data () {
       return {
@@ -237,6 +251,9 @@ import meme_post from './MemePost.vue';
         show2: true,
         show3: false,
         show4: false,
+        overlay:[],
+        sheet: false,
+        birthday: new Date(),
         e1: 0,
        rules: {
          required: value => !!value || 'Required.',
@@ -245,22 +262,27 @@ import meme_post from './MemePost.vue';
       },
       choose:2,
       memes:[],
-      disabled:true,
+      disabled:false,
       agreed:false,
-      terms:false
+      terms:false,
+      length: 2,
+      window: 0,
+      page:1
       }
     },
     methods: {
       async completeRegistration () {
-          await this.$store.dispatch('authentication/completeUserRegistration', {user:{
+          console.log(moment(this.birthday).format('YYYY-MM-DD'))
+      await this.$store.dispatch('authentication/completeUserRegistration', {user:{
           first_name: this.first_name,
           last_name:this.last_name,
           is_advertiser:false,
+          birthday:moment(this.birthday).format('YYYY-MM-DD'),
           meme:this.memes,
           },
           profile_pic:this.$refs.pictureInput.file
           }).then(() => {
-              this.$router.go()
+              this.$router.push({name:'home'})
               })
             .catch(err => {
             })
@@ -281,7 +303,7 @@ import meme_post from './MemePost.vue';
       chooseMeme(index){
         this.choose-=1
         if(this.choose==0){
-            this.disabled=false
+            this.disabled=true
         }
         this.memes.push(this.posts[index].ID)
 
@@ -301,7 +323,25 @@ import meme_post from './MemePost.vue';
         }else{
           return false
         }
+  },
+  async scroll () {
+      window.onscroll = () => {
+        let bottomOfWindow = document.documentElement.scrollTop + window.innerHeight === document.documentElement.offsetHeight;
+        if (bottomOfWindow) {
+         this.$store.dispatch('post/getTimeLine',this.page)
+            .then(()=>{
+                this.page++
+            })
+        }
+       }
   }
+  ,IMGurl:function(img){
+             if(img.avatar==''){
+               return require(`../assets/logo.svg`)
+             }else{
+                     return require(`../assets${img.avatar}`)
+             }
+             },
   },computed:{ ...mapState({
     IsAuthenticated:'authentication/login'
   }),
@@ -309,8 +349,21 @@ import meme_post from './MemePost.vue';
       return Math.round(this.posts.length/4)+1
   },...mapGetters({
         posts: 'post/timeline',
-  })
+  }),prefill(){
+      try{
+        return this.IMGurl(this.$route.params.user)
+      }catch{
+        return this.IMGurl({avatar:''})
+      }
+  }
 
   },
+  mounted(){
+
+    this.scroll();
+
+  },created(){
+    this.scroll();
+  }
 }
 </script>

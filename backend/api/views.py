@@ -11,6 +11,7 @@ from rest_framework import parsers
 from .serializers import *
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
+from rest_framework import generics
 from rest_framework.decorators import api_view
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.reverse import reverse,reverse_lazy
@@ -19,6 +20,7 @@ from random import randint,randrange
 from .algorithms import *
 from collections import OrderedDict
 import json
+import jwt
 from django.http import Http404
 from numpy import polyfit
 from django.db.models import Count
@@ -28,15 +30,20 @@ from social_core.backends.oauth import BaseOAuth2
 from social_core.exceptions import MissingBackend, AuthTokenError, AuthForbidden
 from requests.exceptions import HTTPError
 from rest_framework_jwt.utils import jwt_encode_handler,jwt_payload_handler
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .paginations import *
+from rest_framework import pagination
+from django.contrib.auth.tokens import default_token_generator
+from djoser import utils
+from djoser.serializers import ActivationSerializer
+from django.http import QueryDict
+from datetime import datetime
 User = get_user_model()
 
 # Serve Vue Application
 index_view = never_cache(TemplateView.as_view(template_name='index.html'))
 
 class FollowViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows messages to be viewed or edited.
-    """
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
 
@@ -51,20 +58,49 @@ class FollowViewSet(viewsets.ModelViewSet):
         else:
             raise Http404
 
+
+
+class TimelineView(generics.ListCreateAPIView):
+    #serializer_class = PostSerializer
+    pagination_class = PostPagination
+    def get_queryset(self):
+        queryset=Post.objects.filter(IsAdvert=False,IsActive=True,IsPublic=True).order_by('-date')
+        top = self.request.GET.get('top', None)
+        like=self.request.GET.get('like',None)
+        user=self.request.GET.get('user',None)
+        if top:
+            queryset=queryset.order_by('-PopularityScore')
+        elif like and user:
+            queryset=Action.objects.filter(user__username=user,type='Like').order_by('-post__date')
+        elif user:
+            queryset=Post.objects.filter(user__username=user,IsAdvert=False).order_by('-date')
+        return queryset
+
+    def get_serializer_class(self):
+        top = self.request.GET.get('top', None)
+        like=self.request.GET.get('like',None)
+        user=self.request.GET.get('user',None)
+        if top:
+            return PostSerializer
+        elif like and user:
+            return ActionSerializer
+        elif user:
+            return PostSerializer
+        return PostSerializer
+
 class PostSearchViewSet(viewsets.ModelViewSet):
     queryset=Post.objects.all()
     serializer_class = PostSerializer
     filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
-    search_fields=('user__username','description','postlabelling__label__name','comment__content','imgs__template__name')
-
+    search_fields=('user__username','description','postlabelling__label__name','comment__content','imgs__template__name','memetext__text')
     def create(self,request):
-        term=request.data['term']
-        for i in request.data['result']:
-            p=Post.objects.get(ID=i['ID'])
-            if isinstance(request.user,User):
-                sr=SearchResult.objects.create(user=request.user,result=p,term=term)
-            else:
-                sr=SearchResult.objects.create(result=p,term=term)
+#        term=request.data['term']
+#        for i in request.data['result']:
+#            p=Post.objects.get(ID=int(i['ID'])
+#            if isinstance(request.user,User):
+#                sr=SearchResult.objects.create(user=request.user,result=p,term=term)
+#            else:
+#                sr=SearchResult.objects.create(result=p,term=term)
         return Response({})
 
 
@@ -82,6 +118,7 @@ class PostSearchViewSet(viewsets.ModelViewSet):
 class PostViewSet(viewsets.ModelViewSet):
     permission_classes = (AllowAny,)
     queryset = Post.objects.filter(IsAdult=False)
+    paginator=PostPagination
     serializer_class = PostSerializer
     filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
     search_fields=('user__username',)
@@ -90,7 +127,7 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer = PostSerializer(queryset,many=True, context={'request': request})
         if isinstance(request.user,User):
             if request.user.is_staff:
-                postquery=Post.objects.filter(IsAdvert=False,IsModerated=False)
+                postquery=Post.objects.filter(IsAdvert=False,IsModerated=False).order_by('-date')
                 serializer=PostSerializer(postquery,many=True,context={'request':request})
             elif len(PersonalScoringProfile.objects.filter(user=request.user))==0:
                 serializer = PostSerializer(queryset,many=True, context={'request': request})
@@ -114,7 +151,8 @@ class PostViewSet(viewsets.ModelViewSet):
                                             IsInlinePost=booldict[request.data['IsInlinePost']],
                                             AppearenceFrequency=request.data['AppearenceFrequency'],
                                             #date=request.data['date'],
-                                            #CampaignTime=request.data['CampaignTime'],
+                                            CampaignTimestart=request.data['CampaignTimestart'],
+                                            CampaignTimeend=request.data['CampaignTimeend'],
                                             IsAdvert=True,
                                             AdURL=request.data['AdURL']
                                             )
@@ -143,8 +181,20 @@ class PostViewSet(viewsets.ModelViewSet):
         post.save()
         return Response(serializer.data)
 
-    def update(self,request):
-        pass
+    @action(detail=False,methods=['post'])
+    def updateAd(self,request):
+        print(request.data)
+        if request.data['IsAdvert']:
+            p=Post.objects.get(ID=request.data['ID'])
+            p.ID=request.data['ID']
+            p.IsActive=request.data['IsActive']
+            p.CampaignTimestart=request.data['CampaignTimestart']
+            p.CampaignTimeend=request.data['CampaignTimeend']
+            p.save()
+            serializer=PostSerializer(p,context={'request':request})
+            return Response(serializer.data)
+        else:
+            pass
 
     @action(detail=False, methods=['get'])
     def get_ad(self,request):
@@ -195,7 +245,7 @@ class PostViewSet(viewsets.ModelViewSet):
             else:
                 post.IsModerated=True
                 post.save()
-                Action.objects.filter(post=post,type='Report').delete()
+                Action.objects.filter(post=post,type='Report').delete().set_popularityscore(post)
                 return Response(False)
 
         raise Http404
@@ -225,12 +275,14 @@ class PostViewSet(viewsets.ModelViewSet):
     def like(self,request, pk=None):
         post=Post.objects.get(pk=pk)
         if len(Action.objects.filter(user=request.user,post=post,type='Like'))==0:
-            post.save()
+            Action.objects.set_popularityscore(post)
             serializer=PostSerializer(post, context={'request': request})
             #action=ActionSerializer(post,context={'request': request})
+
             Action.objects.create(user=request.user,post=post,type='Like')
         else:
             Action.objects.get(user=request.user,post=post,type='Like').delete()
+            Action.objects.set_popularityscore(post)
             post.save()
             serializer=PostSerializer(post, context={'request': request})
         UpdateProfileScores(user=request.user)
@@ -246,6 +298,7 @@ class PostViewSet(viewsets.ModelViewSet):
             #action=ActionSerializer(post,data={'type':request.data['type']})
             a=Action.objects.create(post=post,user=request.user,type=request.data["type"])
             a.save()
+            Action.objects.set_popularityscore(post)
             if request.data["type"]=='Click' and post.IsAdvert:
                 if postOwner.balance-setting.MoneyForCick <=0:
                     post.IsActive=False
@@ -267,6 +320,20 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response({})
 
 
+
+class CommentView(generics.ListAPIView):
+    pagination_class = PostPagination
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        post = self.request.GET.get('post', None)
+        reply=self.request.GET.get('reply',None)
+        if post:
+            if reply:
+                comments = Comment.objects.filter(post=post,reply_to=reply)
+            else:
+                comments = Comment.objects.filter(post=post)
+        return comments
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
@@ -328,6 +395,7 @@ class CommentViewSet(viewsets.ModelViewSet):
             serializer=CommentSerializer(com, context={'request': request})
         return Response(serializer.data)
 
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.exclude(is_superuser=1)
     serializer_class = UserSerializer
@@ -335,9 +403,11 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields=('username',)
     @action(detail=False,methods=['Post'])
     def complete(self,request):
+        print(request.data)
         user = User.objects.get(username=request.user.username)
         user.last_name=request.data['last_name']
         user.first_name=request.data['first_name']
+        user.age=request.data['birthday']
         user.save()
         for i in Label.objects.all():
             p=PersonalScoringProfile.objects.create(user=user,label=i,score=0)
@@ -370,6 +440,15 @@ class UserViewSet(viewsets.ModelViewSet):
         logout(request)
         return Response()
 
+    @action(detail=False,methods=['GET'])
+    def changeTheme(self,request):
+        print(type(request.user))
+        if isinstance(request.user,User):
+            u=User.objects.get(username=request.user.username)
+            u.DarkMode = not u.DarkMode
+            u.save()
+            print(u.username,'\t',u.DarkMode)
+        return Response(status=status.HTTP_200_OK)
 
 class ActionViewSet(viewsets.ModelViewSet):
 
@@ -395,6 +474,8 @@ class MemeContentViewSet(viewsets.ModelViewSet):
         for index in range(int(request.data['size'])):
             t=MemeContent.objects.create(post=post,index=index,IMG=request.FILES['meme'+str(index)])
             t.save()
+            t=MemeText.objects.create(post=post,text=request.data['text'][i])
+            t.save()
         serializer=PostSerializer(post,context={'request': request})
         return Response(serializer.data)
 ################################################################################################
@@ -419,28 +500,46 @@ class StatisticsViewSet(viewsets.ModelViewSet):
 #      )
     @action(detail=False,methods=['post'])
     def estimate(self,request):
-        xy=User.objects.annotate(day=TruncDay('date_joined')).values('day').annotate(c=Count('id')).values('day', 'c')
+        today=datetime.now().date()
+        start=datetime.strptime(request.data['startDate'],'%Y-%m-%d')
+        end=datetime.strptime(request.data['endDate'],'%Y-%m-%d')
+        range=end-start
+        lookback=today-range
+        clicks=len(Action.objects.filter(date__range=[lookback.isoformat(),today.isoformat()]),type='Click')
+        views=len(Action.objects.filter(date__range=[lookback.isoformat(),today.isoformat()]),type='Seen')
         if request.data['function']=='estimateUsers':
-            response=estimateUsers(xy,request.data['startDate'],request.data['endDate'],request.data['budget'])
-        elif request.data['function']=='estimateDateRange':
-            response=estimateDateRange(xy,request.data['reachedUsers'],request.data['budget'])
-        else:
-            response=estimateBudget(xy,request.data['startDate'],request.data['endDate'],request.data['reachedUsers'])
-
+            settings=AdvertSettings.objects.get(admin=admin)
+            normalized_budget=settings.MoneyForSeen*views+settings.MoneyForClick*click
+            frequency=request.data['budget']/normalized_budget
+            users=len(Action.objects.filter(date__range=[lookback.isoformat(),today.isoformat()],type=['Click','View']))*frequency
+            response={'users':users,'AdFrequency':frequency}
         return Response(response)
 
 
 class TemplateViewSet(viewsets.ModelViewSet):
-    queryset = Template.objects.all()
     serializer_class = TemplateSerializer
+    pagination_class = TemplatePagination
+    filter_backends = (filters.SearchFilter,filters.OrderingFilter,DjangoFilterBackend)
+    search_fields=('user__username','name',)
 
-    def list(self,request):
-        if isinstance(request.user, User):
-            qs = Template.objects.all()
-            serialized = TemplateSerializer(qs, many=True, context={'request':request})
-            return Response(serialized.data)
+    def get_queryset(self):
+        my = self.request.GET.get('my', None)
+        recycle=self.request.GET.get('recycle',None)
+        user=self.request.GET.get('user',None)
+        if my:
+            return Template.objects.filter(user__username=user).order_by('-date')
+        elif recycle:
+            return Recycle.objects.filter(user__username=user).order_by('-date')
         else:
-            return Response({})
+            return Template.objects.filter(IsPublic=True).order_by('-date')
+
+    def get_serializer_class(self):
+        my = self.request.GET.get('my', None)
+        recycle=self.request.GET.get('like',None)
+        if recycle:
+            return RecycleSerializer
+        else:
+            return TemplateSerializer
 
     @action(detail=False, methods=['get'])
     def personal(self,request):
@@ -510,10 +609,9 @@ class SocialLoginView(generics.GenericAPIView):
             status=status.HTTP_400_BAD_REQUEST)
         try:
             if isinstance(backend, BaseOAuth2):
+                print(serializer.data)
                 access_token = serializer.data.get('access_token')
                 #password = serializer.data.get('password')
-                print('here')
-                print(type(backend))
             user = backend.do_auth(access_token)#,password)
             print(user)
         except HTTPError as error:
@@ -551,11 +649,7 @@ class SocialLoginView(generics.GenericAPIView):
 
         if authenticated_user and authenticated_user.is_active:
 			#generate JWT token
-            print('here6')
-            print(authenticated_user.email)
-            print(authenticated_user.username)
             login(request, authenticated_user)
-            print('here7')
             data={
                 "token": jwt_encode_handler(
                     jwt_payload_handler(user)
@@ -564,6 +658,29 @@ class SocialLoginView(generics.GenericAPIView):
             response = {
                 "email": authenticated_user.email,
                 "username": authenticated_user.username,
+                #"gender": authenticated_user.gender,
+                #"birthday": authenticated_user.birthday,
+                #"profile": authenticated_user.profile,
                 "token": data.get('token')
             }
-            return Response(status=status.HTTP_200_OK, data=response)
+#            try:
+            #self.user_activate(authenticated_user)
+#            except:
+#                pass
+            authenticated_user.is_active=True
+            authenticated_user.save()
+            password = jwt.encode({'username':authenticated_user.username}, 'secret', algorithm='HS256')
+            d={'username':authenticated_user.username,'password':password.decode("utf-8")}#,'csrfmiddlewaretoken':request.data['csrfmiddlewaretoken']}
+            query_dict = QueryDict('', mutable=True)
+            query_dict.update(d)
+            response=TokenObtainPairSerializer(data=query_dict)
+            response.is_valid()
+            serialized_user=UserSerializer(authenticated_user)
+            serialized={'token':response.validated_data,'user':serialized_user.data}
+            print(serialized)
+            return Response(status=status.HTTP_200_OK, data=serialized)
+
+    def user_activate(self,user):
+        uid=utils.encode_uid(user.pk)
+        token=default_token_generator.make_token(user)
+        ActivationSerializer({'uid':uid,'token':token})

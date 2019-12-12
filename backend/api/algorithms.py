@@ -25,7 +25,9 @@ def UpdateProfileScores(user):
                 labelpooldict[l.label]=1
                 p=PersonalScoringProfile.objects.create(user=user,label=l.label,score=0)
                 p.save()
-                labels=labels.extend([p])
+                #labels=labels.extend([p])
+
+                labels |= PersonalScoringProfile.objects.filter(p)
     for score in labels:
         for s in labelpooldict.keys():
             if score.label==s:
@@ -37,10 +39,18 @@ def UpdateProfileScores(user):
 
 
 def estimateUsers(dataset,x0,x1,area):
-    return 8
+    return 
 
 def estimateBudget(dataset,areaObj,areaHave):
     return 10000
 
 def estimateDateRange(dataset,x0,x1,area):
     return 50
+
+def Personalization(UserObject,PostObject):
+    postlabel=PostLabelling.objects.filter(post=PostObject)
+    score=0
+    for label in postlabel:
+            if len(PersonalScoringProfile.objects.filter(user=UserObject, label=label.label))>0:
+                score=score+PersonalScoringProfile.objects.get(user=UserObject,label=label.label).score
+    return score

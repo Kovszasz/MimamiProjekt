@@ -34,7 +34,7 @@ import LoginCore from './LoginCore.vue'
         }).then(() => {
               this.wrongCred = false
               async (()=>{
-               this.$store.dispatch('post/getTimeLine')
+                this.$store.commit('post/emptyPostStorage')
               }).then(this.$router.push({ name: 'home' }))
             })
           .catch(err => {

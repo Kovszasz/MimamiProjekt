@@ -8,7 +8,6 @@ import axios from 'axios'
 
 // Add modified axios instance to Vue prototype so that to be available globally via Vue instance
 //Vue.prototype.$http = axios;
-
 const eventsHub = new Vue()
 Vue.use(IdleVue, {
   eventEmitter: eventsHub,
@@ -19,7 +18,10 @@ Vue.config.productionTip = false
 store.subscribe((mutation, state) => {
   console.log(mutation.type)
 });
-
+console.log(store.state)
+if(!store.state.authentication.user.complete_account && store.state.authentication.login){
+    router.push({name:'register',params:{core:false,user:store.state.authentication.user}})
+}
 /*router.beforeEach((to, from, next) => {
   if (!store.authentication.userisAuthenticated) next('/login')
   else next()
@@ -50,6 +52,9 @@ router.beforeEach((to, from, next) => {
   }
 })
 */
+
+
+
 const vue = new Vue({
   router,
   store,

@@ -3,7 +3,7 @@
   <b-container fluid class="bv-example-row">
     <b-row>
     <div v-intersect="seen">
-        <b-card  header-tag="header" footer-tag="footer"  >
+        <b-card  header-tag="header" footer-tag="footer"  style="max-width: 600px;">
           <advert v-slot:header v-if="!IsRegistration"></advert>
           <template  v-if="IsAuthenticated">
             <v-list-item two-line height="100">
@@ -25,7 +25,7 @@
                     <span>{{ post.user.username }}</span>
                 </v-badge>
                 </router-link></v-list-item-title>
-                <v-list-item-subtitle>date</v-list-item-subtitle>
+                <v-list-item-subtitle>{{ since }}</v-list-item-subtitle>
               </v-list-item-content>
             <v-list-item-action align="right">
             <template v-if="post.user.username !== user.username" >
@@ -161,6 +161,7 @@ import advert from './Advert.vue';
 import comment_section from './CommentSection.vue';
 import { NavbarPlugin } from 'bootstrap-vue'
 import EditPost from './EditPost.vue'
+import moment from 'moment'
 //var SocialSharing = require('vue-social-sharing');
 import VueClipboard from 'vue-clipboard2'
 import {
@@ -235,7 +236,10 @@ export default {
         let encrypted = cipher.update(text);
         encrypted = Buffer.concat([encrypted, cipher.final()]);
         return { iv: iv.toString('hex'), encryptedData: encrypted.toString('hex') };
-}
+      },
+      since(){
+        return moment(this.post.date, "YYYYMMDD").fromNow();
+      }
 },
   methods:{ ...mapActions('post', {
   addPost:'addPost',

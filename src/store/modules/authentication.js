@@ -18,7 +18,7 @@ const  state= {
      refreshToken: localStorage.getItem('refresh_token') || null,
      APIData: '', // received data from the backend API is stored here.
      login:localStorage.getItem('login') || false,
-     user:localStorage.getItem('user') || {complete_account:false},
+     user:localStorage.getItem('user') || {complete_account:false, DarkMode:false, color:'#000000'},
   }
 const  getters= {
     loggedIn: state => {
@@ -32,9 +32,15 @@ const  getters= {
     },
     IsAuthenticated:state=>{
       return state.login
+    },
+    style:state=>{
+      return state.user.DarkMode
     }
   }
 const  mutations= {
+    changeTheme(state){
+      state.user.DarkMode=!state.user.DarkMode
+    },
     updateLocalStorage (state, { access, refresh,login }) {
       localStorage.setItem('access_token', access)
       localStorage.setItem('refresh_token', refresh)
@@ -53,6 +59,9 @@ const  mutations= {
     updateUser(state,user){
       localStorage.setItem('user',user)
       state.user=user
+    },
+    updateStyle(state,themebool){
+      state.style=themebool
     }
   }
 const  actions= {
@@ -102,7 +111,7 @@ completeUserRegistration (context, data) {
             .catch(err=>{
                 console.error(err);
             });
-            context.commit('updateUser',response)
+            context.commit('updateUser',response.data)
           //  async (()=>{
           //     store.dispatch('post/getTimeLine')
             resolve(response)
@@ -179,25 +188,12 @@ completeUserRegistration (context, data) {
             provider:'facebook',
             access_token:FBaccessToken
           }).then(response=>{
-            username=response.data.username
-            context.commit('updateLocalStorage',{access:response.data.token,refresh:response.data.token,login:true})
-
+            username=response.data.user.username
+            context.commit('updateLocalStorage',{access:response.data.token.access,refresh:response.data.token.refresh,login:true})
+            context.commit('updateUser', response.user.data)
           })
-          axios.get(`/api/users/${credentials.username}/user_login/`)
-            .then(response =>{
-              context.commit('updateUser', response.data)
-            /*  async (()=>{
-                context.commit('updateUser', response.data)
-                resolve()
-              }).then(post.dispatch('getTimeLine'))*/
-              //post.dispatch('getTimeLine')
-            })
-            .catch(err => {
-              reject(err)
-            })
-
       })
-    }
+    },
   }
     //getUser(context)
 //  if (state.token) {
